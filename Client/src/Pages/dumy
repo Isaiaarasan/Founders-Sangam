@@ -1,0 +1,358 @@
+// import React, { useRef, useEffect } from "react";
+// import {
+//   motion,
+//   useScroll,
+//   useTransform,
+//   useSpring,
+//   useInView,
+// } from "framer-motion";
+// import { ArrowRight, Menu, ToggleRight } from "lucide-react";
+
+// // --- Theme Constants (Founders Sangam Style) ---
+// const BRAND_GRADIENT = "bg-gradient-to-r from-amber-400 via-red-500 to-sky-600";
+// const TEXT_GRADIENT =
+//   "text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-500 to-sky-600";
+
+// // --- Utility Components ---
+
+// const FadeIn = ({ children, delay = 0, className = "" }) => (
+//   <motion.div
+//     initial={{ opacity: 0, y: 30 }}
+//     whileInView={{ opacity: 1, y: 0 }}
+//     viewport={{ once: true, margin: "-50px" }}
+//     transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+//     className={className}
+//   >
+//     {children}
+//   </motion.div>
+// );
+
+// const NavPill = ({ text, active = false }) => (
+//   <button
+//     className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+//       active
+//         ? "bg-sky-50 text-sky-600 shadow-sm ring-1 ring-sky-100"
+//         : "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-black"
+//     }`}
+//   >
+//     {text}
+//   </button>
+// );
+
+// const Counter = ({ value, suffix = "" }) => {
+//   const ref = useRef(null);
+//   const isInView = useInView(ref, { once: true, margin: "-100px" });
+//   const springValue = useSpring(0, { stiffness: 50, damping: 20 });
+//   const displayValue = useTransform(
+//     springValue,
+//     (latest) => `${Math.round(latest)}${suffix}`
+//   );
+
+//   useEffect(() => {
+//     if (isInView) springValue.set(value);
+//   }, [isInView, value, springValue]);
+
+//   return <motion.span ref={ref}>{displayValue}</motion.span>;
+// };
+
+// // --- Sections ---
+
+// const Navbar = () => (
+//   <motion.nav
+//     initial={{ y: -100 }}
+//     animate={{ y: 0 }}
+//     transition={{ duration: 0.8, ease: "circOut" }}
+//     className="fixed top-6 left-0 right-0 z-50 flex justify-center w-full px-4"
+//   >
+//     <div className="bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-4 py-3 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-[1800px]">
+//       <div className="flex items-center gap-6 pl-4">
+//         {/* Colorful Logo Icon */}
+//         <div className="flex items-center gap-3">
+//           <div className="flex -space-x-1">
+//             <div className="w-3 h-3 rounded-full border border-white bg-amber-400"></div>
+//             <div className="w-3 h-3 rounded-full border border-white bg-red-500"></div>
+//             <div className="w-3 h-3 rounded-full border border-white bg-sky-500"></div>
+//           </div>
+//           <span className="font-bold text-xl tracking-tighter text-slate-900">
+//             MachinaFusion
+//           </span>
+//         </div>
+
+//         <div className="h-6 w-[1px] bg-gray-200 hidden md:block"></div>
+//         <div className="hidden md:flex gap-2">
+//           <NavPill text="Menu" active />
+//           <NavPill text="Cutting-edge AI" />
+//           <NavPill text="Graphics AI" />
+//         </div>
+//       </div>
+
+//       <div className="flex items-center gap-3 pr-2">
+//         <button className="text-gray-400 hover:text-sky-600 transition-colors hidden sm:block">
+//           <ToggleRight className="w-8 h-8" />
+//         </button>
+//         <button
+//           className={`text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 ${BRAND_GRADIENT}`}
+//         >
+//           Curated Solutions
+//         </button>
+//       </div>
+//     </div>
+//   </motion.nav>
+// );
+
+// const Hero = () => {
+//   return (
+//     <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white">
+//       {/* Dynamic Background Blobs representing the 4 colors (From previous theme) */}
+//       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-60">
+//         <motion.div
+//           animate={{ x: [0, 100, 0], y: [0, -50, 0] }}
+//           transition={{ duration: 20, repeat: Infinity }}
+//           className="absolute top-0 right-0 w-[800px] h-[800px] bg-amber-100 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"
+//         />
+//         <motion.div
+//           animate={{ x: [0, -100, 0], y: [0, 50, 0] }}
+//           transition={{ duration: 25, repeat: Infinity }}
+//           className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-sky-100 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"
+//         />
+//         <motion.div
+//           animate={{ scale: [1, 1.2, 1] }}
+//           transition={{ duration: 15, repeat: Infinity }}
+//           className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-red-50 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"
+//         />
+//       </div>
+
+//       <div className="w-full px-8 md:px-12 relative z-10 h-full flex flex-col justify-center">
+//         <FadeIn className="w-full h-[65vh] relative flex items-center justify-between max-w-[1920px] mx-auto mt-20">
+//           {/* Left Hand (Human) - Added invert filter to pop against white if needed, or keeping natural if png allows */}
+//           <motion.img
+//             initial={{ x: -100, opacity: 0 }}
+//             animate={{ x: 0, opacity: 1 }}
+//             transition={{ duration: 2.5 }}
+//             src="/Images/Robot_hand down.png"
+//             alt="Human Hand"
+//             className="w-[45%] h-full object-contain object-left drop-shadow-2xl"
+//           />
+
+//           {/* Right Hand (Robot) */}
+//           <motion.img
+//             initial={{ x: 100, opacity: 0 }}
+//             animate={{ x: 0, opacity: 1 }}
+//             transition={{ duration: 2.5 }}
+//             src="/Images/robothand.png"
+//             alt="Robot Hand"
+//             className="w-[45%] h-full object-contain object-right drop-shadow-2xl"
+//           />
+
+//           {/* Centered Typography */}
+//           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center z-20 pointer-events-none">
+//             <h1 className="text-7xl md:text-9xl font-extrabold tracking-tighter text-slate-900 opacity-90 mix-blend-multiply">
+//               MachinaFusion
+//             </h1>
+//             <h2
+//               className={`text-3xl md:text-5xl font-light tracking-widest mt-4 uppercase ${TEXT_GRADIENT}`}
+//             >
+//               Intelligence that feels
+//             </h2>
+//           </div>
+//         </FadeIn>
+
+//         <FadeIn
+//           delay={0.3}
+//           className="absolute bottom-12 left-0 right-0 flex justify-center z-20"
+//         >
+//           <div className="flex gap-4 p-2 bg-white/50 backdrop-blur-md rounded-full border border-white/40 shadow-xl">
+//             <NavPill text="Algorithms" />
+//             <NavPill text="AI Core" />
+//             <NavPill text="Robotics" />
+//           </div>
+//         </FadeIn>
+//       </div>
+//     </section>
+//   );
+// };
+
+// const TunnelSection = () => {
+//   return (
+//     <section className="h-screen w-full bg-white relative overflow-hidden flex items-center justify-center">
+//       {/* Video with overlay to blend into white theme */}
+//       <div className="absolute inset-0 bg-white">
+//         <video
+//           autoPlay
+//           loop
+//           muted
+//           playsInline
+//           className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-darken grayscale"
+//         >
+//           <source
+//             src="https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-tunnel-3195-large.mp4"
+//             type="video/mp4"
+//           />
+//         </video>
+//       </div>
+
+//       <div className="relative z-10 text-center">
+//         <motion.h2
+//           initial={{ letterSpacing: "0px", opacity: 0, y: 50 }}
+//           whileInView={{ letterSpacing: "10px", opacity: 1, y: 0 }}
+//           transition={{ duration: 1.5 }}
+//           className="text-slate-900 text-6xl md:text-9xl font-black uppercase tracking-tighter leading-tight"
+//         >
+//           Next Gen <br /> <span className={TEXT_GRADIENT}>Engineering</span>
+//         </motion.h2>
+//       </div>
+//     </section>
+//   );
+// };
+
+// const StatsItem = ({ value, label, delay, colorClass }) => (
+//   <FadeIn
+//     delay={delay}
+//     className="flex flex-col gap-6 p-10 bg-white rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden"
+//   >
+//     {/* Decorative background blob */}
+//     <div
+//       className={`absolute -right-10 -top-10 w-40 h-40 ${colorClass} opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700`}
+//     ></div>
+
+//     <div className="flex justify-between items-end relative z-10">
+//       <h3 className="text-6xl font-bold text-slate-900 tracking-tight">
+//         {value}
+//       </h3>
+//       <div className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all">
+//         <ArrowRight size={20} />
+//       </div>
+//     </div>
+//     <p className="text-slate-500 font-bold uppercase text-xs tracking-[0.2em]">
+//       {label}
+//     </p>
+//     <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-4">
+//       <motion.div
+//         initial={{ width: 0 }}
+//         whileInView={{ width: "100%" }}
+//         transition={{ duration: 1.5, delay: delay + 0.2 }}
+//         className={`h-full ${colorClass} rounded-full`}
+//       />
+//     </div>
+//   </FadeIn>
+// );
+
+// const StatsSection = () => {
+//   return (
+//     <section className="py-32 bg-slate-50 w-full px-8 md:px-12 relative overflow-hidden">
+//       <div className="absolute top-1/2 left-0 w-[600px] h-[600px] bg-amber-100/50 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
+//       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-[1920px] mx-auto relative z-10">
+//         <StatsItem
+//           value={<Counter value={97} suffix="%" />}
+//           label="Operational Efficiency"
+//           delay={0.1}
+//           colorClass="bg-amber-400"
+//         />
+//         <StatsItem
+//           value={<Counter value={12} suffix=" K" />}
+//           label="Connected Units"
+//           delay={0.2}
+//           colorClass="bg-red-500"
+//         />
+//         <StatsItem
+//           value={<Counter value={30} suffix="+" />}
+//           label="Industries Disrupted"
+//           delay={0.3}
+//           colorClass="bg-sky-500"
+//         />
+//       </div>
+//     </section>
+//   );
+// };
+
+// const CarouselSection = () => {
+//   return (
+//     <section className="py-32 bg-white overflow-hidden w-full relative">
+//       {/* Background Grid */}
+//       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:44px_44px]"></div>
+
+//       <div className="px-12 mb-16 text-center relative z-10">
+//         <FadeIn>
+//           <p
+//             className={`text-sm font-bold tracking-[0.3em] uppercase mb-6 ${TEXT_GRADIENT}`}
+//           >
+//             Product Engineering
+//           </p>
+//           <h2 className="text-5xl md:text-8xl font-bold text-slate-900">
+//             Touching tomorrow,{" "}
+//             <span className="text-slate-300 italic">today.</span>
+//           </h2>
+//         </FadeIn>
+//       </div>
+
+//       {/* Infinite Scroll Logos - Adapted for Light Theme */}
+//       <div className="w-full flex overflow-hidden border-y border-slate-100 py-12 bg-slate-50/50 relative z-10">
+//         <motion.div
+//           animate={{ x: ["0%", "-50%"] }}
+//           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+//           className="flex gap-24 items-center whitespace-nowrap"
+//         >
+//           {[1, 2, 3, 4, 1, 2, 3, 4].map((i, index) => (
+//             <span
+//               key={index}
+//               className="text-5xl font-bold text-slate-200 mx-8 hover:text-slate-900 transition-colors cursor-pointer uppercase tracking-tighter"
+//             >
+//               PARTNER {i}
+//             </span>
+//           ))}
+//         </motion.div>
+//       </div>
+//     </section>
+//   );
+// };
+
+// const Footer = () => (
+//   <footer className="bg-white py-24 border-t border-slate-100 w-full px-12">
+//     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-12 max-w-[1920px] mx-auto">
+//       <div className="max-w-4xl">
+//         <h2 className="text-6xl md:text-9xl font-bold text-slate-900 tracking-tighter leading-none">
+//           MachinaFusion <br />
+//           <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-sky-500">
+//             Where Human
+//           </span>{" "}
+//           <br />
+//           Intuition Meets...
+//         </h2>
+//         <div className="mt-12 flex gap-6">
+//           <button
+//             className={`text-white px-10 py-4 rounded-full text-lg font-bold hover:brightness-110 transition-all shadow-xl ${BRAND_GRADIENT}`}
+//           >
+//             Download App
+//           </button>
+//           <button className="border border-slate-200 text-slate-900 px-10 py-4 rounded-full text-lg hover:bg-slate-50 transition-colors">
+//             Robots
+//           </button>
+//         </div>
+//       </div>
+//       <div className="text-right">
+//         <a
+//           href="#"
+//           className="text-lg text-slate-400 hover:text-slate-900 transition-colors underline decoration-slate-200 underline-offset-8"
+//         >
+//           machinafusion@corp.com
+//         </a>
+//       </div>
+//     </div>
+//   </footer>
+// );
+
+// // --- Main App ---
+
+// function App() {
+//   return (
+//     <div className="font-sans antialiased bg-white min-h-screen selection:bg-amber-400 selection:text-black">
+//       <Navbar />
+//       <Hero />
+//       <TunnelSection />
+//       <StatsSection />
+//       <CarouselSection />
+//       <Footer />
+//     </div>
+//   );
+// }

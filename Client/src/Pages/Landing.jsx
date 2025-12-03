@@ -13,6 +13,7 @@ import {
   Rocket,
   Globe,
   Sparkles,
+  MapPin,
 } from "lucide-react";
 
 // --- Theme Constants (Based on Logo) ---
@@ -31,7 +32,7 @@ const FadeIn = ({ children, delay = 0, className = "" }) => (
   <motion.div
     initial={{ opacity: 0, y: 40 }}
     whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "-50px" }}
+    viewport={{ once: true, margin: "10px" }}
     transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }} // Custom bezier for smooth 'Apple-like' feel
     className={className}
   >
@@ -76,7 +77,7 @@ const Navbar = () => (
     transition={{ duration: 0.8, ease: "circOut" }}
     className="fixed top-6 left-0 right-0 z-50 flex justify-center w-full px-4"
   >
-    <div className="bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-4 py-3 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-6xl">
+    <div className="bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-4 py-3 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-7xl">
       <div className="flex items-center gap-6 pl-2 md:pl-4">
         {/* Logo Representation */}
         <div className="flex items-center gap-2">
@@ -95,7 +96,7 @@ const Navbar = () => (
         <div className="hidden md:flex gap-2">
           <NavPill text="Home" active />
           <NavPill text="Events" />
-          <NavPill text="Membership" />
+          <NavPill text="About" />
         </div>
       </div>
 
@@ -113,7 +114,7 @@ const Navbar = () => (
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white">
+    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white pt-28 md:pt-27 pb-12">
       {/* Dynamic Background Blobs representing the 4 colors */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -133,22 +134,22 @@ const Hero = () => {
         />
       </div>
 
-      <div className="w-full px-6 md:px-12 relative z-10 h-full flex flex-col justify-center mt-20">
+      <div className="w-full px-6 md:px-12 relative z-50 h-full flex flex-col justify-center">
         <FadeIn className="w-full relative flex flex-col items-center justify-center max-w-7xl mx-auto text-center">
           {/* Abstract Logo Animation (The Rings) */}
           <div className="relative w-64 h-32 mb-12 flex justify-center items-center">
             {[
-              { color: "border-amber-400", delay: 0, x: -60 },
-              { color: "border-red-500", delay: 0.1, x: -20 },
-              { color: "border-emerald-500", delay: 0.2, x: 20 },
-              { color: "border-sky-500", delay: 0.3, x: 60 },
+              { color: "border-amber-400", delay: 0, x: -70 },
+              { color: "border-red-500", delay: 0.3, x: -25 },
+              { color: "border-emerald-500", delay: 0.6, x: 25 },
+              { color: "border-sky-500", delay: 0.9, x: 70 },
             ].map((ring, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0, x: 0 }}
                 animate={{ opacity: 1, scale: 1, x: ring.x }}
                 transition={{
-                  duration: 1.5,
+                  duration: 4,
                   delay: ring.delay,
                   type: "spring",
                 }}
@@ -157,7 +158,7 @@ const Hero = () => {
             ))}
           </div>
 
-          <h1 className="text-6xl md:text-8xl lg:text-9xl font-extrabold tracking-tighter text-slate-900 leading-[0.9]">
+          <h1 className="text-6xl md:text-8xl lg:text-7xl font-extrabold tracking-tighter text-slate-900 leading-[0.9]">
             FOUNDERS <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-500 to-sky-500">
               SANGAM
@@ -165,9 +166,10 @@ const Hero = () => {
           </h1>
 
           <p className="mt-8 text-xl md:text-2xl text-slate-500 max-w-2xl font-medium">
-            The exclusive ecosystem where{" "}
-            <span className="text-black font-semibold">young visionaries</span>{" "}
-            connect, collaborate, and conquer.
+            A circle of bold founders shaping what’s next. <br />
+            <span className="text-black font-semibold">
+              Networking. Collaboration. Growth.
+            </span>
           </p>
 
           <motion.div
@@ -210,18 +212,22 @@ const ManifestoMarquee = () => {
           >
             {[...Array(4)].map((_, i) => (
               <div key={i} className="flex items-center gap-12">
-                <span className="text-8xl md:text-9xl font-black text-slate-900 tracking-tighter">
-                  INNOVATE
+                <span className="text-4xl md:text-8xl font-black text-slate-900 tracking-tighter">
+                  NETWORKING
                 </span>
-                <span className="w-8 h-8 rounded-full bg-amber-400"></span>
-                <span className="text-8xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 tracking-tighter">
-                  CONNECT
+                <span className="w-6 h-5 rounded-full bg-amber-400"></span>
+                <span className="text-8xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 tracking-tighter">
+                  COLLABORATION
                 </span>
                 <span className="w-8 h-8 rounded-full bg-emerald-500"></span>
-                <span className="text-8xl md:text-9xl font-black text-slate-900 tracking-tighter">
-                  SCALE
+                <span className="text-7xl md:text-8xl font-black text-slate-900 tracking-tighter">
+                  GROWTH
                 </span>
                 <span className="w-8 h-8 rounded-full bg-sky-500"></span>
+                <span className="text-7xl md:text-8xl font-black text-slate-900 tracking-tighter">
+                  CULTURE
+                </span>
+                <span className="w-6 h-5 rounded-full bg-amber-400"></span>
               </div>
             ))}
           </motion.div>
@@ -278,33 +284,33 @@ const StatsSection = () => {
       <div className="max-w-7xl mx-auto mb-16 text-left">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
-            Building the future, <br />
-            <span className="text-slate-400">one founder at a time.</span>
+            Building a startup culture, <br />
+            <span className="text-slate-400">in the heart of Tirupur.</span>
           </h2>
         </FadeIn>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
         <StatsCard
-          value={<Counter value={500} suffix="+" />}
-          label="Active Founders"
+          value={<Counter value={50} suffix="+" />}
+          label="Bold Founders"
           delay={0.1}
           gradient={BRAND_COLORS.yellow}
           icon={Users}
         />
         <StatsCard
-          value={<Counter value={85} suffix="%" />}
-          label="Success Rate"
+          value={<Counter value={100} suffix="%" />}
+          label="Real Stories"
           delay={0.2}
           gradient={BRAND_COLORS.red}
           icon={Rocket}
         />
         <StatsCard
-          value={<Counter value={20} suffix="+" />}
-          label="Cities Reached"
+          value={<Counter value={1} suffix="" />}
+          label="Tirupur Base"
           delay={0.3}
           gradient={BRAND_COLORS.blue}
-          icon={Globe}
+          icon={MapPin}
         />
       </div>
     </section>
@@ -321,18 +327,20 @@ const ValueSection = () => {
           <div className="w-full md:w-1/2">
             <FadeIn>
               <span className="text-emerald-600 font-bold tracking-widest text-sm uppercase mb-4 block">
-                Our Philosophy
+                Our Core Purpose
               </span>
               <h2 className="text-5xl md:text-7xl font-bold text-slate-900 mb-8 tracking-tight">
-                Unity in <br />{" "}
+                Shaping <br />{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-sky-600">
-                  Diversity.
+                  What's Next.
                 </span>
               </h2>
               <p className="text-lg text-slate-600 leading-relaxed mb-8">
-                The Founders Sangam logo represents the coming together of
-                diverse minds. Like our interlocking rings, we believe that when
-                distinct perspectives overlap, true innovation happens.
+                Founders Sangam is a Tirupur-based entrepreneurial networking
+                community that brings together startup founders, business
+                leaders, and innovators. We function as an event-based ecosystem
+                to share real stories, practical insights, and build a startup
+                culture beyond the region's traditional textile roots.
               </p>
               <button className="text-slate-900 font-bold border-b-2 border-slate-900 pb-1 hover:text-emerald-600 hover:border-emerald-600 transition-colors">
                 Read our Vision
@@ -372,15 +380,19 @@ const Footer = () => (
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
         <div className="max-w-2xl">
-          <h2 className="text-5xl md:text-7xl font-bold text-slate-900 tracking-tighter leading-none mb-8">
+          <h2 className="text-5xl md:text-4xl font-bold text-slate-900 tracking-tighter leading-none mb-8">
             Founders Sangam.
           </h2>
-          <p className="text-xl text-slate-500 max-w-md">
-            An exclusive community for young founders to dream, build, and scale
-            together.
+          <p className="text-xl text-slate-500 max-w-md mb-6">
+            A circle of bold founders shaping what’s next. Networking,
+            collaboration, and growth for Tirupur's startup ecosystem.
           </p>
+          <div className="text-slate-500 space-y-2">
+            <p>📧 founderssangam@gmail.com</p>
+            <p>📞 +91 85258 65979</p>
+          </div>
 
-          <div className="mt-12 flex flex-wrap gap-4">
+          <div className="mt-8 flex flex-wrap gap-4">
             <button className="bg-black text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 transition-all shadow-xl">
               Apply Now
             </button>
@@ -407,13 +419,28 @@ const Footer = () => (
 
       <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 gap-6">
         <p className="text-slate-400 text-sm">
-          © 2024 Founders Sangam. All rights reserved.
+          © 2025 Founders Sangam. All rights reserved.
         </p>
         <div className="flex gap-2">
-          <div className="w-3 h-3 rounded-full bg-amber-400"></div>
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-          <div className="w-3 h-3 rounded-full bg-sky-500"></div>
+          {/* Animated Color Dots */}
+          {["bg-amber-400", "bg-red-500", "bg-emerald-500", "bg-sky-500"].map(
+            (color, index) => (
+              <motion.div
+                key={index}
+                animate={{
+                  y: [0, -6, 0],
+                  scale: [1, 1.1, 1],
+                }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  delay: index * 0.15,
+                  ease: "easeInOut",
+                }}
+                className={`w-3 h-3 rounded-full ${color}`}
+              />
+            )
+          )}
         </div>
       </div>
     </div>
