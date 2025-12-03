@@ -1,29 +1,32 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import {
   motion,
   useScroll,
   useTransform,
   useSpring,
   useInView,
+  AnimatePresence,
 } from "framer-motion";
 import {
   ArrowRight,
   ToggleRight,
+  ToggleLeft,
   Users,
   Rocket,
   Globe,
   Sparkles,
   MapPin,
+  Moon,
+  Sun,
+  Menu,
 } from "lucide-react";
 
-// --- Theme Constants (Based on Logo) ---
-// Yellow: #F4B41A | Red: #E03C31 | Green: #009E60 | Blue: #00A0E3
+// --- Theme Constants ---
 const BRAND_COLORS = {
   yellow: "from-amber-400 to-yellow-500",
   red: "from-red-500 to-rose-600",
   green: "from-emerald-500 to-green-600",
   blue: "from-sky-500 to-blue-600",
-  multi: "bg-gradient-to-r from-amber-400 via-red-500 to-sky-500",
 };
 
 // --- Utility Components ---
@@ -33,7 +36,7 @@ const FadeIn = ({ children, delay = 0, className = "" }) => (
     initial={{ opacity: 0, y: 40 }}
     whileInView={{ opacity: 1, y: 0 }}
     viewport={{ once: true, margin: "10px" }}
-    transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }} // Custom bezier for smooth 'Apple-like' feel
+    transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
     className={className}
   >
     {children}
@@ -44,8 +47,8 @@ const NavPill = ({ text, active = false }) => (
   <button
     className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
       active
-        ? "bg-black text-white shadow-lg"
-        : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black"
+        ? "bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-900"
+        : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
     }`}
   >
     {text}
@@ -70,104 +73,178 @@ const Counter = ({ value, suffix = "" }) => {
 
 // --- Sections ---
 
-const Navbar = () => (
-  <motion.nav
-    initial={{ y: -100 }}
-    animate={{ y: 0 }}
-    transition={{ duration: 0.8, ease: "circOut" }}
-    className="fixed top-6 left-0 right-0 z-50 flex justify-center w-full px-4"
-  >
-    <div className="bg-white/80 backdrop-blur-xl border border-white/20 rounded-full px-4 py-3 flex items-center justify-between shadow-[0_8px_30px_rgb(0,0,0,0.04)] w-full max-w-7xl">
-      <div className="flex items-center gap-6 pl-2 md:pl-4">
-        {/* Logo Representation */}
-        <div className="flex items-center gap-2">
-          <div className="flex -space-x-1">
-            <div className="w-4 h-4 rounded-full border-2 border-white bg-amber-400"></div>
-            <div className="w-4 h-4 rounded-full border-2 border-white bg-red-500"></div>
-            <div className="w-4 h-4 rounded-full border-2 border-white bg-emerald-500"></div>
-            <div className="w-4 h-4 rounded-full border-2 border-white bg-sky-500"></div>
+const Navbar = ({ isDark, toggleTheme }) => {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <motion.nav
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.8, ease: "circOut" }}
+      className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full px-4 pt-6"
+    >
+      <motion.div
+        layout
+        initial={false}
+        animate={
+          isScrolled
+            ? {
+                width: "fit-content",
+                borderRadius: "9999px",
+                paddingLeft: "1.5rem",
+                paddingRight: "1.5rem",
+                y: 10,
+              }
+            : {
+                width: "100%",
+                maxWidth: "80rem", // max-w-7xl
+                borderRadius: "9999px",
+                paddingLeft: "1rem",
+                paddingRight: "1rem",
+                y: 0,
+              }
+        }
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        className={`
+          flex items-center justify-between py-3 border transition-colors duration-500
+          ${
+            isScrolled
+              ? "bg-white/100 border-slate-200 shadow-xl dark:bg-slate-900 dark:border-slate-700" // Solid when scrolled
+              : "bg-white/70 border-white/20 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:bg-slate-900/70 dark:border-slate-700/50" // Glassy at top
+          }
+        `}
+      >
+        <div className="flex items-center gap-6">
+          {/* Logo Representation */}
+          <div className="flex items-center gap-2">
+            <div className="flex -space-x-1">
+              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-amber-400"></div>
+              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-red-500"></div>
+              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-emerald-500"></div>
+              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-sky-500"></div>
+            </div>
+            <AnimatePresence>
+              {!isScrolled && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: "auto" }}
+                  exit={{ opacity: 0, width: 0 }}
+                  className="font-bold text-lg tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden"
+                >
+                  FOUNDERS SANGAM
+                </motion.span>
+              )}
+            </AnimatePresence>
+            {/* Mobile Logo when scrolled */}
+            {isScrolled && (
+              <span className="hidden md:block font-bold text-lg tracking-tight text-slate-900 dark:text-white pl-2">
+                FS
+              </span>
+            )}
           </div>
-          <span className="font-bold text-lg tracking-tight text-slate-900">
-            FOUNDERS SANGAM
-          </span>
+
+          <div className="h-6 w-[1px] bg-gray-200 dark:bg-slate-700 hidden md:block"></div>
+
+          <motion.div className="hidden md:flex gap-2">
+            <NavPill text="Home" active />
+            <NavPill text="Events" />
+            <NavPill text="About" />
+          </motion.div>
         </div>
 
-        <div className="h-6 w-[1px] bg-gray-200 hidden md:block"></div>
-        <div className="hidden md:flex gap-2">
-          <NavPill text="Home" active />
-          <NavPill text="Events" />
-          <NavPill text="About" />
-        </div>
-      </div>
+        <div className="flex items-center gap-3 pl-4">
+          <button
+            onClick={toggleTheme}
+            className="text-gray-400 hover:text-black dark:text-slate-500 dark:hover:text-amber-400 transition-colors"
+            title="Toggle Theme"
+          >
+            {isDark ? (
+              <Sun className="w-6 h-6 md:w-8 md:h-8" />
+            ) : (
+              <Moon className="w-6 h-6 md:w-8 md:h-8" />
+            )}
+          </button>
 
-      <div className="flex items-center gap-3 pr-2">
-        <button className="text-gray-400 hover:text-black transition-colors hidden sm:block">
-          <ToggleRight className="w-8 h-8" />
-        </button>
-        <button className="bg-black hover:bg-slate-800 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-          Join Community
-        </button>
-      </div>
-    </div>
-  </motion.nav>
-);
+          <button className="bg-black hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-slate-200 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 whitespace-nowrap">
+            {isScrolled ? "Join" : "Join Community"}
+          </button>
+        </div>
+      </motion.div>
+    </motion.nav>
+  );
+};
 
 const Hero = () => {
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white pt-28 md:pt-27 pb-12">
+    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-28 md:pt-27 pb-12 transition-colors duration-500">
       {/* Dynamic Background Blobs representing the 4 colors */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{ x: [0, 100, 0], y: [0, -50, 0] }}
           transition={{ duration: 20, repeat: Infinity }}
-          className="absolute top-0 right-0 w-[800px] h-[800px] bg-amber-100/40 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"
+          className="absolute top-0 right-0 w-[800px] h-[800px] bg-amber-100/40 dark:bg-amber-900/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2"
         />
         <motion.div
           animate={{ x: [0, -100, 0], y: [0, 50, 0] }}
           transition={{ duration: 25, repeat: Infinity }}
-          className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-sky-100/40 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"
+          className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-sky-100/40 dark:bg-sky-900/10 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2"
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 15, repeat: Infinity }}
-          className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-red-50/40 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"
+          className="absolute top-1/2 left-1/2 w-[600px] h-[600px] bg-red-50/40 dark:bg-red-900/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"
         />
       </div>
 
-      <div className="w-full px-6 md:px-12 relative z-50 h-full flex flex-col justify-center">
+      <div className="w-full px-6 md:px-12 relative z-10 h-full flex flex-col justify-center">
         <FadeIn className="w-full relative flex flex-col items-center justify-center max-w-7xl mx-auto text-center">
           {/* Abstract Logo Animation (The Rings) */}
           <div className="relative w-64 h-32 mb-12 flex justify-center items-center">
             {[
               { color: "border-amber-400", delay: 0, x: -70 },
-              { color: "border-red-500", delay: 0.3, x: -25 },
-              { color: "border-emerald-500", delay: 0.6, x: 25 },
-              { color: "border-sky-500", delay: 0.9, x: 70 },
+              { color: "border-red-500", delay: 0.1, x: -25 },
+              { color: "border-emerald-500", delay: 0.2, x: 25 },
+              { color: "border-sky-500", delay: 0.3, x: 70 },
             ].map((ring, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, scale: 0, x: 0 }}
-                animate={{ opacity: 1, scale: 1, x: ring.x }}
-                transition={{
-                  duration: 4,
-                  delay: ring.delay,
-                  type: "spring",
+                initial={{ opacity: 0, scale: 0.5, x: ring.x }}
+                animate={{
+                  // Sequence: Fade In -> Hold -> Fly Out -> Return -> Fade Out
+                  opacity: [0, 1, 1, 1, 1, 0],
+                  scale: [0.5, 1, 1, 1, 1, 0.5],
+                  x: [ring.x, ring.x, ring.x, ring.x * 40, ring.x, ring.x],
                 }}
-                className={`absolute w-32 h-32 rounded-full border-[12px] ${ring.color} mix-blend-multiply opacity-80 bg-white/10 backdrop-blur-sm`}
+                transition={{
+                  duration: 8,
+                  times: [0, 0.1, 0.6, 0.75, 0.9, 1],
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                  delay: ring.delay,
+                }}
+                className={`absolute w-32 h-32 rounded-full border-[12px] ${ring.color} mix-blend-multiply dark:mix-blend-screen opacity-80 bg-white/10 dark:bg-black/10`}
               />
             ))}
           </div>
 
-          <h1 className="text-6xl md:text-8xl lg:text-7xl font-extrabold tracking-tighter text-slate-900 leading-[0.9]">
+          <h1 className="text-6xl md:text-8xl lg:text-7xl font-extrabold tracking-tighter text-slate-900 dark:text-white leading-[0.9] transition-colors duration-500">
             FOUNDERS <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-amber-500 to-sky-500">
               SANGAM
             </span>
           </h1>
 
-          <p className="mt-8 text-xl md:text-2xl text-slate-500 max-w-2xl font-medium">
+          <p className="mt-8 text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-2xl font-medium transition-colors duration-500">
             A circle of bold founders shaping what’s next. <br />
-            <span className="text-black font-semibold">
+            <span className="text-black dark:text-white font-semibold">
               Networking. Collaboration. Growth.
             </span>
           </p>
@@ -178,10 +255,10 @@ const Hero = () => {
             transition={{ delay: 0.8 }}
             className="mt-12 flex flex-col sm:flex-row gap-4"
           >
-            <button className="bg-slate-900 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 hover:scale-105 transition-all flex items-center gap-2 shadow-xl shadow-slate-200">
+            <button className="bg-slate-900 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 hover:scale-105 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 transition-all flex items-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50">
               Apply for Membership <ArrowRight size={20} />
             </button>
-            <button className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 transition-all">
+            <button className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all">
               Explore Events
             </button>
           </motion.div>
@@ -192,7 +269,7 @@ const Hero = () => {
       <motion.div
         animate={{ y: [0, 10, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
-        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-slate-300"
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-slate-300 dark:text-slate-600"
       >
         <ArrowRight className="rotate-90" />
       </motion.div>
@@ -201,34 +278,39 @@ const Hero = () => {
 };
 
 const ManifestoMarquee = () => {
+  // Array to manage the colored items
+  const manifestoItems = [
+    { text: "NETWORKING", color: "text-amber-500", dot: "bg-amber-400" },
+    { text: "COLLABORATION", color: "text-red-500", dot: "bg-red-500" },
+    { text: "GROWTH", color: "text-emerald-500", dot: "bg-emerald-500" },
+    { text: "CULTURE", color: "text-sky-500", dot: "bg-sky-500" },
+  ];
+
   return (
-    <section className="py-20 bg-slate-50 relative overflow-hidden flex flex-col justify-center border-y border-slate-200">
+    <section className="py-20 bg-slate-50 dark:bg-slate-900 relative overflow-hidden flex flex-col justify-center border-y border-slate-200 dark:border-slate-800 transition-colors duration-500">
       <div className="relative z-10">
         <div className="flex overflow-hidden whitespace-nowrap">
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
-            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
             className="flex items-center gap-12 pr-12"
           >
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="flex items-center gap-12">
-                <span className="text-4xl md:text-8xl font-black text-slate-900 tracking-tighter">
-                  NETWORKING
-                </span>
-                <span className="w-6 h-5 rounded-full bg-amber-400"></span>
-                <span className="text-8xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-600 tracking-tighter">
-                  COLLABORATION
-                </span>
-                <span className="w-8 h-8 rounded-full bg-emerald-500"></span>
-                <span className="text-7xl md:text-8xl font-black text-slate-900 tracking-tighter">
-                  GROWTH
-                </span>
-                <span className="w-8 h-8 rounded-full bg-sky-500"></span>
-                <span className="text-7xl md:text-8xl font-black text-slate-900 tracking-tighter">
-                  CULTURE
-                </span>
-                <span className="w-6 h-5 rounded-full bg-amber-400"></span>
-              </div>
+            {/* Repeating the set twice to ensure seamless loop */}
+            {[...Array(2)].map((_, setIndex) => (
+              <React.Fragment key={setIndex}>
+                {manifestoItems.map((item, i) => (
+                  <div key={i} className="flex items-center gap-12">
+                    <span
+                      className={`text-5xl md:text-8xl font-black ${item.color} tracking-tighter`}
+                    >
+                      {item.text}
+                    </span>
+                    <span
+                      className={`w-4 h-4 md:w-8 md:h-8 rounded-full ${item.dot}`}
+                    ></span>
+                  </div>
+                ))}
+              </React.Fragment>
             ))}
           </motion.div>
         </div>
@@ -240,7 +322,7 @@ const ManifestoMarquee = () => {
 const StatsCard = ({ value, label, delay, gradient, icon: Icon }) => (
   <FadeIn
     delay={delay}
-    className="flex flex-col gap-6 p-10 bg-white rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden"
+    className="flex flex-col gap-6 p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden"
   >
     {/* Decorative background blob */}
     <div
@@ -253,21 +335,21 @@ const StatsCard = ({ value, label, delay, gradient, icon: Icon }) => (
       >
         <Icon size={24} strokeWidth={2.5} />
       </div>
-      <div className="w-10 h-10 rounded-full border border-slate-100 flex items-center justify-center text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all">
+      <div className="w-10 h-10 rounded-full border border-slate-100 dark:border-slate-600 flex items-center justify-center text-slate-300 dark:text-slate-500 group-hover:bg-slate-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-slate-900 transition-all">
         <ArrowRight size={18} />
       </div>
     </div>
 
     <div className="mt-4 relative z-10">
-      <h3 className="text-6xl font-bold text-slate-900 tracking-tight">
+      <h3 className="text-6xl font-bold text-slate-900 dark:text-white tracking-tight">
         {value}
       </h3>
-      <p className="text-slate-500 font-semibold uppercase text-xs tracking-widest mt-2">
+      <p className="text-slate-500 dark:text-slate-400 font-semibold uppercase text-xs tracking-widest mt-2">
         {label}
       </p>
     </div>
 
-    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden mt-2">
+    <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mt-2">
       <motion.div
         initial={{ width: 0 }}
         whileInView={{ width: "100%" }}
@@ -280,12 +362,14 @@ const StatsCard = ({ value, label, delay, gradient, icon: Icon }) => (
 
 const StatsSection = () => {
   return (
-    <section className="py-32 bg-white w-full px-6 md:px-12 relative">
+    <section className="py-32 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500">
       <div className="max-w-7xl mx-auto mb-16 text-left">
         <FadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-tight">
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
             Building a startup culture, <br />
-            <span className="text-slate-400">in the heart of Tirupur.</span>
+            <span className="text-slate-400 dark:text-slate-600">
+              in the heart of Tirupur.
+            </span>
           </h2>
         </FadeIn>
       </div>
@@ -319,54 +403,62 @@ const StatsSection = () => {
 
 const ValueSection = () => {
   return (
-    <section className="py-32 bg-slate-50 overflow-hidden w-full relative">
+    <section className="py-32 bg-slate-50 dark:bg-slate-900 overflow-hidden w-full relative transition-colors duration-500">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:44px_44px]"></div>
 
       <div className="px-6 md:px-12 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
           <div className="w-full md:w-1/2">
             <FadeIn>
-              <span className="text-emerald-600 font-bold tracking-widest text-sm uppercase mb-4 block">
+              <span className="text-emerald-600 dark:text-emerald-400 font-bold tracking-widest text-sm uppercase mb-4 block">
                 Our Core Purpose
               </span>
-              <h2 className="text-5xl md:text-7xl font-bold text-slate-900 mb-8 tracking-tight">
+              <h2 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white mb-8 tracking-tight">
                 Shaping <br />{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-sky-600">
                   What's Next.
                 </span>
               </h2>
-              <p className="text-lg text-slate-600 leading-relaxed mb-8">
+              <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
                 Founders Sangam is a Tirupur-based entrepreneurial networking
                 community that brings together startup founders, business
                 leaders, and innovators. We function as an event-based ecosystem
                 to share real stories, practical insights, and build a startup
                 culture beyond the region's traditional textile roots.
               </p>
-              <button className="text-slate-900 font-bold border-b-2 border-slate-900 pb-1 hover:text-emerald-600 hover:border-emerald-600 transition-colors">
+              <button className="text-slate-900 dark:text-white font-bold border-b-2 border-slate-900 dark:border-white pb-1 hover:text-emerald-600 hover:border-emerald-600 dark:hover:text-emerald-400 dark:hover:border-emerald-400 transition-colors">
                 Read our Vision
               </button>
             </FadeIn>
           </div>
-          <div className="w-full md:w-1/2 relative h-[500px]">
-            {/* Abstract visual composition */}
+          <div className="w-full md:w-1/2 relative h-[500px] flex items-center justify-center">
+            {/* Rotating Image Composition */}
             <motion.div
               initial={{ rotate: 0 }}
               whileInView={{ rotate: 90 }}
               transition={{ duration: 2, ease: "backOut" }}
               viewport={{ margin: "-100px" }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-slate-900 rounded-[3rem]"
-            />
+              className="relative z-10 w-80 h-80 rounded-[3rem] overflow-hidden shadow-2xl"
+            >
+              <img
+                src="/Images/Founder_Sangam.png"
+                alt="Collaboration"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-slate-900/20 mix-blend-overlay"></div>
+            </motion.div>
+
             <motion.div
               initial={{ x: 0, y: 0 }}
               whileInView={{ x: 40, y: -40 }}
               transition={{ duration: 1.5, delay: 0.2 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 border-4 border-amber-400 rounded-[3rem] mix-blend-multiply"
+              className="absolute w-80 h-80 border-4 border-amber-400 rounded-[3rem] mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
             />
             <motion.div
               initial={{ x: 0, y: 0 }}
               whileInView={{ x: -40, y: 40 }}
               transition={{ duration: 1.5, delay: 0.4 }}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 border-4 border-sky-500 rounded-[3rem] mix-blend-multiply"
+              className="absolute w-80 h-80 border-4 border-sky-500 rounded-[3rem] mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
             />
           </div>
         </div>
@@ -376,27 +468,27 @@ const ValueSection = () => {
 };
 
 const Footer = () => (
-  <footer className="bg-white pt-24 pb-12 w-full px-6 md:px-12 border-t border-slate-100">
+  <footer className="bg-white dark:bg-slate-950 pt-24 pb-12 w-full px-6 md:px-12 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500">
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
         <div className="max-w-2xl">
-          <h2 className="text-5xl md:text-4xl font-bold text-slate-900 tracking-tighter leading-none mb-8">
+          <h2 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white tracking-tighter leading-none mb-8">
             Founders Sangam.
           </h2>
-          <p className="text-xl text-slate-500 max-w-md mb-6">
+          <p className="text-xl text-slate-500 dark:text-slate-400 max-w-md mb-6">
             A circle of bold founders shaping what’s next. Networking,
             collaboration, and growth for Tirupur's startup ecosystem.
           </p>
-          <div className="text-slate-500 space-y-2">
+          <div className="text-slate-500 dark:text-slate-400 space-y-2">
             <p>📧 founderssangam@gmail.com</p>
             <p>📞 +91 85258 65979</p>
           </div>
 
           <div className="mt-8 flex flex-wrap gap-4">
-            <button className="bg-black text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 transition-all shadow-xl">
+            <button className="bg-black text-white dark:bg-white dark:text-black px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 dark:hover:bg-gray-200 transition-all shadow-xl">
               Apply Now
             </button>
-            <button className="bg-slate-100 text-slate-900 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-200 transition-colors">
+            <button className="bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
               Contact Us
             </button>
           </div>
@@ -407,8 +499,9 @@ const Footer = () => (
             (item) => (
               <a
                 key={item}
-                href="#"
-                className="text-lg font-medium text-slate-500 hover:text-black transition-colors"
+                href="https://www.instagram.com/founder.sangam/"
+                
+                className="text-lg font-medium text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white transition-colors"
               >
                 {item}
               </a>
@@ -417,7 +510,7 @@ const Footer = () => (
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 dark:border-slate-800 gap-6">
         <p className="text-slate-400 text-sm">
           © 2025 Founders Sangam. All rights reserved.
         </p>
@@ -450,14 +543,33 @@ const Footer = () => (
 // --- Main App ---
 
 function App() {
+  const [isDark, setIsDark] = useState(false);
+
+  // Toggle Theme Function
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+  };
+
+  // Apply 'dark' class to the HTML root for Tailwind functionality if configured,
+  // or use the wrapper div strategy which works universally for single-file components using class strategies.
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [isDark]);
+
   return (
-    <div className="font-sans antialiased bg-white min-h-screen selection:bg-amber-400 selection:text-black text-slate-900">
-      <Navbar />
-      <Hero />
-      <ManifestoMarquee />
-      <StatsSection />
-      <ValueSection />
-      <Footer />
+    <div className={`${isDark ? "dark" : ""}`}>
+      <div className="font-sans antialiased bg-white dark:bg-slate-950 min-h-screen selection:bg-amber-400 selection:text-black text-slate-900 dark:text-white transition-colors duration-500">
+        <Navbar isDark={isDark} toggleTheme={toggleTheme} />
+        <Hero />
+        <ManifestoMarquee />
+        <StatsSection />
+        <ValueSection />
+        <Footer />
+      </div>
     </div>
   );
 }
