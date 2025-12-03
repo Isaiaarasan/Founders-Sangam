@@ -103,9 +103,12 @@ const PaymentPage = () => {
     try {
       // 1️⃣ Create Order (Backend)
       // Ensure your backend is running on port 5000
-      const res = await axios.post("http://localhost:5000/create-order", {
-        amount: 500, // ₹500
-      });
+      const res = await axios.post(
+        "https://founders-sangam.onrender.com/create-order",
+        {
+          amount: 500, // ₹500
+        }
+      );
 
       const order = res.data.order;
 
@@ -122,7 +125,7 @@ const PaymentPage = () => {
         handler: async function (response) {
           try {
             const verifyRes = await axios.post(
-              "http://localhost:5000/verify-payment",
+              "https://founders-sangam.onrender.com/verify-payment",
               response
             );
 

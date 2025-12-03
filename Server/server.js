@@ -5,7 +5,6 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-
 const Payment = require("./models/Payment");
 
 const app = express();
@@ -87,5 +86,5 @@ app.post("/verify-payment", async (req, res) => {
 // 5. Start Server
 // -------------------------------
 app.listen(5000, () => {
-  console.log("🚀 Server running on http://localhost:5000");
+  console.log("🚀 Server running on https://founders-sangam.onrender.com/");
 });
