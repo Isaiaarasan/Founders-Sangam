@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const Payment = require("./models/Payment");
+const Event = require("./models/Event"); // Ensure you have this model created
 
 const app = express();
 app.use(cors());
@@ -33,19 +34,13 @@ const razorpay = new Razorpay({
 app.post("/create-order", async (req, res) => {
   try {
     const { amount } = req.body;
-
     const options = {
       amount: amount * 100, // Convert ₹ to paise
       currency: "INR",
       receipt: "rcpt_" + Date.now(),
     };
-
     const order = await razorpay.orders.create(options);
-
-    res.json({
-      success: true,
-      order,
-    });
+    res.json({ success: true, order });
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Order creation failed" });
@@ -53,7 +48,7 @@ app.post("/create-order", async (req, res) => {
 });
 
 // -------------------------------
-// 4. Verify Payment
+// 4. Verify Payment (Updated for Brand Name)
 // -------------------------------
 app.post("/verify-payment", async (req, res) => {
   try {
@@ -62,8 +57,9 @@ app.post("/verify-payment", async (req, res) => {
       razorpay_payment_id,
       razorpay_signature,
       name,
+      brandName, // <--- Receive Brand Name
       email,
-      contact
+      contact,
     } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -81,10 +77,11 @@ app.post("/verify-payment", async (req, res) => {
         paymentId: razorpay_payment_id,
         signature: razorpay_signature,
         amount: 500,
-        status: "success",
-        name: name,
-        email: email,
-        contact: contact
+        status: "success", // Stored as lowercase
+        name,
+        brandName, // <--- Save Brand Name
+        email,
+        contact,
       });
 
       res.json({ success: true, message: "Payment verified and saved" });
@@ -98,11 +95,12 @@ app.post("/verify-payment", async (req, res) => {
 });
 
 // -------------------------------
-// 5. Get Members
+// 5. Get Members (Fixed Status Bug)
 // -------------------------------
 app.get("/members", async (req, res) => {
   try {
-    const members = await Payment.find({ status: "SUCCESS" });
+    // CHANGED "SUCCESS" to "success" to match what you save
+    const members = await Payment.find({ status: "success" }).sort({ createdAt: -1 });
     res.json({ success: true, members });
   } catch (err) {
     console.log(err);
@@ -111,9 +109,31 @@ app.get("/members", async (req, res) => {
 });
 
 // -------------------------------
-// 6. Events API
+// 6. Dashboard Stats (NEW)
 // -------------------------------
-const Event = require("./models/Event");
+app.get("/admin/stats", async (req, res) => {
+  try {
+    const memberCount = await Payment.countDocuments({ status: "success" });
+    // Assuming flat fee of 500
+    const totalRevenue = memberCount * 500;
+
+    res.json({
+      success: true,
+      stats: {
+        totalMembers: memberCount,
+        totalRevenue: totalRevenue,
+        activeEvents: 3 // Replace with actual Event count query later
+      }
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Failed to fetch stats" });
+  }
+});
+
+// -------------------------------
+// 7. Events API
+// -------------------------------
 
 // Get All Events
 app.get("/events", async (req, res) => {
@@ -126,7 +146,7 @@ app.get("/events", async (req, res) => {
   }
 });
 
-// Create Event (For Seeding/Admin)
+// Create Event
 app.post("/events", async (req, res) => {
   try {
     const newEvent = await Event.create(req.body);
@@ -138,8 +158,8 @@ app.post("/events", async (req, res) => {
 });
 
 // -------------------------------
-// 5. Start Server
+// 8. Start Server
 // -------------------------------
 app.listen(5000, () => {
-  console.log("🚀 Server running on https://founders-sangam.onrender.com/");
+  console.log("🚀 Server running on port 5000");
 });

@@ -8,6 +8,7 @@ const PaymentSchema = new mongoose.Schema({
   currency: { type: String, default: "INR" },
   status: { type: String, default: "pending" },
   name: { type: String },
+  brandName: { type: String }, // <--- ADDED THIS
   email: { type: String },
   contact: { type: String },
   createdAt: { type: Date, default: Date.now },
