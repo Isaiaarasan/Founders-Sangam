@@ -20,7 +20,7 @@ const Hero = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-28 md:pt-27 pb-12 transition-colors duration-500">
+    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-0 pb-12 transition-colors duration-500">
       {/* Background Blobs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -230,7 +230,7 @@ const StatsSection = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
         <StatsCard
-          value={<Counter value={50} suffix="+" />}
+          value={<Counter value={2000} suffix="+" />}
           label="Bold Founders"
           delay={0.1}
           gradient={BRAND_COLORS.yellow}
@@ -246,8 +246,8 @@ const StatsSection = () => {
           href="https://www.instagram.com/reel/DRowdVdktsr/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
         />
         <StatsCard
-          value={<Counter value={1} suffix="" />}
-          label="Tirupur Base"
+          value={<Counter value={1} suffix="+" />}
+          label="Tirupur Base and other Cities"
           delay={0.3}
           gradient={BRAND_COLORS.blue}
           icon={MapPin}
@@ -261,37 +261,35 @@ const StatsSection = () => {
 // --- Founders Section ---
 const FoundersSection = () => {
   return (
-    <section className="py-32 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative transition-colors duration-500">
+    <section className="py-20 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative transition-colors duration-500 border-t border-slate-200 dark:border-slate-800">
       <div className="max-w-7xl mx-auto">
         <FadeIn>
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight mb-16 text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight mb-12 text-center">
             Meet the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Visionaries</span>
           </h2>
         </FadeIn>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Founder 1 */}
-          <FadeIn delay={0.1} className="flex flex-col items-center">
-            <div className="w-64 h-64 rounded-full bg-slate-200 dark:bg-slate-800 mb-6 overflow-hidden shadow-xl border-4 border-white dark:border-slate-700">
-              {/* Replace with actual image */}
-              <img src="https://via.placeholder.com/300" alt="Founder" className="w-full h-full object-cover" />
+          <FadeIn delay={0.1} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-slate-50 dark:border-slate-600">
+              <img src="https://ui-avatars.com/api/?name=Founder+Name&background=f59e0b&color=fff&size=256" alt="Founder" className="w-full h-full object-cover" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Founder Name</h3>
-            <p className="text-amber-500 font-semibold mb-4">Founder</p>
-            <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Founder Name</h3>
+            <p className="text-amber-500 font-semibold text-sm mb-3">Founder</p>
+            <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
               "Building communities that empower the next generation of entrepreneurs in Tirupur."
             </p>
           </FadeIn>
 
           {/* Founder 2 */}
-          <FadeIn delay={0.2} className="flex flex-col items-center">
-            <div className="w-64 h-64 rounded-full bg-slate-200 dark:bg-slate-800 mb-6 overflow-hidden shadow-xl border-4 border-white dark:border-slate-700">
-              {/* Replace with actual image */}
-              <img src="https://via.placeholder.com/300" alt="Co-Founder" className="w-full h-full object-cover" />
+          <FadeIn delay={0.2} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-slate-50 dark:border-slate-600">
+              <img src="https://ui-avatars.com/api/?name=Co+Founder&background=ef4444&color=fff&size=256" alt="Co-Founder" className="w-full h-full object-cover" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Co-Founder Name</h3>
-            <p className="text-red-500 font-semibold mb-4">Co-Founder</p>
-            <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Co-Founder Name</h3>
+            <p className="text-red-500 font-semibold text-sm mb-3">Co-Founder</p>
+            <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
               "Connecting minds, sharing stories, and fostering growth for every startup journey."
             </p>
           </FadeIn>
@@ -363,6 +361,40 @@ const ValueSection = () => {
   );
 };
 
+// --- Collaboration Section ---
+const CollaborationSection = () => {
+  const companies = [
+    "Company A",
+    "Company B",
+    "Company C",
+    "Company D",
+    "Company E",
+    "Company F",
+  ];
+
+  return (
+    <section className="py-20 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 transition-colors duration-500">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
+        <FadeIn>
+          <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-10">
+            Trusted by Innovative Companies
+          </p>
+          <div className="flex flex-wrap justify-center gap-12 md:gap-20 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+            {companies.map((company, i) => (
+              <div
+                key={i}
+                className="text-2xl font-bold text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                {company}
+              </div>
+            ))}
+          </div>
+        </FadeIn>
+      </div>
+    </section>
+  );
+};
+
 // --- Landing Page Component ---
 const LandingPage = () => (
   <>
@@ -371,6 +403,7 @@ const LandingPage = () => (
     <StatsSection />
     <FoundersSection />
     <ValueSection />
+    <CollaborationSection />
   </>
 );
 

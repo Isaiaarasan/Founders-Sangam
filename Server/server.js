@@ -56,32 +56,45 @@ app.post("/create-order", async (req, res) => {
 // 4. Verify Payment
 // -------------------------------
 app.post("/verify-payment", async (req, res) => {
-  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
-    req.body;
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      name,
+      email,
+      contact
+    } = req.body;
 
-  const sign = razorpay_order_id + "|" + razorpay_payment_id;
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
 
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-    .update(sign)
-    .digest("hex");
+    const expectedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(body.toString())
+      .digest("hex");
 
-  if (expectedSignature !== razorpay_signature) {
-    return res.json({ success: false, message: "Invalid Signature" });
+    const isAuthentic = expectedSignature === razorpay_signature;
+
+    if (isAuthentic) {
+      await Payment.create({
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+        signature: razorpay_signature,
+        amount: 500,
+        status: "success",
+        name: name,
+        email: email,
+        contact: contact
+      });
+
+      res.json({ success: true, message: "Payment verified and saved" });
+    } else {
+      res.status(400).json({ success: false, message: "Invalid Signature" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
   }
-
-  // SAVE to MongoDB
-  await Payment.create({
-    orderId: razorpay_order_id,
-    paymentId: razorpay_payment_id,
-    signature: razorpay_signature,
-    status: "SUCCESS",
-    amount: 500,
-    // You might want to save user details here too if passed from frontend
-    // For now, we'll assume Payment model has name/email/contact or we need to update it
-  });
-
-  res.json({ success: true, message: "Payment Verified" });
 });
 
 // -------------------------------
@@ -94,6 +107,33 @@ app.get("/members", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Failed to fetch members" });
+  }
+});
+
+// -------------------------------
+// 6. Events API
+// -------------------------------
+const Event = require("./models/Event");
+
+// Get All Events
+app.get("/events", async (req, res) => {
+  try {
+    const events = await Event.find().sort({ date: 1 });
+    res.json({ success: true, events });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Failed to fetch events" });
+  }
+});
+
+// Create Event (For Seeding/Admin)
+app.post("/events", async (req, res) => {
+  try {
+    const newEvent = await Event.create(req.body);
+    res.json({ success: true, event: newEvent });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Failed to create event" });
   }
 });
 

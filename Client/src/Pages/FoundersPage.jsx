@@ -37,7 +37,7 @@ const FoundersPage = () => {
             <div className="max-w-7xl mx-auto">
                 <FadeIn>
                     <h1 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white text-center mb-4 tracking-tight">
-                        Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Founders</span>
+                        Associate <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Members</span>
                     </h1>
                     <p className="text-xl text-slate-500 dark:text-slate-400 text-center max-w-2xl mx-auto mb-16">
                         Meet the bold individuals shaping the future of Tirupur's startup ecosystem.
@@ -54,18 +54,28 @@ const FoundersPage = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                         {founders.map((founder, index) => (
                             <FadeIn key={founder._id || index} delay={index * 0.05}>
-                                <div className="bg-slate-50 dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 group">
-                                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center overflow-hidden">
-                                        {/* Placeholder for user image if not available */}
-                                        <User size={40} className="text-slate-400 dark:text-slate-500" />
+                                <div className="group relative bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:shadow-slate-200 dark:hover:shadow-slate-900/50 transition-all duration-500 hover:-translate-y-2 overflow-hidden">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                                    <div className="relative z-10 flex flex-col items-center">
+                                        <div className="w-24 h-24 mb-6 rounded-full p-1 bg-gradient-to-br from-amber-400 to-red-500">
+                                            <div className="w-full h-full rounded-full bg-white dark:bg-slate-900 flex items-center justify-center overflow-hidden">
+                                                <img
+                                                    src={`https://ui-avatars.com/api/?name=${founder.name || "Member"}&background=random&color=fff&size=128`}
+                                                    alt={founder.name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-2 tracking-tight">
+                                            {founder.name || "Associate Member"}
+                                        </h3>
+
+                                        <div className="px-4 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                            Founding Member
+                                        </div>
                                     </div>
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-1">
-                                        {founder.name || "Founder Name"}
-                                    </h3>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
-                                        {founder.email || "Member"}
-                                    </p>
-                                    {/* Add more details if available in your Payment model */}
                                 </div>
                             </FadeIn>
                         ))}

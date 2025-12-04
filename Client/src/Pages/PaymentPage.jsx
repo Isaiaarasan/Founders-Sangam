@@ -9,8 +9,7 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
-
-// Import Shared Components
+import emailjs from "@emailjs/browser";
 import FadeIn from "../components/FadeIn";
 
 // --- Theme Utilities ---
@@ -111,19 +110,43 @@ const PaymentPage = () => {
         currency: order.currency,
         name: "Founders Sangam",
         description: "Premium Membership",
-        image: "https://via.placeholder.com/150",
+        image: "https://ui-avatars.com/api/?name=Founders+Sangam&background=f59e0b&color=fff", // Reliable placeholder
         order_id: order.id,
 
         handler: async function (response) {
           try {
             const verifyRes = await axios.post(
               "https://founders-sangam.onrender.com/verify-payment",
-              response
+              { ...response, ...formData }
             );
 
             if (verifyRes.data.success) {
-              alert("Welcome to Founders Sangam! Payment Verified.");
-              // Add navigation to success page here if needed
+              // EmailJS Credentials
+              const SERVICE_ID = "service_48327po";
+              const TEMPLATE_ID = "template_yjf6oog";
+              const PUBLIC_KEY = "1t-jFqpOx_L8ufGlN";
+
+              // Send Welcome Email
+              const templateParams = {
+                user_name: formData.name,
+                user_email: formData.email,
+                to_email: formData.email, // Common field name for recipient
+                reply_to: formData.email, // Common field name for reply-to
+                message: "Welcome to Founders Sangam! Your membership is confirmed.",
+              };
+
+              emailjs
+                .send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY)
+                .then(
+                  (response) => {
+                    console.log("SUCCESS!", response.status, response.text);
+                    alert("Welcome to Founders Sangam! Payment Verified & Email Sent.");
+                  },
+                  (err) => {
+                    console.log("FAILED...", err);
+                    alert("Payment Verified, but failed to send email. Check console for details.");
+                  }
+                );
             } else {
               alert("Payment Verification Failed!");
             }
@@ -230,7 +253,7 @@ const PaymentPage = () => {
               </div>
               <div className="text-sm">
                 <p className="font-bold text-slate-900 dark:text-white">
-                  50+ Founders
+                  2000+ Founders
                 </p>
                 <p className="text-slate-500 text-xs">Joined this month</p>
               </div>
