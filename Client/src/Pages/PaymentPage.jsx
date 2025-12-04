@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import {
@@ -16,7 +16,7 @@ import FadeIn from "../components/FadeIn";
 const BRAND_GRADIENT = "from-amber-400 via-red-500 to-sky-500";
 
 // --- REUSABLE INPUT COMPONENT ---
-const InputField = ({
+const InputField = React.memo(({
   label,
   type,
   name,
@@ -46,7 +46,7 @@ const InputField = ({
       )}
     </div>
   </div>
-);
+));
 
 const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
@@ -59,13 +59,13 @@ const PaymentPage = () => {
   });
 
   // Handle Input Change
-  const handleChange = (e) => {
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };
+  }, []);
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {

@@ -9,8 +9,8 @@ const NavPill = ({ text, route, active }) => {
     <button
       onClick={() => navigate(route)}
       className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${active
-          ? "bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-900"
-          : "bg-gray-100/50 text-gray-600 hover:bg-gray-200 hover:text-black dark:bg-slate-800/50 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
+        ? "bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-900"
+        : "bg-gray-100/50 text-gray-600 hover:bg-gray-200 hover:text-black dark:bg-slate-800/50 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
         }`}
     >
       {text}
@@ -61,8 +61,8 @@ const Navbar = ({ isDark, toggleTheme }) => {
         }
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className={`pointer-events-auto flex items-center justify-between py-3 border transition-all duration-500 ${isScrolled
-            ? "bg-white/90 backdrop-blur-md border-slate-200 shadow-lg dark:bg-slate-900/90 dark:border-slate-700"
-            : "bg-transparent border-transparent shadow-none"
+          ? "bg-white/90 backdrop-blur-md border-slate-200 shadow-lg dark:bg-slate-900/90 dark:border-slate-700"
+          : "bg-transparent border-transparent shadow-none"
           /* ^^^ THIS LINE REMOVES THE WHITE SPACE AT THE TOP ^^^ */
           }`}
       >
@@ -134,4 +134,4 @@ const Navbar = ({ isDark, toggleTheme }) => {
   );
 };
 
-export default Navbar;
+export default React.memo(Navbar);
