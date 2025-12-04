@@ -1,25 +1,13 @@
-import React, { useRef, useEffect, useState } from "react";
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  useNavigate,
-} from "react-router-dom"; // Import Router hooks
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { ArrowRight, Users, Rocket, MapPin } from "lucide-react";
 
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-  useInView,
-  AnimatePresence,
-} from "framer-motion";
-import { ArrowRight, Users, Rocket, MapPin, Moon, Sun } from "lucide-react";
+// Import Shared Components
+import FadeIn from "../components/FadeIn";
+import Counter from "../components/Counter";
 
-// Import your Payment Page Component
-import PaymentPage from "./PaymentPage";
-
-// --- Theme Constants (Keep existing) ---
+// --- Theme Constants ---
 const BRAND_COLORS = {
   yellow: "from-amber-400 to-yellow-500",
   red: "from-red-500 to-rose-600",
@@ -27,161 +15,13 @@ const BRAND_COLORS = {
   blue: "from-sky-500 to-blue-600",
 };
 
-// --- Utility Components (Keep existing: FadeIn, NavPill, Counter) ---
-const FadeIn = ({ children, delay = 0, className = "" }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 40 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "10px" }}
-    transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-);
-
-const NavPill = ({ text, active = false }) => (
-  <button
-    className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
-      active
-        ? "bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-900"
-        : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-black dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
-    }`}
-  >
-    {text}
-  </button>
-);
-
-const Counter = ({ value, suffix = "" }) => {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const springValue = useSpring(0, { stiffness: 60, damping: 20 });
-  const displayValue = useTransform(
-    springValue,
-    (latest) => `${Math.round(latest)}${suffix}`
-  );
-
-  useEffect(() => {
-    if (isInView) springValue.set(value);
-  }, [isInView, value, springValue]);
-
-  return <motion.span ref={ref}>{displayValue}</motion.span>;
-};
-
-// --- UPDATED Navbar ---
-const Navbar = ({ isDark, toggleTheme }) => {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const navigate = useNavigate(); // Hook for navigation
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return (
-    <motion.nav
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.8, ease: "circOut" }}
-      className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full px-4 pt-6"
-    >
-      <motion.div
-        layout
-        initial={false}
-        animate={
-          isScrolled
-            ? {
-                width: "fit-content",
-                borderRadius: "9999px",
-                paddingLeft: "1.5rem",
-                paddingRight: "1.5rem",
-                y: 10,
-              }
-            : {
-                width: "100%",
-                maxWidth: "80rem",
-                borderRadius: "9999px",
-                paddingLeft: "1rem",
-                paddingRight: "1rem",
-                y: 0,
-              }
-        }
-        transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className={`flex items-center justify-between py-3 border transition-colors duration-500 ${
-          isScrolled
-            ? "bg-white/100 border-slate-200 shadow-xl dark:bg-slate-900 dark:border-slate-700"
-            : "bg-white/70 border-white/20 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:bg-slate-900/70 dark:border-slate-700/50"
-        }`}
-      >
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="flex -space-x-1">
-              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-amber-400"></div>
-              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-red-500"></div>
-              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-emerald-500"></div>
-              <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-sky-500"></div>
-            </div>
-            <AnimatePresence>
-              {!isScrolled && (
-                <motion.span
-                  initial={{ opacity: 0, width: 0 }}
-                  animate={{ opacity: 1, width: "auto" }}
-                  exit={{ opacity: 0, width: 0 }}
-                  className="font-bold text-lg tracking-tight text-slate-900 dark:text-white whitespace-nowrap overflow-hidden"
-                >
-                  FOUNDERS SANGAM
-                </motion.span>
-              )}
-            </AnimatePresence>
-            {isScrolled && (
-              <span className="hidden md:block font-bold text-lg tracking-tight text-slate-900 dark:text-white pl-2">
-                FS
-              </span>
-            )}
-          </div>
-          <div className="h-6 w-[1px] bg-gray-200 dark:bg-slate-700 hidden md:block"></div>
-          <motion.div className="hidden md:flex gap-2">
-            <NavPill text="Home" active />
-            <NavPill text="Events" />
-            <NavPill text="About" />
-          </motion.div>
-        </div>
-
-        <div className="flex items-center gap-3 pl-4">
-          <button
-            onClick={toggleTheme}
-            className="text-gray-400 hover:text-black dark:text-slate-500 dark:hover:text-amber-400 transition-colors"
-          >
-            {isDark ? (
-              <Sun className="w-6 h-6 md:w-8 md:h-8" />
-            ) : (
-              <Moon className="w-6 h-6 md:w-8 md:h-8" />
-            )}
-          </button>
-
-          {/* --- CLICK ACTION ADDED HERE --- */}
-          <button
-            onClick={() => navigate("/payment")}
-            className="bg-black hover:bg-slate-800 dark:bg-white dark:text-black dark:hover:bg-slate-200 text-white px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 whitespace-nowrap"
-          >
-            {isScrolled ? "Join" : "Join Community"}
-          </button>
-        </div>
-      </motion.div>
-    </motion.nav>
-  );
-};
-
-// --- UPDATED Hero ---
+// --- Hero Section ---
 const Hero = () => {
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-28 md:pt-27 pb-12 transition-colors duration-500">
-      {/* Background Blobs (Keep your existing blobs here) */}
+      {/* Background Blobs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{ x: [0, 100, 0], y: [0, -50, 0] }}
@@ -202,7 +42,7 @@ const Hero = () => {
 
       <div className="w-full px-6 md:px-12 relative z-10 h-full flex flex-col justify-center">
         <FadeIn className="w-full relative flex flex-col items-center justify-center max-w-7xl mx-auto text-center">
-          {/* Logo Animation Rings (Keep existing) */}
+          {/* Logo Animation Rings */}
           <div className="relative w-64 h-32 mb-12 flex justify-center items-center">
             {[
               { color: "border-amber-400", delay: 0, x: -70 },
@@ -250,7 +90,6 @@ const Hero = () => {
             transition={{ delay: 0.8 }}
             className="mt-12 flex flex-col sm:flex-row gap-4"
           >
-            {/* --- CLICK ACTION ADDED HERE --- */}
             <button
               onClick={() => navigate("/payment")}
               className="bg-slate-900 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 hover:scale-105 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 transition-all flex items-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50"
@@ -258,7 +97,10 @@ const Hero = () => {
               Apply for Membership <ArrowRight size={20} />
             </button>
 
-            <button className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all">
+            <button
+              onClick={() => navigate("/events")}
+              className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
+            >
               Explore Events
             </button>
           </motion.div>
@@ -276,9 +118,8 @@ const Hero = () => {
   );
 };
 
-// --- Other Sections (Keep exactly as they were) ---
+// --- Manifesto Marquee ---
 const ManifestoMarquee = () => {
-  // ... Copy your existing ManifestoMarquee code here ...
   const manifestoItems = [
     { text: "NETWORKING", color: "text-amber-500", dot: "bg-amber-400" },
     { text: "COLLABORATION", color: "text-red-500", dot: "bg-red-500" },
@@ -287,7 +128,7 @@ const ManifestoMarquee = () => {
   ];
 
   return (
-    <section className="py-20 bg-slate-50 dark:bg-slate-900 relative overflow-hidden flex flex-col justify-center border-y border-slate-200 dark:border-slate-800 transition-colors duration-500">
+    <section className="py-10 bg-slate-50 dark:bg-slate-900 relative overflow-hidden flex flex-col justify-center border-y border-slate-200 dark:border-slate-800 transition-colors duration-500">
       <div className="relative z-10">
         <div className="flex overflow-hidden whitespace-nowrap">
           <motion.div
@@ -318,45 +159,61 @@ const ManifestoMarquee = () => {
   );
 };
 
+// --- Stats Section ---
 const StatsSection = () => {
-  // ... Copy your existing StatsSection (and StatsCard) code here ...
-  // Note: I am not repeating the full code here to save space, but you must keep it!
-  const StatsCard = ({ value, label, delay, gradient, icon: Icon }) => (
-    <FadeIn
-      delay={delay}
-      className="flex flex-col gap-6 p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden"
-    >
-      <div
-        className={`absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br ${gradient} opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700`}
-      ></div>
-      <div className="flex justify-between items-start relative z-10">
+  const navigate = useNavigate();
+  const StatsCard = ({ value, label, delay, gradient, icon: Icon, onClick, href }) => {
+    const CardContent = (
+      <FadeIn
+        delay={delay}
+        className="flex flex-col gap-6 p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden cursor-pointer h-full"
+      >
         <div
-          className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-lg transform group-hover:-rotate-6 transition-transform`}
-        >
-          <Icon size={24} strokeWidth={2.5} />
+          className={`absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br ${gradient} opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700`}
+        ></div>
+        <div className="flex justify-between items-start relative z-10">
+          <div
+            className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center text-white shadow-lg transform group-hover:-rotate-6 transition-transform`}
+          >
+            <Icon size={24} strokeWidth={2.5} />
+          </div>
+          <div className="w-10 h-10 rounded-full border border-slate-100 dark:border-slate-600 flex items-center justify-center text-slate-300 dark:text-slate-500 group-hover:bg-slate-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-slate-900 transition-all">
+            <ArrowRight size={18} />
+          </div>
         </div>
-        <div className="w-10 h-10 rounded-full border border-slate-100 dark:border-slate-600 flex items-center justify-center text-slate-300 dark:text-slate-500 group-hover:bg-slate-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-slate-900 transition-all">
-          <ArrowRight size={18} />
+        <div className="mt-4 relative z-10">
+          <h3 className="text-6xl font-bold text-slate-900 dark:text-white tracking-tight">
+            {value}
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400 font-semibold uppercase text-xs tracking-widest mt-2">
+            {label}
+          </p>
         </div>
+        <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mt-2">
+          <motion.div
+            initial={{ width: 0 }}
+            whileInView={{ width: "100%" }}
+            transition={{ duration: 1.5, delay: delay + 0.2, ease: "circOut" }}
+            className={`h-full bg-gradient-to-r ${gradient} rounded-full`}
+          />
+        </div>
+      </FadeIn>
+    );
+
+    if (href) {
+      return (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full">
+          {CardContent}
+        </a>
+      );
+    }
+
+    return (
+      <div onClick={onClick} className="block h-full">
+        {CardContent}
       </div>
-      <div className="mt-4 relative z-10">
-        <h3 className="text-6xl font-bold text-slate-900 dark:text-white tracking-tight">
-          {value}
-        </h3>
-        <p className="text-slate-500 dark:text-slate-400 font-semibold uppercase text-xs tracking-widest mt-2">
-          {label}
-        </p>
-      </div>
-      <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mt-2">
-        <motion.div
-          initial={{ width: 0 }}
-          whileInView={{ width: "100%" }}
-          transition={{ duration: 1.5, delay: delay + 0.2, ease: "circOut" }}
-          className={`h-full bg-gradient-to-r ${gradient} rounded-full`}
-        />
-      </div>
-    </FadeIn>
-  );
+    );
+  };
 
   return (
     <section className="py-32 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500">
@@ -378,6 +235,7 @@ const StatsSection = () => {
           delay={0.1}
           gradient={BRAND_COLORS.yellow}
           icon={Users}
+          onClick={() => navigate("/founders")}
         />
         <StatsCard
           value={<Counter value={100} suffix="%" />}
@@ -385,6 +243,7 @@ const StatsSection = () => {
           delay={0.2}
           gradient={BRAND_COLORS.red}
           icon={Rocket}
+          href="https://www.instagram.com/reel/DRowdVdktsr/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="
         />
         <StatsCard
           value={<Counter value={1} suffix="" />}
@@ -392,16 +251,60 @@ const StatsSection = () => {
           delay={0.3}
           gradient={BRAND_COLORS.blue}
           icon={MapPin}
+          href="https://maps.app.goo.gl/n85Qmnk7xSRXTjrVA"
         />
       </div>
     </section>
   );
 };
 
-const ValueSection = () => {
-  // ... Copy your existing ValueSection code here ...
+// --- Founders Section ---
+const FoundersSection = () => {
   return (
-    <section className="py-32 bg-slate-50 dark:bg-slate-900 overflow-hidden w-full relative transition-colors duration-500">
+    <section className="py-32 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative transition-colors duration-500">
+      <div className="max-w-7xl mx-auto">
+        <FadeIn>
+          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight mb-16 text-center">
+            Meet the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Visionaries</span>
+          </h2>
+        </FadeIn>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {/* Founder 1 */}
+          <FadeIn delay={0.1} className="flex flex-col items-center">
+            <div className="w-64 h-64 rounded-full bg-slate-200 dark:bg-slate-800 mb-6 overflow-hidden shadow-xl border-4 border-white dark:border-slate-700">
+              {/* Replace with actual image */}
+              <img src="https://via.placeholder.com/300" alt="Founder" className="w-full h-full object-cover" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Founder Name</h3>
+            <p className="text-amber-500 font-semibold mb-4">Founder</p>
+            <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
+              "Building communities that empower the next generation of entrepreneurs in Tirupur."
+            </p>
+          </FadeIn>
+
+          {/* Founder 2 */}
+          <FadeIn delay={0.2} className="flex flex-col items-center">
+            <div className="w-64 h-64 rounded-full bg-slate-200 dark:bg-slate-800 mb-6 overflow-hidden shadow-xl border-4 border-white dark:border-slate-700">
+              {/* Replace with actual image */}
+              <img src="https://via.placeholder.com/300" alt="Co-Founder" className="w-full h-full object-cover" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Co-Founder Name</h3>
+            <p className="text-red-500 font-semibold mb-4">Co-Founder</p>
+            <p className="text-slate-600 dark:text-slate-400 text-center max-w-md">
+              "Connecting minds, sharing stories, and fostering growth for every startup journey."
+            </p>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// --- Value Section ---
+const ValueSection = () => {
+  return (
+    <section className="py-32 bg-white dark:bg-slate-950 overflow-hidden w-full relative transition-colors duration-500">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:44px_44px]"></div>
       <div className="px-6 md:px-12 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
@@ -460,112 +363,15 @@ const ValueSection = () => {
   );
 };
 
-const Footer = () => (
-  // ... Copy your existing Footer code here ...
-  <footer className="bg-white dark:bg-slate-950 pt-24 pb-12 w-full px-6 md:px-12 border-t border-slate-100 dark:border-slate-800 transition-colors duration-500">
-    <div className="max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-20">
-        <div className="max-w-2xl">
-          <h2 className="text-5xl md:text-7xl font-bold text-slate-900 dark:text-white tracking-tighter leading-none mb-8">
-            Founders Sangam.
-          </h2>
-          <p className="text-xl text-slate-500 dark:text-slate-400 max-w-md mb-6">
-            A circle of bold founders shaping what’s next. Networking,
-            collaboration, and growth for Tirupur's startup ecosystem.
-          </p>
-          <div className="text-slate-500 dark:text-slate-400 space-y-2">
-            <p>📧 founderssangam@gmail.com</p>
-            <p>📞 +91 85258 65979</p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 text-right">
-          {["Instagram", "LinkedIn", "Twitter", "Community Guidelines"].map(
-            (item) => (
-              <a
-                key={item}
-                href="https://www.instagram.com/founder.sangam/"
-                className="text-lg font-medium text-slate-500 hover:text-black dark:text-slate-400 dark:hover:text-white transition-colors"
-              >
-                {item}
-              </a>
-            )
-          )}
-        </div>
-      </div>
-      <div className="flex flex-col md:flex-row justify-between items-center pt-12 border-t border-slate-100 dark:border-slate-800 gap-6">
-        <p className="text-slate-400 text-sm">
-          © 2025 Founders Sangam. All rights reserved.
-        </p>
-        <div className="flex gap-2">
-          {["bg-amber-400", "bg-red-500", "bg-emerald-500", "bg-sky-500"].map(
-            (color, index) => (
-              <motion.div
-                key={index}
-                animate={{ y: [0, -6, 0], scale: [1, 1.1, 1] }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: index * 0.15,
-                  ease: "easeInOut",
-                }}
-                className={`w-3 h-3 rounded-full ${color}`}
-              />
-            )
-          )}
-        </div>
-      </div>
-    </div>
-  </footer>
-);
-
-// --- Component grouping for cleanliness ---
-const LandingPage = ({ isDark, toggleTheme }) => (
+// --- Landing Page Component ---
+const LandingPage = () => (
   <>
-    <Navbar isDark={isDark} toggleTheme={toggleTheme} />
     <Hero />
     <ManifestoMarquee />
     <StatsSection />
+    <FoundersSection />
     <ValueSection />
-    <Footer />
   </>
 );
 
-// --- MAIN APP (Updated for Routing) ---
-function App() {
-  const [isDark, setIsDark] = useState(false);
-
-  const toggleTheme = () => {
-    setIsDark(!isDark);
-  };
-
-  useEffect(() => {
-    if (isDark) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [isDark]);
-
-  return (
-    <Router>
-      <div className={`${isDark ? "dark" : ""}`}>
-        <div className="font-sans antialiased bg-white dark:bg-slate-950 min-h-screen text-slate-900 dark:text-white transition-colors duration-500 selection:bg-amber-400 selection:text-black">
-          <Routes>
-            {/* Route for the Main Landing Page */}
-            <Route
-              path="/"
-              element={
-                <LandingPage isDark={isDark} toggleTheme={toggleTheme} />
-              }
-            />
-
-            {/* Route for the Payment Page */}
-            <Route path="/payment" element={<PaymentPage />} />
-          </Routes>
-        </div>
-      </div>
-    </Router>
-  );
-}
-
-export default App;
+export default LandingPage;

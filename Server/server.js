@@ -77,9 +77,24 @@ app.post("/verify-payment", async (req, res) => {
     signature: razorpay_signature,
     status: "SUCCESS",
     amount: 500,
+    // You might want to save user details here too if passed from frontend
+    // For now, we'll assume Payment model has name/email/contact or we need to update it
   });
 
   res.json({ success: true, message: "Payment Verified" });
+});
+
+// -------------------------------
+// 5. Get Members
+// -------------------------------
+app.get("/members", async (req, res) => {
+  try {
+    const members = await Payment.find({ status: "SUCCESS" });
+    res.json({ success: true, members });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Failed to fetch members" });
+  }
 });
 
 // -------------------------------

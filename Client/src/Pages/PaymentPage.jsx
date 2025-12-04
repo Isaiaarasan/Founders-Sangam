@@ -10,25 +10,17 @@ import {
   Sparkles,
 } from "lucide-react";
 
+// Import Shared Components
+import FadeIn from "../components/FadeIn";
+
 // --- Theme Utilities ---
 const BRAND_GRADIENT = "from-amber-400 via-red-500 to-sky-500";
-
-const FadeIn = ({ children, delay = 0, className = "" }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6, delay, ease: "easeOut" }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-);
 
 // --- FIXED INPUT FIELD COMPONENT ---
 const InputField = ({
   label,
   type,
-  name, // <--- Added 'name' here
+  name,
   placeholder,
   value,
   onChange,
@@ -41,7 +33,7 @@ const InputField = ({
     <div className="relative group">
       <input
         type={type}
-        name={name} // <--- Passed 'name' to the input tag here
+        name={name}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
@@ -269,7 +261,7 @@ const PaymentPage = () => {
               <InputField
                 label="Full Name"
                 type="text"
-                name="name" // Passed correctly
+                name="name"
                 placeholder="Ex. Aravind Kumar"
                 value={formData.name}
                 onChange={handleChange}
@@ -278,7 +270,7 @@ const PaymentPage = () => {
               <InputField
                 label="Email Address"
                 type="email"
-                name="email" // Passed correctly
+                name="email"
                 placeholder="you@company.com"
                 value={formData.email}
                 onChange={handleChange}
@@ -287,7 +279,7 @@ const PaymentPage = () => {
               <InputField
                 label="Phone Number"
                 type="tel"
-                name="contact" // Passed correctly
+                name="contact"
                 placeholder="98765 43210"
                 value={formData.contact}
                 onChange={handleChange}
