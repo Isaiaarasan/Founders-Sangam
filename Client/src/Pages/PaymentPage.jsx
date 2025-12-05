@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import axios from "axios";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   CheckCircle2,
@@ -7,15 +8,27 @@ import {
   Loader2,
   ArrowRight,
   ShieldCheck,
-  MessageCircle, // Added for WhatsApp icon
+  MessageCircle,
+  Ticket,
+  Calendar
 } from "lucide-react";
-import emailjs from "@emailjs/browser";
-import FadeIn from "../components/FadeIn";
 
 // --- Theme Utilities ---
 const BRAND_GRADIENT = "from-amber-400 via-red-500 to-sky-500";
 
-// --- REUSABLE INPUT COMPONENT ---
+// --- Utility: FadeIn ---
+const FadeIn = ({ children, delay = 0, className = "" }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6, delay, ease: "easeOut" }}
+    className={className}
+  >
+    {children}
+  </motion.div>
+);
+
+// --- Reusable Input Component ---
 const InputField = React.memo(({
   label,
   type,
@@ -49,8 +62,20 @@ const InputField = React.memo(({
 ));
 
 const PaymentPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
-  // Updated State to include Brand Name
+
+  // --- 1. Determine Context (Event vs Membership) ---
+  const isEvent = location.state?.type === "EVENT";
+  const eventData = location.state?.data;
+
+  // Defaults
+  const title = isEvent ? eventData.title : "Premium Membership";
+  const price = isEvent ? eventData.price : 500;
+  const description = isEvent ? "Event Registration" : "Lifetime Access";
+  const displayDate = isEvent ? eventData.date : new Date().toLocaleDateString();
+
   const [formData, setFormData] = useState({
     name: "",
     brandName: "",
@@ -58,13 +83,9 @@ const PaymentPage = () => {
     contact: "",
   });
 
-  // Handle Input Change
   const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
 
   const loadRazorpayScript = () => {
@@ -79,7 +100,8 @@ const PaymentPage = () => {
 
   const handlePayment = async (e) => {
     e.preventDefault();
-    // Updated Validation
+
+    // Validation
     if (!formData.name || !formData.brandName || !formData.email || !formData.contact) {
       alert("Please fill in all details");
       return;
@@ -89,59 +111,53 @@ const PaymentPage = () => {
 
     const loaded = await loadRazorpayScript();
     if (!loaded) {
-      alert("Razorpay SDK failed to load. Check your internet connection.");
+      alert("Razorpay SDK failed to load.");
       setLoading(false);
       return;
     }
 
     try {
-      // 1️⃣ Create Order (Backend)
+      // 2️⃣ Create Order (Backend)
       const res = await axios.post(
         "https://founders-sangam.onrender.com/create-order",
-        { amount: 500 }
+        { amount: price } // Send dynamic price
       );
 
       const order = res.data.order;
 
-      // 2️⃣ Open Razorpay Checkout
+      // 3️⃣ Open Razorpay Checkout
       const options = {
-        key: "rzp_test_RnAgUVl3ntYn9p", // Your Test Key
+        key: "rzp_test_RnAgUVl3ntYn9p", // Replace with your Live Key if needed
         amount: order.amount,
         currency: order.currency,
         name: "Founders Sangam",
-        description: "Premium Membership",
+        description: title,
         image: "https://via.placeholder.com/150",
         order_id: order.id,
 
         handler: async function (response) {
           try {
+            // Verify Payment
             const verifyRes = await axios.post(
               "https://founders-sangam.onrender.com/verify-payment",
-              { ...response, ...formData }
+              { ...response, ...formData, amount: price, purpose: title }
             );
 
             if (verifyRes.data.success) {
-              // EmailJS Logic
-              const SERVICE_ID = "service_48327po";
-              const TEMPLATE_ID = "template_yjf6oog";
-              const PUBLIC_KEY = "1t-jFqpOx_L8ufGlN";
 
-              const templateParams = {
-                user_name: formData.name,
-                brand_name: formData.brandName, // Sending brand name to email
-                user_email: formData.email,
-                to_email: formData.email,
-                message: "Welcome to Founders Sangam! Your membership is confirmed.",
-              };
+              // 4️⃣ REDIRECT TO TICKET PAGE
+              navigate("/ticket", {
+                state: {
+                  paymentData: {
+                    ...formData,
+                    ticketId: response.razorpay_payment_id,
+                    date: displayDate,
+                    amountPaid: price,
+                    eventType: title
+                  }
+                }
+              });
 
-              emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY)
-                .then(() => {
-                  alert("Welcome to Founders Sangam! Payment Verified & Email Sent.");
-                })
-                .catch((err) => {
-                  console.error("Email failed...", err);
-                  alert("Payment Verified, but email failed.");
-                });
             } else {
               alert("Payment Verification Failed!");
             }
@@ -187,29 +203,33 @@ const PaymentPage = () => {
 
       <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-        {/* --- LEFT COLUMN: Value Proposition (Spans 5 cols) --- */}
+        {/* --- LEFT COLUMN: Info (Spans 5 cols) --- */}
         <div className="lg:col-span-5 space-y-8">
           <FadeIn>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm mb-6">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500"></span>
-              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Open for New Members</span>
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
+                {isEvent ? "Registrations Open" : "Open for New Members"}
+              </span>
             </div>
 
             <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 dark:text-white leading-[1.15] tracking-tight">
-              Invest in your <br />
+              {isEvent ? "Reserve your" : "Invest in your"} <br />
               <span className={`text-transparent bg-clip-text bg-gradient-to-r ${BRAND_GRADIENT}`}>
-                Growth Journey.
+                {isEvent ? "Spot Now." : "Growth Journey."}
               </span>
             </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
-              Join Tirupur's premier startup ecosystem. A one-time investment for a lifetime of connections.
+            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mt-4">
+              {isEvent
+                ? `You are registering for ${title}. Secure your ticket today.`
+                : "Join Tirupur's premier startup ecosystem. A one-time investment for a lifetime of connections."}
             </p>
           </FadeIn>
 
           <FadeIn delay={0.2} className="space-y-4 pt-2">
             {[
-              "Lifetime Access to Community",
-              "Monthly Founder Meetups",
+              isEvent ? "Guaranteed Seating" : "Lifetime Access to Community",
+              isEvent ? "Lunch & Networking" : "Monthly Founder Meetups",
               "Investor Networking Opportunities",
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3">
@@ -220,7 +240,7 @@ const PaymentPage = () => {
               </div>
             ))}
 
-            {/* Added Specific WhatsApp Message */}
+            {/* WhatsApp Box */}
             <div className="flex items-start gap-3 bg-green-50 dark:bg-green-900/20 p-3 rounded-lg border border-green-100 dark:border-green-800">
               <div className="mt-1 p-0.5 shrink-0 text-green-600 dark:text-green-400">
                 <MessageCircle size={18} />
@@ -232,26 +252,27 @@ const PaymentPage = () => {
             </div>
           </FadeIn>
 
+          {/* Social Proof Avatar Stack */}
           <FadeIn delay={0.4}>
             <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800">
               <div className="flex items-center gap-4">
                 <div className="flex -space-x-3">
                   {[1, 2, 3, 4].map((i) => (
                     <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i}`} alt="Avatar" />
-                    </div>
+                      <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${i + 10}`} alt="Avatar" />
+                    </div >
                   ))}
-                </div>
+                </div >
                 <div>
                   <p className="font-bold text-slate-900 dark:text-white">50+ Founders</p>
                   <p className="text-xs text-slate-500">Joined recently</p>
                 </div>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
+              </div >
+            </div >
+          </FadeIn >
+        </div >
 
-        {/* --- RIGHT COLUMN: Payment Card (Spans 7 cols) --- */}
+        {/* --- RIGHT COLUMN: Payment Form (Spans 7 cols) --- */}
         <div className="lg:col-span-7 w-full">
           <FadeIn delay={0.1}>
             <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl shadow-slate-200/50 dark:shadow-black/50 border border-slate-100 dark:border-slate-700 overflow-hidden">
@@ -259,17 +280,21 @@ const PaymentPage = () => {
               {/* Top Accent Line */}
               <div className={`h-1.5 w-full bg-gradient-to-r ${BRAND_GRADIENT}`}></div>
 
-              <div className="p-8 md:p-10 grid grid-cols-1 md:grid-cols-1 gap-8">
-
-                {/* FORM SECTION */}
+              <div className="p-8 md:p-10">
                 <div className="space-y-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Complete your profile</h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Unlock full access instantly.</p>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Complete details</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Unlock access instantly.</p>
+                    </div>
+                    {/* Dynamic Price Badge */}
+                    <div className="text-right">
+                      <p className="text-xs text-slate-500 uppercase tracking-wide font-bold">{description}</p>
+                      <p className="text-2xl font-bold text-slate-900 dark:text-white">₹{price}</p>
+                    </div>
                   </div>
 
                   <form onSubmit={handlePayment} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-
                     {/* Full Name */}
                     <div className="md:col-span-2">
                       <InputField
@@ -282,7 +307,7 @@ const PaymentPage = () => {
                       />
                     </div>
 
-                    {/* Brand Name - NEW FIELD */}
+                    {/* Brand Name */}
                     <div className="md:col-span-2">
                       <InputField
                         label="Brand Name"
@@ -324,30 +349,30 @@ const PaymentPage = () => {
                         disabled={loading}
                         className="group relative w-full flex items-center justify-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-3.5 rounded-xl font-bold text-lg hover:shadow-lg hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
                       >
-                        {loading ? <Loader2 className="animate-spin" size={20} /> : "Pay ₹500 Securely"}
+                        {loading ? <Loader2 className="animate-spin" size={20} /> : `Pay ₹${price} Securely`}
                         {!loading && <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                       </button>
                     </div>
                   </form>
 
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-slate-400 font-medium">
-                    <ShieldCheck size={12} />
-                    <span>Secured by Razorpay</span>
+                  <div className="flex items-center justify-center gap-3 text-xs text-slate-400 font-medium">
+                    <div className="flex items-center gap-1">
+                      <ShieldCheck size={12} />
+                      <span>Secured by Razorpay</span>
+                    </div>
+                    <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                    <div className="flex items-center gap-1">
+                      <Ticket size={12} />
+                      <span>Instant Ticket</span>
+                    </div>
                   </div>
                 </div>
-
-              </div>
-
-              {/* Bottom strip */}
-              <div className="bg-slate-50 dark:bg-slate-900/50 px-8 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs text-slate-500">
-                <span>Lifetime Membership</span>
-                <span className="font-bold text-slate-900 dark:text-white text-lg">₹500</span>
               </div>
             </div>
           </FadeIn>
-        </div>
-      </div>
-    </div>
+        </div >
+      </div >
+    </div >
   );
 };
 

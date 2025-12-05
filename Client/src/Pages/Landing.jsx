@@ -1,11 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Users, Rocket, MapPin } from "lucide-react";
-
-// Import Shared Components
-import FadeIn from "../components/FadeIn";
-import Counter from "../components/Counter";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useInView,
+  AnimatePresence
+} from "framer-motion";
+import {
+  ArrowRight,
+  Users,
+  Rocket,
+  MapPin,
+  Quote,
+  Zap,
+  Globe,
+  BookOpen,
+  Plus,
+  Minus
+} from "lucide-react";
 
 // --- Theme Constants ---
 const BRAND_COLORS = {
@@ -15,12 +29,44 @@ const BRAND_COLORS = {
   blue: "from-sky-500 to-blue-600",
 };
 
-// --- Hero Section ---
+// --- Utility Components ---
+
+const FadeIn = ({ children, delay = 0, className = "" }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true, margin: "10px" }}
+    transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
+    className={className}
+  >
+    {children}
+  </motion.div>
+);
+
+const Counter = ({ value, suffix = "" }) => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const springValue = useSpring(0, { stiffness: 60, damping: 20 });
+  const displayValue = useTransform(
+    springValue,
+    (latest) => `${Math.round(latest)}${suffix}`
+  );
+
+  useEffect(() => {
+    if (isInView) springValue.set(value);
+  }, [isInView, value, springValue]);
+
+  return <motion.span ref={ref}>{displayValue}</motion.span>;
+};
+
+// --- SECTIONS ---
+
+// 1. Hero Section
 const Hero = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-0 pb-12 transition-colors duration-500">
+    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-25 pb-12 transition-colors duration-500">
       {/* Background Blobs */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -118,7 +164,7 @@ const Hero = () => {
   );
 };
 
-// --- Manifesto Marquee ---
+// 2. Manifesto Marquee
 const ManifestoMarquee = () => {
   const manifestoItems = [
     { text: "NETWORKING", color: "text-amber-500", dot: "bg-amber-400" },
@@ -159,7 +205,7 @@ const ManifestoMarquee = () => {
   );
 };
 
-// --- Stats Section ---
+// 3. Stats Section
 const StatsSection = () => {
   const navigate = useNavigate();
   const StatsCard = ({ value, label, delay, gradient, icon: Icon, onClick, href }) => {
@@ -258,7 +304,89 @@ const StatsSection = () => {
   );
 };
 
-// --- Founders Section ---
+// 4. Benefits Section (New)
+const BenefitsSection = () => {
+  return (
+    <section className="py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500">
+      <div className="max-w-7xl mx-auto">
+        <FadeIn>
+          <div className="mb-16 text-center md:text-left">
+            <span className="text-amber-500 font-bold tracking-widest text-sm uppercase mb-4 block">
+              Membership Perks
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
+              The <span className="italic font-serif">Unfair Advantage</span> <br />
+              for Tirupur Founders.
+            </h2>
+          </div>
+        </FadeIn>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Card 1: Large */}
+          <FadeIn delay={0.1} className="md:col-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/50 dark:bg-amber-900/20 rounded-full blur-[80px] -mr-16 -mt-16 transition-all group-hover:bg-amber-200/50 dark:group-hover:bg-amber-800/20"></div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 mb-6">
+                <Users size={24} />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Zero Noise, 100% Curated</h3>
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
+                We aren't a WhatsApp group filled with spam. We are a vetted community. Every member is a founder or decision-maker, ensuring every conversation adds value to your business.
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Card 2: Tall */}
+          <FadeIn delay={0.2} className="md:row-span-2 relative group overflow-hidden bg-slate-900 dark:bg-white rounded-[2.5rem] p-10 flex flex-col justify-between">
+            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/50 to-transparent dark:from-white/50"></div>
+            <div>
+              <div className="w-12 h-12 bg-white/20 dark:bg-slate-200 rounded-2xl flex items-center justify-center text-white dark:text-slate-900 mb-6">
+                <Globe size={24} />
+              </div>
+              <h3 className="text-2xl font-bold text-white dark:text-slate-900 mb-4">Global Network Access</h3>
+              <p className="text-slate-300 dark:text-slate-500 leading-relaxed">
+                Connect with mentors and investors beyond Tirupur. We bridge the gap between local manufacturing strength and global tech scalability.
+              </p>
+            </div>
+            <button className="mt-8 w-full py-4 rounded-xl bg-white/10 dark:bg-slate-100 backdrop-blur-md text-white dark:text-slate-900 font-bold border border-white/10 dark:border-slate-200 hover:bg-white hover:text-black dark:hover:bg-slate-900 dark:hover:text-white transition-all">
+              See the Network
+            </button>
+          </FadeIn>
+
+          {/* Card 3: Standard */}
+          <FadeIn delay={0.3} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-sky-100/50 dark:bg-sky-900/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center text-sky-600 mb-6">
+                <Zap size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Investor Ready</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Exclusive pitch sessions and deck reviews to get you funding-ready.
+              </p>
+            </div>
+          </FadeIn>
+
+          {/* Card 4: Standard */}
+          <FadeIn delay={0.4} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
+            <div className="relative z-10">
+              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
+                <BookOpen size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Digital Library</h3>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Access 100+ templates for hiring, legal, and marketing specific to Indian startups.
+              </p>
+            </div>
+          </FadeIn>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// 5. Founders Section
 const FoundersSection = () => {
   return (
     <section className="py-20 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative transition-colors duration-500 border-t border-slate-200 dark:border-slate-800">
@@ -273,24 +401,24 @@ const FoundersSection = () => {
           {/* Founder 1 */}
           <FadeIn delay={0.1} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
             <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-slate-50 dark:border-slate-600">
-              <img src="https://ui-avatars.com/api/?name=Founder+Name&background=f59e0b&color=fff&size=256" alt="Founder" className="w-full h-full object-cover" />
+              <img src="Images/Founder.png" alt="Founder" className="w-full h-full object-cover" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Founder Name</h3>
-            <p className="text-amber-500 font-semibold text-sm mb-3">Founder</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Kaviya Maruthasalam</h3>
+            <p className="text-amber-500 font-semibold text-sm mb-3">Founder Founders Sangam</p>
             <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
-              "Building communities that empower the next generation of entrepreneurs in Tirupur."
+              "Top 1% Personal Branding Expert & an Intrapreneur"
             </p>
           </FadeIn>
 
           {/* Founder 2 */}
           <FadeIn delay={0.2} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
             <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-slate-50 dark:border-slate-600">
-              <img src="https://ui-avatars.com/api/?name=Co+Founder&background=ef4444&color=fff&size=256" alt="Co-Founder" className="w-full h-full object-cover" />
+              <img src="Images/Co-founder.png" alt="Co-Founder" className="w-full h-full object-cover" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Co-Founder Name</h3>
-            <p className="text-red-500 font-semibold text-sm mb-3">Co-Founder</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Naveen Kumar</h3>
+            <p className="text-red-500 font-semibold text-sm mb-3">Founder Founders Sangam Community</p>
             <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
-              "Connecting minds, sharing stories, and fostering growth for every startup journey."
+              "Tiurpur's Leading Textilepreneur"
             </p>
           </FadeIn>
         </div>
@@ -299,7 +427,7 @@ const FoundersSection = () => {
   );
 };
 
-// --- Value Section ---
+// 6. Value Section
 const ValueSection = () => {
   return (
     <section className="py-32 bg-white dark:bg-slate-950 overflow-hidden w-full relative transition-colors duration-500">
@@ -361,7 +489,63 @@ const ValueSection = () => {
   );
 };
 
-// --- Collaboration Section ---
+// 7. Testimonials Section (New)
+const TestimonialsSection = () => {
+  const testimonials = [
+    {
+      name: "Rajesh Kumar",
+      role: "CEO, TexValley Tech",
+      content: "I found my technical co-founder at the last Sangam meetup. The quality of crowd here is unlike any other event in the city.",
+      color: "border-amber-400"
+    },
+    {
+      name: "Sneha Reddy",
+      role: "Founder, GreenLoom",
+      content: "Founders Sangam gave me the mentorship I needed to pivot my D2C brand. The ecosystem they are building is vital for Tirupur.",
+      color: "border-emerald-500"
+    },
+    {
+      name: "Arun Karthik",
+      role: "Director, AK Exports",
+      content: "Bridging the gap between traditional textile business and modern SaaS tools. This community is opening new doors for us.",
+      color: "border-sky-500"
+    }
+  ];
+
+  return (
+    <section className="py-24 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500">
+      <div className="max-w-7xl mx-auto">
+        <FadeIn>
+          <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 dark:text-white mb-16">
+            Voices of the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Sangam</span>
+          </h2>
+        </FadeIn>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {testimonials.map((item, i) => (
+            <FadeIn key={i} delay={i * 0.1} className={`bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-sm border-t-4 ${item.color} relative`}>
+              <Quote className="text-slate-200 dark:text-slate-700 absolute top-8 right-8" size={40} />
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-8 relative z-10">
+                "{item.content}"
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-500">
+                  {item.name.charAt(0)}
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white">{item.name}</h4>
+                  <p className="text-xs text-slate-500 uppercase tracking-wide">{item.role}</p>
+                </div>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// 8. Collaboration Section
 const CollaborationSection = () => {
   const companies = [
     "Company A",
@@ -395,15 +579,76 @@ const CollaborationSection = () => {
   );
 };
 
-// --- Landing Page Component ---
+// 9. FAQ Section (New)
+const FAQSection = () => {
+  const [openIndex, setOpenIndex] = useState(null);
+
+  const faqs = [
+    { question: "Is this membership only for Tech Founders?", answer: "Not at all. We welcome founders from Textile, D2C, Manufacturing, and Service sectors. Innovation happens at the intersection of industries." },
+    { question: "How often do meetups happen?", answer: "We host an official Founders Meetup once a month, with smaller casual mixers happening bi-weekly at partner cafes." },
+    { question: "Is the ₹500 fee a monthly subscription?", answer: "No! It is a one-time lifetime membership fee for the Early Adopter batch. Prices will move to a subscription model soon." },
+    { question: "Can I bring my co-founder?", answer: "Yes, but memberships are individual. We highly recommend your co-founder registers separately to access the digital community benefits." },
+  ];
+
+  return (
+    <section className="py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 transition-colors duration-500">
+      <div className="max-w-3xl mx-auto">
+        <FadeIn>
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-slate-900 dark:text-white mb-12">
+            Common Queries
+          </h2>
+        </FadeIn>
+
+        <div className="space-y-4">
+          {faqs.map((faq, index) => (
+            <FadeIn key={index} delay={index * 0.1}>
+              <div
+                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                className="cursor-pointer bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-400 transition-colors"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">{faq.question}</h3>
+                  <div className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""}`}>
+                    {openIndex === index ? <Minus size={20} className="text-amber-500" /> : <Plus size={20} className="text-slate-400" />}
+                  </div>
+                </div>
+                <AnimatePresence>
+                  {openIndex === index && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <p className="pt-4 text-slate-600 dark:text-slate-400 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </FadeIn>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// --- Landing Page Component (Main Export) ---
 const LandingPage = () => (
   <>
     <Hero />
     <ManifestoMarquee />
     <StatsSection />
+    <BenefitsSection />
     <FoundersSection />
     <ValueSection />
+    <TestimonialsSection />
     <CollaborationSection />
+    <FAQSection />
+
+    <div className="h-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900"></div>
   </>
 );
 

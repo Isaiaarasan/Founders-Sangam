@@ -3,10 +3,15 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 require("dotenv").config();
 
 const Payment = require("./models/Payment");
-const Event = require("./models/Event"); // Ensure you have this model created
+const Event = require("./models/Event");
+const Admin = require("./models/Admin");
+const PageContent = require("./models/PageContent");
+const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
 app.use(cors());
@@ -17,7 +22,21 @@ app.use(express.json());
 // -------------------------------
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(async () => {
+    console.log("✅ MongoDB Connected");
+    // Auto-seed Admin
+    try {
+      const existingAdmin = await Admin.findOne({ username: "admin" });
+      if (!existingAdmin) {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash("admin123", salt);
+        await Admin.create({ username: "admin", password: hashedPassword });
+        console.log("👤 Default Admin Created (admin/admin123)");
+      }
+    } catch (err) {
+      console.error("Failed to seed admin:", err);
+    }
+  })
   .catch((err) => console.log("❌ DB Error", err));
 
 // -------------------------------
@@ -29,7 +48,43 @@ const razorpay = new Razorpay({
 });
 
 // -------------------------------
-// 3. Create Order
+// 3. ADMIN AUTH
+// -------------------------------
+app.post("/admin/register", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    // Check if admin exists
+    const existingAdmin = await Admin.findOne({ username });
+    if (existingAdmin) return res.status(400).json({ success: false, message: "Admin already exists" });
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const admin = await Admin.create({ username, password: hashedPassword });
+    res.json({ success: true, message: "Admin created" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error creating admin" });
+  }
+});
+
+app.post("/admin/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const admin = await Admin.findOne({ username });
+    if (!admin) return res.status(400).json({ success: false, message: "Invalid credentials" });
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) return res.status(400).json({ success: false, message: "Invalid credentials" });
+
+    const token = jwt.sign({ id: admin._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    res.json({ success: true, token });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Login failed" });
+  }
+});
+
+// -------------------------------
+// 4. Create Order
 // -------------------------------
 app.post("/create-order", async (req, res) => {
   try {
@@ -48,7 +103,7 @@ app.post("/create-order", async (req, res) => {
 });
 
 // -------------------------------
-// 4. Verify Payment (Updated for Brand Name)
+// 5. Verify Payment
 // -------------------------------
 app.post("/verify-payment", async (req, res) => {
   try {
@@ -57,7 +112,7 @@ app.post("/verify-payment", async (req, res) => {
       razorpay_payment_id,
       razorpay_signature,
       name,
-      brandName, // <--- Receive Brand Name
+      brandName,
       email,
       contact,
     } = req.body;
@@ -77,9 +132,9 @@ app.post("/verify-payment", async (req, res) => {
         paymentId: razorpay_payment_id,
         signature: razorpay_signature,
         amount: 500,
-        status: "success", // Stored as lowercase
+        status: "success",
         name,
-        brandName, // <--- Save Brand Name
+        brandName,
         email,
         contact,
       });
@@ -95,11 +150,10 @@ app.post("/verify-payment", async (req, res) => {
 });
 
 // -------------------------------
-// 5. Get Members (Fixed Status Bug)
+// 6. Get Members (Protected)
 // -------------------------------
-app.get("/members", async (req, res) => {
+app.get("/members", authMiddleware, async (req, res) => {
   try {
-    // CHANGED "SUCCESS" to "success" to match what you save
     const members = await Payment.find({ status: "success" }).sort({ createdAt: -1 });
     res.json({ success: true, members });
   } catch (err) {
@@ -109,20 +163,20 @@ app.get("/members", async (req, res) => {
 });
 
 // -------------------------------
-// 6. Dashboard Stats (NEW)
+// 7. Dashboard Stats (Protected)
 // -------------------------------
-app.get("/admin/stats", async (req, res) => {
+app.get("/admin/stats", authMiddleware, async (req, res) => {
   try {
     const memberCount = await Payment.countDocuments({ status: "success" });
-    // Assuming flat fee of 500
     const totalRevenue = memberCount * 500;
+    const eventCount = await Event.countDocuments();
 
     res.json({
       success: true,
       stats: {
         totalMembers: memberCount,
         totalRevenue: totalRevenue,
-        activeEvents: 3 // Replace with actual Event count query later
+        activeEvents: eventCount
       }
     });
   } catch (err) {
@@ -132,10 +186,10 @@ app.get("/admin/stats", async (req, res) => {
 });
 
 // -------------------------------
-// 7. Events API
+// 8. Events API
 // -------------------------------
 
-// Get All Events
+// Get All Events (Public)
 app.get("/events", async (req, res) => {
   try {
     const events = await Event.find().sort({ date: 1 });
@@ -146,8 +200,8 @@ app.get("/events", async (req, res) => {
   }
 });
 
-// Create Event
-app.post("/events", async (req, res) => {
+// Create Event (Protected)
+app.post("/events", authMiddleware, async (req, res) => {
   try {
     const newEvent = await Event.create(req.body);
     res.json({ success: true, event: newEvent });
@@ -157,8 +211,55 @@ app.post("/events", async (req, res) => {
   }
 });
 
+// Update Event (Protected)
+app.put("/events/:id", authMiddleware, async (req, res) => {
+  try {
+    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json({ success: true, event: updatedEvent });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to update event" });
+  }
+});
+
+// Delete Event (Protected)
+app.delete("/events/:id", authMiddleware, async (req, res) => {
+  try {
+    await Event.findByIdAndDelete(req.params.id);
+    res.json({ success: true, message: "Event deleted" });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to delete event" });
+  }
+});
+
 // -------------------------------
-// 8. Start Server
+// 9. Page Content API (Protected)
+// -------------------------------
+app.get("/content/:section", async (req, res) => {
+  try {
+    const content = await PageContent.findOne({ section: req.params.section });
+    res.json({ success: true, content: content ? content.content : null });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch content" });
+  }
+});
+
+app.post("/content/:section", authMiddleware, async (req, res) => {
+  try {
+    const { section } = req.params;
+    const { content } = req.body;
+    const updatedContent = await PageContent.findOneAndUpdate(
+      { section },
+      { content },
+      { new: true, upsert: true }
+    );
+    res.json({ success: true, content: updatedContent });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to update content" });
+  }
+});
+
+// -------------------------------
+// 10. Start Server
 // -------------------------------
 app.listen(5000, () => {
   console.log("🚀 Server running on port 5000");

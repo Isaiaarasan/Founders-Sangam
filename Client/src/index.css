@@ -1,2 +1,11 @@
-@tailwind base;
-@tailwind components;
+@import "tailwindcss";
+
+@theme {
+    --color-primary: #f59e0b;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+body {
+    @apply bg-white text-slate-900 dark:bg-slate-950 dark:text-white transition-colors duration-500;
+}
