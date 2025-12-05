@@ -13,7 +13,7 @@ const ContentManager = () => {
 
     const fetchContent = async (section) => {
         try {
-            const res = await axios.get(`http://localhost:5000/content/${section}`);
+            const res = await axios.get(`https://founders-sangam.onrender.com/content/${section}`);
             if (res.data.success && res.data.content) {
                 if (section === "testimonials") setTestimonials(res.data.content);
             }
@@ -27,7 +27,7 @@ const ContentManager = () => {
         try {
             const token = localStorage.getItem("adminToken");
             await axios.post(
-                `http://localhost:5000/content/${section}`,
+                `https://founders-sangam.onrender.com/content/${section}`,
                 { content },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -66,8 +66,8 @@ const ContentManager = () => {
                 <button
                     onClick={() => setActiveTab("testimonials")}
                     className={`px-4 py-2 font-medium border-b-2 transition-colors ${activeTab === "testimonials"
-                            ? "border-amber-500 text-amber-500"
-                            : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400"
+                        ? "border-amber-500 text-amber-500"
+                        : "border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400"
                         }`}
                 >
                     Testimonials

@@ -14,7 +14,7 @@ const Dashboard = () => {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem("adminToken");
-                const res = await axios.get("http://localhost:5000/admin/stats", {
+                const res = await axios.get("https://founders-sangam.onrender.com/admin/stats", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (res.data.success) {

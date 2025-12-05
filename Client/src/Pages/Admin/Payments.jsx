@@ -19,7 +19,7 @@ const Payments = () => {
             try {
                 const token = localStorage.getItem("adminToken");
                 // Reusing members endpoint as it contains payment info
-                const res = await axios.get("http://localhost:5000/members", {
+                const res = await axios.get("https://founders-sangam.onrender.com/members", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (res.data.success) {
