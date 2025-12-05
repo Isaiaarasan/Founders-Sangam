@@ -1,9 +1,20 @@
 import React from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, CreditCard, FileText, Settings, LogOut } from "lucide-react";
+import {
+    LayoutDashboard,
+    Users,
+    Calendar,
+    CreditCard,
+    FileText,
+    Settings,
+    LogOut,
+    Sparkles,
+    Sun,
+    Moon
+} from "lucide-react";
 import clsx from "clsx";
 
-const AdminLayout = () => {
+const AdminLayout = ({ isDark, toggleTheme }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -22,47 +33,98 @@ const AdminLayout = () => {
     ];
 
     return (
-        <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors duration-500">
+        <div className="flex min-h-screen bg-[#FDFDFD] dark:bg-[#050505] text-[#1a1a1a] dark:text-[#ededed] font-sans selection:bg-amber-500/30">
+
             {/* Sidebar */}
-            <aside className="w-64 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col fixed h-full z-20">
-                <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-                    <h1 className="text-2xl font-bold tracking-tighter">
-                        FOUNDERS <span className="text-amber-500">ADMIN</span>
-                    </h1>
+            <aside className="w-72 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-r border-gray-100 dark:border-neutral-800 flex flex-col fixed h-full z-50 transition-all duration-300">
+
+                {/* Logo Area */}
+                <div className="p-8 pb-4">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+                            <Sparkles size={18} className="text-white" />
+                        </div>
+                        <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
+                            FOUNDERS
+                        </h1>
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-semibold pl-10">
+                        Admin Console
+                    </p>
                 </div>
 
-                <nav className="flex-1 p-4 space-y-2">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={clsx(
-                                "flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all",
-                                location.pathname === item.path
-                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-lg"
-                                    : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
-                            )}
-                        >
-                            <item.icon size={20} />
-                            {item.label}
-                        </Link>
-                    ))}
+                {/* Navigation */}
+                <nav className="flex-1 px-4 py-6 space-y-1">
+                    <p className="px-4 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
+                        Menu
+                    </p>
+                    {navItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                            <Link
+                                key={item.path}
+                                to={item.path}
+                                className={clsx(
+                                    "group flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out relative overflow-hidden",
+                                    isActive
+                                        ? "text-white shadow-md shadow-amber-900/5"
+                                        : "text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white"
+                                )}
+                            >
+                                {/* Active Background Gradient */}
+                                {isActive && (
+                                    <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 to-neutral-800 dark:from-white dark:to-neutral-200 z-[-1]" />
+                                )}
+
+                                {/* Active Indicator Bar (Left) */}
+                                {isActive && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-amber-500 rounded-r-full" />
+                                )}
+
+                                <item.icon
+                                    size={18}
+                                    className={clsx(
+                                        "transition-colors",
+                                        isActive ? "text-amber-400 dark:text-neutral-900" : "group-hover:text-amber-500"
+                                    )}
+                                />
+                                <span className={isActive ? "dark:text-neutral-900" : ""}>{item.label}</span>
+                            </Link>
+                        );
+                    })}
                 </nav>
 
-                <div className="p-4 border-t border-slate-200 dark:border-slate-800">
+                {/* Footer / Logout */}
+                <div className="p-4 border-t border-gray-100 dark:border-neutral-800 space-y-2">
+                    <button
+                        onClick={toggleTheme}
+                        className="group flex items-center gap-3 px-4 py-3.5 w-full rounded-xl text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-900 hover:text-neutral-900 dark:hover:text-white transition-all duration-200"
+                    >
+                        <div className="p-1.5 rounded-md bg-neutral-100 dark:bg-neutral-900 group-hover:bg-amber-100 dark:group-hover:bg-amber-900/50 transition-colors">
+                            {isDark ? <Sun size={16} className="group-hover:text-amber-600 dark:group-hover:text-amber-400" /> : <Moon size={16} className="group-hover:text-amber-600" />}
+                        </div>
+                        {isDark ? "Light Mode" : "Dark Mode"}
+                    </button>
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 px-4 py-3 w-full rounded-xl font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all"
+                        className="group flex items-center gap-3 px-4 py-3.5 w-full rounded-xl text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
                     >
-                        <LogOut size={20} />
-                        Logout
+                        <div className="p-1.5 rounded-md bg-neutral-100 dark:bg-neutral-900 group-hover:bg-red-100 dark:group-hover:bg-red-900/50 transition-colors">
+                            <LogOut size={16} />
+                        </div>
+                        Sign Out
                     </button>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 ml-64 p-8">
-                <Outlet />
+            {/* Main Content Area */}
+            <main className="flex-1 ml-72 p-8 lg:p-12 relative">
+                {/* Background ambient glow for premium feel */}
+                <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 dark:bg-amber-500/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+
+                <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <Outlet />
+                </div>
             </main>
         </div>
     );

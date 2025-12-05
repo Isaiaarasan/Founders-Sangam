@@ -200,12 +200,47 @@ app.get("/admin/stats", authMiddleware, async (req, res) => {
     const totalRevenue = memberCount * 500;
     const eventCount = await Event.countDocuments();
 
+    // 1. Recent Activity (Last 5)
+    const recentActivity = await Payment.find({ status: "success" })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("name email brandName createdAt amount");
+
+    // 2. Growth Analytics (Last 6 Months)
+    const monthlyStats = await Payment.aggregate([
+      { $match: { status: "success" } },
+      {
+        $group: {
+          _id: {
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
+          },
+          count: { $sum: 1 },
+          revenue: { $sum: 500 }, // Assuming fixed 500 for now
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1 } },
+      { $limit: 6 }
+    ]);
+
+    // Format for Recharts
+    const growthData = monthlyStats.map(item => {
+      const date = new Date(item._id.year, item._id.month - 1);
+      return {
+        name: date.toLocaleString('default', { month: 'short' }),
+        members: item.count,
+        revenue: item.revenue
+      };
+    });
+
     res.json({
       success: true,
       stats: {
         totalMembers: memberCount,
         totalRevenue: totalRevenue,
-        activeEvents: eventCount
+        activeEvents: eventCount,
+        recentActivity,
+        growthData
       }
     });
   } catch (err) {

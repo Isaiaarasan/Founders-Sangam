@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
-import { Plus, Edit2, Trash2, X, Calendar as CalendarIcon, MapPin } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Calendar as CalendarIcon, MapPin, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Events = () => {
@@ -79,138 +79,186 @@ const Events = () => {
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-8">
+        <div className="max-w-7xl mx-auto pb-20">
+            {/* Header */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
                 <div>
-                    <h2 className="text-3xl font-bold text-slate-900 dark:text-white">Events</h2>
-                    <p className="text-slate-500 dark:text-slate-400">Manage upcoming and past events</p>
+                    <h2 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">Events</h2>
+                    <p className="text-neutral-500 dark:text-neutral-400 mt-1">Manage upcoming and past events.</p>
                 </div>
                 <button
                     onClick={() => openModal()}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:scale-105 transition-all shadow-lg"
+                    className="flex items-center gap-2 px-5 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-neutral-200 dark:shadow-none"
                 >
-                    <Plus size={20} />
+                    <Plus size={18} />
                     Create Event
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Events Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {events.map((event) => (
                     <motion.div
                         key={event._id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 group"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="group bg-white dark:bg-[#0A0A0A] rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full"
                     >
                         <div className="h-48 overflow-hidden relative">
                             <img
                                 src={event.image || "https://via.placeholder.com/400x200"}
                                 alt={event.title}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                             />
-                            <div className="absolute top-4 right-4 flex gap-2">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
                                 <button
                                     onClick={() => openModal(event)}
-                                    className="p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-lg text-slate-900 dark:text-white hover:bg-amber-500 hover:text-white transition-colors"
+                                    className="p-2 bg-white/90 dark:bg-black/90 backdrop-blur-md rounded-lg text-neutral-900 dark:text-white hover:bg-amber-500 hover:text-white dark:hover:bg-amber-500 transition-colors shadow-lg"
                                 >
                                     <Edit2 size={16} />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(event._id)}
-                                    className="p-2 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+                                    className="p-2 bg-white/90 dark:bg-black/90 backdrop-blur-md rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg"
                                 >
                                     <Trash2 size={16} />
                                 </button>
                             </div>
                         </div>
-                        <div className="p-6">
-                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">{event.title}</h3>
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm mb-2">
-                                <CalendarIcon size={16} />
-                                {new Date(event.date).toLocaleDateString()}
+
+                        <div className="p-6 flex flex-col flex-1">
+                            <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-3">
+                                <CalendarIcon size={14} />
+                                {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                             </div>
-                            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm mb-4">
+
+                            <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3 leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-500 transition-colors">
+                                {event.title}
+                            </h3>
+
+                            <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 text-sm mb-4">
                                 <MapPin size={16} />
                                 {event.location}
                             </div>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2">{event.description}</p>
+
+                            <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed line-clamp-3 mb-6 flex-1">
+                                {event.description}
+                            </p>
+
+                            {event.registrationLink && (
+                                <a
+                                    href={event.registrationLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white hover:underline decoration-amber-500 underline-offset-4"
+                                >
+                                    <LinkIcon size={14} /> Registration Link
+                                </a>
+                            )}
                         </div>
                     </motion.div>
                 ))}
             </div>
 
+            {/* Modal */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                         <motion.div
-                            initial={{ opacity: 0, y: 50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 50 }}
-                            className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] overflow-y-auto"
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-[#0A0A0A] rounded-2xl w-full max-w-lg border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                         >
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                    {editingEvent ? "Edit Event" : "New Event"}
+                            <div className="p-6 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
+                                <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
+                                    {editingEvent ? "Edit Event" : "Create New Event"}
                                 </h3>
-                                <button onClick={closeModal} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
-                                    <X size={24} />
+                                <button onClick={closeModal} className="p-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg transition-colors text-neutral-500">
+                                    <X size={20} />
                                 </button>
                             </div>
 
-                            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title</label>
-                                    <input
-                                        {...register("title", { required: true })}
-                                        className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Date</label>
-                                    <input
-                                        type="date"
-                                        {...register("date", { required: true })}
-                                        className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Location</label>
-                                    <input
-                                        {...register("location", { required: true })}
-                                        className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Image URL</label>
-                                    <input
-                                        {...register("image")}
-                                        placeholder="https://..."
-                                        className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Registration Link</label>
-                                    <input
-                                        {...register("registrationLink")}
-                                        placeholder="https://..."
-                                        className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Description</label>
-                                    <textarea
-                                        {...register("description", { required: true })}
-                                        rows={4}
-                                        className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500 dark:text-white"
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:opacity-90 transition-all"
-                                >
-                                    {editingEvent ? "Update Event" : "Create Event"}
-                                </button>
-                            </form>
+                            <div className="p-6 overflow-y-auto">
+                                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Event Title</label>
+                                        <input
+                                            {...register("title", { required: true })}
+                                            className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium"
+                                            placeholder="Ex. Annual Founders Meetup"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Date</label>
+                                            <div className="relative">
+                                                <input
+                                                    type="date"
+                                                    {...register("date", { required: true })}
+                                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium"
+                                                />
+                                                <CalendarIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Location</label>
+                                            <div className="relative">
+                                                <input
+                                                    {...register("location", { required: true })}
+                                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium"
+                                                    placeholder="City, Venue"
+                                                />
+                                                <MapPin size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Image URL</label>
+                                        <div className="relative">
+                                            <input
+                                                {...register("image")}
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium"
+                                                placeholder="https://..."
+                                            />
+                                            <ImageIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Registration Link</label>
+                                        <div className="relative">
+                                            <input
+                                                {...register("registrationLink")}
+                                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium"
+                                                placeholder="https://..."
+                                            />
+                                            <LinkIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Description</label>
+                                        <textarea
+                                            {...register("description", { required: true })}
+                                            rows={4}
+                                            className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all leading-relaxed resize-none"
+                                            placeholder="Enter event details..."
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        className="w-full py-3.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-bold text-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] transition-all duration-200 mt-2"
+                                    >
+                                        {editingEvent ? "Save Changes" : "Publish Event"}
+                                    </button>
+                                </form>
+                            </div>
                         </motion.div>
                     </div>
                 )}

@@ -59,7 +59,7 @@ function App() {
 
           {/* Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute />}>
-            <Route element={<AdminLayout />}>
+            <Route element={<AdminLayout isDark={isDark} toggleTheme={toggleTheme} />}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="members" element={<Members />} />
               <Route path="events" element={<Events />} />
