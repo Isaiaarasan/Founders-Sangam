@@ -117,6 +117,18 @@ const PaymentPage = () => {
     }
 
     try {
+      // 1️⃣ Validate User (Backend)
+      const validateRes = await axios.post(
+        "https://founders-sangam.onrender.com/validate-user",
+        { email: formData.email, contact: formData.contact }
+      );
+
+      if (validateRes.data.exists) {
+        alert(validateRes.data.message);
+        setLoading(false);
+        return;
+      }
+
       // 2️⃣ Create Order (Backend)
       const res = await axios.post(
         "https://founders-sangam.onrender.com/create-order",

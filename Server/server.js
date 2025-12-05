@@ -150,7 +150,36 @@ app.post("/verify-payment", async (req, res) => {
 });
 
 // -------------------------------
-// 6. Get Members (Protected)
+// 6. Validate User
+// -------------------------------
+app.post("/validate-user", async (req, res) => {
+  try {
+    const { email, contact } = req.body;
+
+    // Check if user with same email or contact already has a successful payment
+    const existingUser = await Payment.findOne({
+      $or: [{ email }, { contact }],
+      status: "success"
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return res.json({ exists: true, message: "Email already registered with a successful payment." });
+      }
+      if (existingUser.contact === contact) {
+        return res.json({ exists: true, message: "Contact number already registered with a successful payment." });
+      }
+    }
+
+    res.json({ exists: false });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Validation failed" });
+  }
+});
+
+// -------------------------------
+// 7. Get Members (Protected)
 // -------------------------------
 app.get("/members", authMiddleware, async (req, res) => {
   try {
