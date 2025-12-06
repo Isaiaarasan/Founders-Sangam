@@ -6,7 +6,8 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
-        totalMembers: 0,
+        communityCount: 0,
+        eventRegCount: 0,
         totalRevenue: 0,
         activeEvents: 0,
     });
@@ -73,16 +74,23 @@ const Dashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                 <StatCard
-                    title="Total Members"
-                    value={stats.totalMembers}
+                    title="Community Members"
+                    value={stats.communityCount}
                     icon={Users}
                     color="bg-amber-500"
                     trend="+12%"
                 />
                 <StatCard
-                    title="Total Revenue"
-                    value={`₹${stats.totalRevenue.toLocaleString()} `}
+                    title="Event Registrations"
+                    value={stats.eventRegCount}
                     icon={CreditCard}
+                    color="bg-purple-500"
+                    trend="+5%"
+                />
+                <StatCard
+                    title="Total Revenue"
+                    value={`₹${stats.totalRevenue?.toLocaleString()}`}
+                    icon={Activity}
                     color="bg-emerald-500"
                     trend="+8.5%"
                 />
@@ -91,12 +99,6 @@ const Dashboard = () => {
                     value={stats.activeEvents}
                     icon={Calendar}
                     color="bg-sky-500"
-                />
-                <StatCard
-                    title="Pending Approvals"
-                    value="0"
-                    icon={Activity}
-                    color="bg-red-500"
                 />
             </div>
 

@@ -130,14 +130,11 @@ app.post("/verify-payment", async (req, res) => {
 
     if (isAuthentic) {
       // 1. Check if this is a TICKET payment or MEMBERSHIP payment
-      // For now, we assume if "ticketId" exists in body (passed from frontend), it's a ticket payment
-      // BUT frontend passes extra data in verify-payment body usually.
-      // Let's rely on `notes` or passed fields.
-
-      if (req.body.ticketId) {
+      // If dbTicketId is present, it is STRICTLY an Event Ticket payment.
+      if (req.body.dbTicketId) {
         // --- EVENT TICKET LOGIC ---
         // Verify payment for a specific ticket
-        // The "ticketId" passed here is actually the Razorpay Payment ID in the frontend logic for membership,
+        // The "dbTicketId" passed here is the MongoDB _id of the pending ticket.
         // BUT for events, we might pass the DB Ticket ID.
         // Let's clarify: The User requested flow:
         // 1. Create Ticket (PENDING) -> Get DB Ticket ID
