@@ -10,7 +10,8 @@ import {
     LogOut,
     Sparkles,
     Sun,
-    Moon
+    Moon,
+    Ticket
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -26,6 +27,7 @@ const AdminLayout = ({ isDark, toggleTheme }) => {
     const navItems = [
         { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
         { icon: Users, label: "Members", path: "/admin/members" },
+        { icon: Ticket, label: "Event Members", path: "/admin/registrations" },
         { icon: Calendar, label: "Events", path: "/admin/events" },
         { icon: CreditCard, label: "Payments", path: "/admin/payments" },
         { icon: FileText, label: "Content", path: "/admin/content" },

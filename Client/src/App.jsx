@@ -12,10 +12,14 @@ const EventsPage = lazy(() => import("./Pages/EventsPage"));
 const EventDetails = lazy(() => import("./Pages/EventDetails"));
 const EventRegistration = lazy(() => import("./Pages/EventRegistration"));
 const EventPaymentPage = lazy(() => import("./Pages/EventPaymentPage"));
+const MaintenancePage = lazy(() => import("./Pages/MaintenancePage"));
+
+// Admin Pages
 const AdminLogin = lazy(() => import("./Pages/Admin/AdminLogin"));
 const Dashboard = lazy(() => import("./Pages/Admin/Dashboard"));
 const Members = lazy(() => import("./Pages/Admin/Members"));
 const Events = lazy(() => import("./Pages/Admin/Events"));
+const EventMembers = lazy(() => import("./Pages/Admin/EventMembers"));
 const Payments = lazy(() => import("./Pages/Admin/Payments"));
 const ContentManager = lazy(() => import("./Pages/Admin/ContentManager"));
 const Settings = lazy(() => import("./Pages/Admin/Settings"));
@@ -30,6 +34,9 @@ function App() {
     return false;
   });
 
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [checkingMaintenance, setCheckingMaintenance] = useState(true);
+
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add("dark");
@@ -40,7 +47,37 @@ function App() {
     }
   }, [isDark]);
 
+  useEffect(() => {
+    // Check maintenance status
+    const checkStatus = async () => {
+      try {
+        const res = await fetch("https://founders-sangam.onrender.com/settings/status");
+        const data = await res.json();
+        if (data.success) {
+          setIsMaintenance(data.isMaintenanceMode);
+        }
+      } catch (err) {
+        console.error("Failed to check maintenance status");
+      } finally {
+        setCheckingMaintenance(false);
+      }
+    };
+    checkStatus();
+  }, []);
+
   const toggleTheme = () => setIsDark(!isDark);
+
+  if (checkingMaintenance) return <div className="min-h-screen bg-black" />;
+
+  const isAdminRoute = window.location.pathname.startsWith("/admin");
+
+  if (isMaintenance && !isAdminRoute) {
+    return (
+      <Suspense fallback={<div>Loading...</div>}>
+        <MaintenancePage />
+      </Suspense>
+    );
+  }
 
   return (
     <Router>
@@ -68,6 +105,7 @@ function App() {
             <Route element={<AdminLayout isDark={isDark} toggleTheme={toggleTheme} />}>
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="members" element={<Members />} />
+              <Route path="registrations" element={<EventMembers />} />
               <Route path="events" element={<Events />} />
               <Route path="payments" element={<Payments />} />
               <Route path="content" element={<ContentManager />} />

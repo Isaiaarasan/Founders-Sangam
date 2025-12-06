@@ -228,19 +228,50 @@ app.get("/members", authMiddleware, async (req, res) => {
 // -------------------------------
 // 7. Dashboard Stats (Protected)
 // -------------------------------
+// -------------------------------
+// 7. Dashboard Stats (Protected)
+// -------------------------------
 app.get("/admin/stats", authMiddleware, async (req, res) => {
   try {
-    const memberCount = await Payment.countDocuments({ status: "success" });
-    const totalRevenue = memberCount * 500;
+    // 1. Counts
+    const communityCount = await Payment.countDocuments({ status: "success" });
+    const eventRegCount = await Ticket.countDocuments({ status: "PAID" });
     const eventCount = await Event.countDocuments();
 
-    // 1. Recent Activity (Last 5)
-    const recentActivity = await Payment.find({ status: "success" })
+    // 2. Revenue Calculation
+    const communityRevenue = communityCount * 500;
+
+    const eventTickets = await Ticket.find({ status: "PAID" }).select("amount");
+    const eventRevenue = eventTickets.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    const totalRevenue = communityRevenue + eventRevenue;
+
+    // 3. Recent Activity (Merged)
+    const recentCommunity = await Payment.find({ status: "success" })
       .sort({ createdAt: -1 })
       .limit(5)
-      .select("name email brandName createdAt amount");
+      .lean()
+      .then(docs => docs.map(d => ({ ...d, type: "COMMUNITY", title: "Membership" })));
 
-    // 2. Growth Analytics (Last 6 Months)
+    const recentEvents = await Ticket.find({ status: "PAID" })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("eventId", "title")
+      .lean()
+      .then(docs => docs.map(d => ({
+        ...d,
+        type: "EVENT",
+        title: d.eventId?.title || "Event",
+        brandName: "Event Attendee" // Fallback as tickets might not have brandName
+      })));
+
+    // Merge and sort recent
+    const recentActivity = [...recentCommunity, ...recentEvents]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5);
+
+    // 4. Growth/Revenue Analytics (Last 6 Months)
+    // We will simple stats for now, can be expanded
     const monthlyStats = await Payment.aggregate([
       { $match: { status: "success" } },
       {
@@ -250,14 +281,13 @@ app.get("/admin/stats", authMiddleware, async (req, res) => {
             month: { $month: "$createdAt" },
           },
           count: { $sum: 1 },
-          revenue: { $sum: 500 }, // Assuming fixed 500 for now
+          revenue: { $sum: 500 },
         },
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } },
       { $limit: 6 }
     ]);
 
-    // Format for Recharts
     const growthData = monthlyStats.map(item => {
       const date = new Date(item._id.year, item._id.month - 1);
       return {
@@ -270,9 +300,10 @@ app.get("/admin/stats", authMiddleware, async (req, res) => {
     res.json({
       success: true,
       stats: {
-        totalMembers: memberCount,
-        totalRevenue: totalRevenue,
-        activeEvents: eventCount,
+        communityCount,
+        eventRegCount,
+        totalRevenue,
+        activeEvents: eventCount, // Kept for backward compatibility if needed
         recentActivity,
         growthData
       }
@@ -280,6 +311,47 @@ app.get("/admin/stats", authMiddleware, async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Failed to fetch stats" });
+  }
+});
+
+// -------------------------------
+// 7.5 Unified Payments API (Admin)
+// -------------------------------
+app.get("/admin/payments", authMiddleware, async (req, res) => {
+  try {
+    const community = await Payment.find({ status: "success" }).sort({ createdAt: -1 }).lean();
+    const tickets = await Ticket.find({ status: "PAID" }).populate("eventId", "title").sort({ createdAt: -1 }).lean();
+
+    const formattedCommunity = community.map(p => ({
+      id: p._id,
+      paymentId: p.paymentId,
+      name: p.name,
+      email: p.email,
+      contact: p.contact,
+      amount: p.amount || 500,
+      date: p.createdAt,
+      type: "Membership",
+      source: "Community"
+    }));
+
+    const formattedTickets = tickets.map(t => ({
+      id: t._id,
+      paymentId: t.paymentId,
+      name: t.name,
+      email: t.email,
+      contact: t.contact,
+      amount: t.amount,
+      date: t.createdAt,
+      type: t.ticketType || "Ticket",
+      source: t.eventId?.title || "Event"
+    }));
+
+    const allPayments = [...formattedCommunity, ...formattedTickets].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.json({ success: true, payments: allPayments });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Failed to fetch payments" });
   }
 });
 

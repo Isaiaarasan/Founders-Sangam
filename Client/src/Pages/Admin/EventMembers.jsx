@@ -8,74 +8,83 @@ import {
     getSortedRowModel,
     flexRender,
 } from "@tanstack/react-table";
-import { Search, ChevronLeft, ChevronRight, Download, Receipt } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Download, Ticket } from "lucide-react";
 
-const Payments = () => {
+const EventMembers = () => {
     const [data, setData] = useState([]);
     const [globalFilter, setGlobalFilter] = useState("");
 
     useEffect(() => {
-        const fetchPayments = async () => {
+        const fetchRegistrations = async () => {
             try {
                 const token = localStorage.getItem("adminToken");
-                const res = await axios.get("https://founders-sangam.onrender.com/admin/payments", {
+                const res = await axios.get("https://founders-sangam.onrender.com/admin/registrations", {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (res.data.success) {
-                    setData(res.data.payments);
+                    setData(res.data.registrations);
                 }
             } catch (err) {
-                console.error("Failed to fetch payments");
+                console.error("Failed to fetch registrations");
             }
         };
-        fetchPayments();
+        fetchRegistrations();
     }, []);
 
     const columns = useMemo(
         () => [
             {
-                header: "Source",
-                accessorKey: "source",
-                cell: (info) => {
-                    const isCommunity = info.getValue() === "Community";
-                    return (
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${isCommunity
-                                ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
-                                : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'
-                            }`}>
-                            {info.getValue()}
-                        </span>
-                    );
-                },
-            },
-            {
-                header: "Transaction ID",
-                accessorKey: "paymentId",
-                cell: (info) => (
-                    <span className="font-mono text-[10px] text-neutral-500">{info.getValue()}</span>
-                ),
-            },
-            {
-                header: "User",
-                accessorKey: "name",
+                header: "Event",
+                accessorKey: "eventId",
                 cell: (info) => (
                     <div className="flex flex-col">
-                        <span className="text-neutral-900 dark:text-neutral-200 text-xs font-semibold">{info.getValue()}</span>
-                        <span className="text-[10px] text-neutral-400">{info.row.original.email}</span>
+                        <span className="font-bold text-neutral-900 dark:text-white text-xs">
+                            {info.getValue()?.title || "Unknown Event"}
+                        </span>
+                        <span className="text-[10px] text-neutral-500">
+                            {info.getValue()?.date ? new Date(info.getValue().date).toLocaleDateString() : ""}
+                        </span>
                     </div>
                 ),
             },
             {
+                header: "Name",
+                accessorKey: "name",
+                cell: (info) => <span className="text-neutral-900 dark:text-neutral-200 text-xs font-semibold">{info.getValue()}</span>,
+            },
+            {
+                header: "Type",
+                accessorKey: "ticketType",
+                cell: (info) => (
+                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${info.getValue() === 'Platinum' ? 'bg-slate-100 text-slate-700 border-slate-200' :
+                            info.getValue() === 'Gold' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        }`}>
+                        {info.getValue()}
+                    </span>
+                ),
+            },
+            {
+                header: "Seats",
+                accessorKey: "quantity",
+                cell: (info) => <span className="text-center block text-xs font-medium">{info.getValue()}</span>,
+            },
+            {
                 header: "Amount",
                 accessorKey: "amount",
-                cell: (info) => <span className="text-neutral-900 dark:text-white text-sm font-bold font-mono">₹{info.getValue()}</span>,
+                cell: (info) => <span className="text-neutral-600 dark:text-neutral-400 text-xs font-mono">₹{info.getValue()}</span>,
+            },
+            {
+                header: "Contact",
+                accessorKey: "contact",
+                cell: (info) => <span className="text-[10px] text-neutral-500 font-mono">{info.getValue()}</span>,
             },
             {
                 header: "Date",
-                accessorKey: "date",
+                accessorKey: "createdAt",
                 cell: (info) => (
-                    <span className="text-neutral-500 text-[10px]">
-                        {new Date(info.getValue()).toLocaleString()}
+                    <span className="text-neutral-400 dark:text-neutral-500 text-[10px] uppercase">
+                        {new Date(info.getValue()).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </span>
                 ),
             },
@@ -95,15 +104,15 @@ const Payments = () => {
     });
 
     const exportToCSV = () => {
-        const headers = ["Source,Transaction ID,Name,Email,Contact,Amount,Date"];
+        const headers = ["Event,Name,Ticket Type,Quantity,Amount,Contact,Date"];
         const rows = data.map(row =>
-            `"${row.source}","${row.paymentId}","${row.name}","${row.email}","${row.contact}","${row.amount}","${new Date(row.date).toLocaleString()}"`
+            `"${row.eventId?.title || '-'}","${row.name}","${row.ticketType}","${row.quantity}","${row.amount}","${row.contact}","${new Date(row.createdAt).toLocaleDateString()}"`
         );
         const csvContent = "data:text/csv;charset=utf-8," + headers.concat(rows).join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "transactions.csv");
+        link.setAttribute("download", "event_members.csv");
         document.body.appendChild(link);
         link.click();
     };
@@ -112,9 +121,9 @@ const Payments = () => {
         <div className="max-w-6xl mx-auto pb-20 px-4">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-6">
                 <div>
-                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">Payments & Transactions</h2>
+                    <h2 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight">Event Members</h2>
                     <p className="text-neutral-500 dark:text-neutral-400 text-xs mt-1">
-                        Unified view of all platform revenue
+                        Manage all event participants
                     </p>
                 </div>
 
@@ -125,7 +134,7 @@ const Payments = () => {
                             type="text"
                             value={globalFilter ?? ""}
                             onChange={(e) => setGlobalFilter(e.target.value)}
-                            placeholder="Search transactions..."
+                            placeholder="Search members..."
                             className="w-full pl-8 pr-4 py-2 rounded-lg bg-white dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all shadow-sm"
                         />
                     </div>
@@ -134,7 +143,7 @@ const Payments = () => {
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg font-bold text-xs hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
                     >
                         <Download size={14} />
-                        Export Data
+                        Export
                     </button>
                 </div>
             </div>
@@ -208,4 +217,4 @@ const Payments = () => {
     );
 };
 
-export default Payments;
+export default EventMembers;
