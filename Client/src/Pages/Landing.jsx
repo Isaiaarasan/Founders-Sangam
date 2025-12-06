@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import {
   motion,
   useScroll,
@@ -651,7 +652,7 @@ const ValueSection = () => {
 };
 // 7. Testimonials Section (New)
 const TestimonialsSection = () => {
-  const testimonials = [
+  const [testimonials, setTestimonials] = useState([
     {
       name: "Rajesh Kumar",
       role: "CEO, TexValley Tech",
@@ -670,7 +671,21 @@ const TestimonialsSection = () => {
       content: "Bridging the gap between traditional textile business and modern SaaS tools. This community is opening new doors for us.",
       color: "border-sky-500"
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await axios.get("https://founders-sangam.onrender.com/content/testimonials");
+        if (res.data.success && res.data.content && Array.isArray(res.data.content) && res.data.content.length > 0) {
+          setTestimonials(res.data.content);
+        }
+      } catch (err) {
+        console.error("Failed to fetch testimonials, using fallback.");
+      }
+    };
+    fetchTestimonials();
+  }, []);
 
   return (
     <section className="py-24 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500">
