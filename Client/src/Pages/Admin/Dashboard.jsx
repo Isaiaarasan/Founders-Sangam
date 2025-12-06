@@ -117,9 +117,13 @@ const Dashboard = () => {
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={stats.growthData}>
                                     <defs>
-                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <linearGradient id="colorCommunity" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
                                             <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                                        </linearGradient>
+                                        <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#52525233" />
@@ -146,11 +150,21 @@ const Dashboard = () => {
                                     />
                                     <Area
                                         type="monotone"
-                                        dataKey="revenue"
+                                        dataKey="community"
+                                        name="Community Members"
                                         stroke="#f59e0b"
                                         strokeWidth={3}
                                         fillOpacity={1}
-                                        fill="url(#colorRevenue)"
+                                        fill="url(#colorCommunity)"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="events"
+                                        name="Event Registrations"
+                                        stroke="#8b5cf6"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill="url(#colorEvents)"
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>

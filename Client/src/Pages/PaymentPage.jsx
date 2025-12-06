@@ -235,7 +235,7 @@ const PaymentPage = () => {
             <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mt-4">
               {isEvent
                 ? `You are registering for ${title}. Secure your ticket today.`
-                : "Join Tirupur's premier startup ecosystem. A one-time investment for a lifetime of connections."}
+                : "Claim your place in the most refined FOUNDER circle. A one-time registration that gives you lasting access to a space built for serious builders."}
             </p>
           </FadeIn>
 

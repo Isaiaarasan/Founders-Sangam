@@ -11,7 +11,8 @@ import {
     Sparkles,
     Sun,
     Moon,
-    Ticket
+    Ticket,
+    Briefcase
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -40,11 +41,21 @@ const AdminLayout = ({ isDark, toggleTheme }) => {
             {/* Sidebar */}
             <aside className="w-72 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-r border-gray-100 dark:border-neutral-800 flex flex-col fixed h-full z-50 transition-all duration-300">
 
-                {/* Logo Area */}
-                <div className="p-8 pb-4">
+                {/* Logo Area (Modified Theme: Cyan/Sky) */}
+                <div className="p-8 pb-4 relative">
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-300 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
-                            <Sparkles size={18} className="text-white" />
+                        {/* MODIFIED LOGO CONTAINER: Unique Skew/Rotate effect with new colors */}
+                        <div
+                            // Theme change: from-amber-400 to-amber-600 -> from-sky-400 to-cyan-600
+                            className="w-8 h-8 bg-gradient-to-br from-sky-400 to-cyan-600 flex items-center justify-center shadow-xl shadow-sky-500/30 dark:shadow-sky-500/50"
+                            style={{
+                                // Slightly adjusted geometric shape
+                                clipPath: 'polygon(0 0, 90% 10%, 100% 100%, 10% 90%)',
+                                transform: 'rotate(-3deg)' // Slight negative rotation
+                            }}
+                        >
+                            {/* New Icon: Briefcase to represent a professional, business focus */}
+                            <Briefcase size={18} className="text-white transform rotate-3" />
                         </div>
                         <h1 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
                             FOUNDERS
@@ -53,6 +64,8 @@ const AdminLayout = ({ isDark, toggleTheme }) => {
                     <p className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-semibold pl-10">
                         Admin Console
                     </p>
+                    {/* Custom Separator Line (Changed from Amber to Sky/Cyan) */}
+                    <div className="absolute bottom-0 left-8 right-8 h-px bg-gradient-to-r from-sky-500/50 via-gray-100 dark:via-neutral-800 to-cyan-500/50" />
                 </div>
 
                 {/* Navigation */}

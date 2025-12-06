@@ -267,32 +267,54 @@ app.get("/admin/stats", authMiddleware, async (req, res) => {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
 
-    // 4. Growth/Revenue Analytics (Last 6 Months)
-    // We will simple stats for now, can be expanded
-    const monthlyStats = await Payment.aggregate([
-      { $match: { status: "success" } },
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
-          },
-          count: { $sum: 1 },
-          revenue: { $sum: 500 },
-        },
-      },
-      { $sort: { "_id.year": 1, "_id.month": 1 } },
-      { $limit: 6 }
-    ]);
+    // 4. Growth/Revenue Analytics (Merged Community + Events)
 
-    const growthData = monthlyStats.map(item => {
-      const date = new Date(item._id.year, item._id.month - 1);
-      return {
-        name: date.toLocaleString('default', { month: 'short' }),
-        members: item.count,
-        revenue: item.revenue
-      };
-    });
+    // Helper to get monthly aggregation
+    const getMonthlyStats = async (model, matchCriteria) => {
+      return await model.aggregate([
+        { $match: matchCriteria },
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { "_id.year": 1, "_id.month": 1 } }
+      ]);
+    };
+
+    const communityStats = await getMonthlyStats(Payment, { status: "success" });
+    const eventStats = await getMonthlyStats(Ticket, { status: "PAID" });
+
+    // Merging logic
+    const statsMap = new Map();
+
+    const processStats = (stats, type) => {
+      stats.forEach(item => {
+        const key = `${item._id.year}-${item._id.month}`;
+        if (!statsMap.has(key)) {
+          statsMap.set(key, { year: item._id.year, month: item._id.month, community: 0, events: 0 });
+        }
+        const entry = statsMap.get(key);
+        entry[type] = item.count;
+      });
+    };
+
+    processStats(communityStats, 'community');
+    processStats(eventStats, 'events');
+
+    // Convert to array and sort
+    const growthData = Array.from(statsMap.values())
+      .sort((a, b) => (a.year - b.year) || (a.month - b.month))
+      .slice(-6) // Last 6 months
+      .map(item => {
+        const date = new Date(item.year, item.month - 1);
+        return {
+          name: date.toLocaleString('default', { month: 'short' }),
+          community: item.community,
+          events: item.events
+        };
+      });
 
     res.json({
       success: true,

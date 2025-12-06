@@ -18,7 +18,8 @@ import {
   Globe,
   BookOpen,
   Plus,
-  Minus
+  Minus,
+  Clock // Added Clock icon import for completeness if using EventCard logic elsewhere
 } from "lucide-react";
 
 // --- Theme Constants ---
@@ -59,6 +60,97 @@ const Counter = ({ value, suffix = "" }) => {
   return <motion.span ref={ref}>{displayValue}</motion.span>;
 };
 
+// --- NEW 3D Background Component (from previous step) ---
+const DepthElements = () => (
+  <div className="absolute inset-0 w-full h-full perspective-[1000px] pointer-events-none">
+
+    {/* Cube 1: Top Left - Rotates slowly */}
+    <motion.div
+      animate={{ rotateX: 360, rotateY: 360, opacity: [0.1, 0.2, 0.1] }}
+      transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+      className="absolute top-[10%] left-[10%] w-24 h-24 bg-sky-500/10 border border-sky-300/20 rounded-lg"
+      style={{ transformStyle: 'preserve-3d', transform: 'translateZ(-200px) rotateX(45deg) rotateY(-30deg)' }}
+    />
+
+    {/* Hexagon 2: Bottom Right - Floats and rotates */}
+    <motion.div
+      animate={{ rotateZ: 360, y: [0, 50, 0] }}
+      transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+      className="absolute bottom-[10%] right-[10%] w-32 h-32 bg-amber-500/10 border border-amber-300/20 rounded-xl"
+      style={{ transformStyle: 'preserve-3d', transform: 'translateZ(-100px) rotateX(60deg)' }}
+    />
+
+    {/* Small Detail: Center Left */}
+    <motion.div
+      animate={{ rotate: 360, scale: [1, 1.1, 1] }}
+      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+      className="absolute top-1/2 left-[5%] w-10 h-10 bg-red-500/10 rounded-full border border-red-300/20"
+      style={{ transform: 'translateZ(-50px)' }}
+    />
+  </div>
+);
+
+
+// --- NEW Cursor Trail Component (must be imported or defined here) ---
+const CursorTrail = () => {
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      // Check if the device is a mouse (not a touch device simulation)
+      if (e.pointerType === "mouse" || e.pointerType === undefined) {
+        setMousePosition({ x: e.clientX, y: e.clientY });
+      }
+    };
+
+    window.addEventListener("pointermove", handleMouseMove);
+    return () => window.removeEventListener("pointermove", handleMouseMove);
+  }, []);
+
+  const springConfig = {
+    type: "spring",
+    stiffness: 150,
+    damping: 18,
+    mass: 0.5
+  };
+
+  // Primary element style (follows slightly slower)
+  const primaryStyle = {
+    x: mousePosition.x,
+    y: mousePosition.y,
+    translateX: "-50%",
+    translateY: "-50%",
+    transition: springConfig
+  };
+
+  // Secondary element style (lags slightly behind primary)
+  const secondaryStyle = {
+    x: mousePosition.x,
+    y: mousePosition.y,
+    translateX: "-50%",
+    translateY: "-50%",
+    transition: { ...springConfig, stiffness: 100, damping: 25, mass: 0.8 }
+  };
+
+  return (
+    <motion.div
+      style={{ pointerEvents: 'none' }} // Ensures it doesn't block clicks
+      className="fixed inset-0 z-50"
+    >
+      <motion.div
+        animate={primaryStyle}
+        className="w-10 h-10 border-2 border-amber-400 dark:border-sky-300 rounded-full opacity-60 mix-blend-difference absolute top-0 left-0"
+      />
+
+      <motion.div
+        animate={secondaryStyle}
+        className="w-4 h-4 bg-red-500/70 dark:bg-emerald-500/70 rounded-full opacity-70 absolute top-0 left-0 blur-sm"
+      />
+    </motion.div>
+  );
+};
+
+
 // --- SECTIONS ---
 
 // 1. Hero Section
@@ -67,7 +159,11 @@ const Hero = () => {
 
   return (
     <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-25 pb-12 transition-colors duration-500">
-      {/* Background Blobs */}
+
+      {/* NEW: Cursor Trail component for interaction */}
+      <CursorTrail />
+
+      {/* Existing Background Blobs (z-0) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <motion.div
           animate={{ x: [0, 100, 0], y: [0, -50, 0] }}
@@ -86,7 +182,11 @@ const Hero = () => {
         />
       </div>
 
-      <div className="w-full px-6 md:px-12 relative z-10 h-full flex flex-col justify-center">
+      {/* 3D Depth Elements Layer (z-10, behind the content) */}
+      <DepthElements />
+
+
+      <div className="w-full px-6 md:px-12 relative z-20 h-full flex flex-col justify-center">
         <FadeIn className="w-full relative flex flex-col items-center justify-center max-w-7xl mx-auto text-center">
           {/* Logo Animation Rings */}
           <div className="relative w-64 h-32 mb-12 flex justify-center items-center">
@@ -102,7 +202,7 @@ const Hero = () => {
                 animate={{
                   opacity: [0, 1, 1, 1, 1, 0],
                   scale: [0.5, 1, 1, 1, 1, 0.5],
-                  x: [ring.x, ring.x, ring.x, ring.x * 40, ring.x, ring.x],
+                  x: [ring.x, ring.x, ring.x, ring.x, ring.x, ring.x],
                 }}
                 transition={{
                   duration: 8,
@@ -329,30 +429,48 @@ const BenefitsSection = () => {
               <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 mb-6">
                 <Users size={24} />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Zero Noise, 100% Curated</h3>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Curated Founder Gatherings</h3>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
-                We aren't a WhatsApp group filled with spam. We are a vetted community. Every member is a founder or decision-maker, ensuring every conversation adds value to your business.
+                Every event is curated. Every member is intentional. We bring niche-driven businesses into one room to create an environment where honest conversations lead to real progress.
               </p>
             </div>
           </FadeIn>
 
-          {/* Card 2: Tall */}
-          <FadeIn delay={0.2} className="md:row-span-2 relative group overflow-hidden bg-slate-900 dark:bg-white rounded-[2.5rem] p-10 flex flex-col justify-between">
-            <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/50 to-transparent dark:from-white/50"></div>
+          {/* Card 2: Tall - MODIFIED: LIGHT BACKGROUND, DARK TEXT */}
+          <FadeIn delay={0.2}
+            // Background kept light (bg-slate-50) for contrast with dark text.
+            // Added dark:bg-slate-900 and border for dark theme adaptability.
+            className="md:row-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 flex flex-col justify-between border border-slate-200 dark:border-slate-700"
+          >
+            <div
+              // Gradient removed or adjusted for light mode/dark theme
+              className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/50 to-transparent dark:from-slate-900/50"
+            ></div>
             <div>
-              <div className="w-12 h-12 bg-white/20 dark:bg-slate-200 rounded-2xl flex items-center justify-center text-white dark:text-slate-900 mb-6">
+              <div
+                // Icon: Set to be dark text on light background in light mode, and amber on dark in dark mode.
+                className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-slate-900 dark:text-amber-400 mb-6"
+              >
                 <Globe size={24} />
               </div>
-              <h3 className="text-2xl font-bold text-white dark:text-slate-900 mb-4">Global Network Access</h3>
-              <p className="text-slate-300 dark:text-slate-500 leading-relaxed">
-                Connect with mentors and investors beyond Tirupur. We bridge the gap between local manufacturing strength and global tech scalability.
+              <h3
+                // Text: Changed to dark slate for light mode, fixed to white for dark mode.
+                className="text-2xl font-bold text-slate-900 dark:text-white mb-4"
+              >Focused Mentorship</h3>
+              <p
+                // Text: Changed to gray for light mode, light gray for dark mode.
+                className="text-slate-600 dark:text-slate-300 leading-relaxed"
+              >
+                mentorship sessions with experienced operators who help you clarify your direction and network with intent.
               </p>
             </div>
-            <button className="mt-8 w-full py-4 rounded-xl bg-white/10 dark:bg-slate-100 backdrop-blur-md text-white dark:text-slate-900 font-bold border border-white/10 dark:border-slate-200 hover:bg-white hover:text-black dark:hover:bg-slate-900 dark:hover:text-white transition-all">
-              See the Network
+            <button
+              // Button: Set to dark text on light background in light mode, and reversed in dark mode.
+              className="mt-8 w-full py-4 rounded-xl bg-slate-200 dark:bg-white/10 backdrop-blur-md text-slate-900 dark:text-white font-bold border border-slate-300 dark:border-white/10 hover:bg-slate-300 dark:hover:bg-white dark:hover:text-black transition-all"
+            >
+              Join the Circle
             </button>
           </FadeIn>
-
           {/* Card 3: Standard */}
           <FadeIn delay={0.3} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800">
             <div className="absolute top-0 right-0 w-64 h-64 bg-sky-100/50 dark:bg-sky-900/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
@@ -360,9 +478,9 @@ const BenefitsSection = () => {
               <div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center text-sky-600 mb-6">
                 <Zap size={24} />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Investor Ready</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Member-Exclusive Resources</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Exclusive pitch sessions and deck reviews to get you funding-ready.
+                Unlock insights, advantages, and tools specifically designed for serious builders.
               </p>
             </div>
           </FadeIn>
@@ -374,9 +492,9 @@ const BenefitsSection = () => {
               <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
                 <BookOpen size={24} />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Digital Library</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Private Community</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Access 100+ templates for hiring, legal, and marketing specific to Indian startups.
+                Access our digital community where real opportunities and collaboration happen.
               </p>
             </div>
           </FadeIn>
@@ -388,9 +506,22 @@ const BenefitsSection = () => {
 
 // 5. Founders Section
 const FoundersSection = () => {
+  // Note: The FadeIn component (which uses animation for the entire card wrapper) is retained
+  // as it handles the initial reveal/load animation, but the specific rotation/scale animations are removed.
   return (
-    <section className="py-20 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative transition-colors duration-500 border-t border-slate-200 dark:border-slate-800">
-      <div className="max-w-7xl mx-auto">
+    <section className="py-20 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500 border-t border-slate-200 dark:border-slate-800">
+
+      {/* Background Design - Retaining only the subtle Blob for focus */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+
+        {/* Highlight Blob behind Title (Static) */}
+        {/* Note: Removed motion.div, keeping static classes */}
+        <div
+          className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-24 bg-red-400/20 dark:bg-red-900/10 rounded-full blur-3xl"
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         <FadeIn>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight mb-12 text-center">
             Meet the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Visionaries</span>
@@ -398,35 +529,63 @@ const FoundersSection = () => {
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+
           {/* Founder 1 */}
-          <FadeIn delay={0.1} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
-            <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-slate-50 dark:border-slate-600">
-              <img src="Images/Founder.png" alt="Founder" className="w-full h-full object-cover" />
+          <FadeIn delay={0.1} className="relative group">
+            {/* Main Card (Removed motion.div and animation properties) */}
+            <div
+              className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all relative z-10"
+            >
+              <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-amber-400/50 dark:border-amber-400/50 group-hover:border-8 transition-all">
+                <img src="Images/Founder.png" alt="Founder" className="w-full h-full object-cover" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Kaviya Maruthasalam</h3>
+              <p className="text-amber-500 font-semibold text-sm mb-3">Founder Founders Sangam</p>
+              <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
+                "Top 1% Personal Branding Expert & an Intrapreneur"
+              </p>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Kaviya Maruthasalam</h3>
-            <p className="text-amber-500 font-semibold text-sm mb-3">Founder Founders Sangam</p>
-            <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
-              "Top 1% Personal Branding Expert & an Intrapreneur"
-            </p>
+
+            {/* Overlapping Decorative Element 1 (Static positioning, ADDED SHADOW) */}
+            <div
+              className="absolute inset-0 w-full h-full border-4 border-amber-400 rounded-3xl mix-blend-multiply dark:mix-blend-color-dodge opacity-50 z-0"
+              style={{
+                transform: 'translate(-10px, 15px)', // Static position from the last animation
+                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))', // Extra Design: Subtle Shadow
+              }}
+            />
           </FadeIn>
 
           {/* Founder 2 */}
-          <FadeIn delay={0.2} className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
-            <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-slate-50 dark:border-slate-600">
-              <img src="Images/Co-founder.png" alt="Co-Founder" className="w-full h-full object-cover" />
+          <FadeIn delay={0.2} className="relative group">
+            {/* Main Card (Removed motion.div and animation properties) */}
+            <div
+              className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all relative z-10"
+            >
+              <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-red-500/50 dark:border-red-500/50 group-hover:border-8 transition-all">
+                <img src="Images/Co-founder.png" alt="Co-Founder" className="w-full h-full object-cover" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Naveen Kumar</h3>
+              <p className="text-red-500 font-semibold text-sm mb-3">Founder Founders Sangam Community</p>
+              <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
+                "Tiurpur's Leading Textilepreneur"
+              </p>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Naveen Kumar</h3>
-            <p className="text-red-500 font-semibold text-sm mb-3">Founder Founders Sangam Community</p>
-            <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
-              "Tiurpur's Leading Textilepreneur"
-            </p>
+
+            {/* Overlapping Decorative Element 2 (Static positioning, ADDED SHADOW) */}
+            <div
+              className="absolute inset-0 w-full h-full border-4 border-sky-500 rounded-3xl mix-blend-multiply dark:mix-blend-color-dodge opacity-50 z-0"
+              style={{
+                transform: 'translate(10px, 15px)', // Static position from the last animation
+                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))', // Extra Design: Subtle Shadow
+              }}
+            />
           </FadeIn>
         </div>
       </div>
     </section>
   );
 };
-
 // 6. Value Section
 const ValueSection = () => {
   return (
@@ -446,9 +605,11 @@ const ValueSection = () => {
                 </span>
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
-                Founders Sangam is a Tirupur-based entrepreneurial networking
-                community that brings together startup founders, business
-                leaders, and innovators.
+                We’re building a founder-first community in the heart of India’s tier 2 cities — because ambition isn’t limited to metros.
+                <br /><br />
+                Our focus is simple: bring niche-driven businesses into one room where honest conversations lead to real progress.
+                <br /><br />
+                No noise, no filler, just builders who want to move forward. We exist to make the startup community a strong, evolving hub for founders who want clarity, support, and the right network, right where they are.
               </p>
               <button className="text-slate-900 dark:text-white font-bold border-b-2 border-slate-900 dark:border-white pb-1 hover:text-emerald-600 hover:border-emerald-600 dark:hover:text-emerald-400 dark:hover:border-emerald-400 transition-colors">
                 Read our Vision
@@ -488,7 +649,6 @@ const ValueSection = () => {
     </section>
   );
 };
-
 // 7. Testimonials Section (New)
 const TestimonialsSection = () => {
   const testimonials = [
@@ -514,7 +674,27 @@ const TestimonialsSection = () => {
 
   return (
     <section className="py-24 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500">
-      <div className="max-w-7xl mx-auto">
+
+      {/* NEW: Dynamic Radial Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <motion.div
+          initial={{ opacity: 0.3 }}
+          animate={{
+            background: [
+              'radial-gradient(circle at 10% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
+              'radial-gradient(circle at 90% 80%, rgba(255,255,255,0.08) 0%, transparent 50%)'
+            ]
+          }}
+          transition={{ duration: 15, repeat: Infinity, repeatType: "mirror" }}
+          className="absolute inset-0 dark:opacity-10 opacity-30"
+          style={{
+            backgroundColor: 'transparent',
+            mixBlendMode: 'soft-light' // Makes the gradient blend nicely with the dark background
+          }}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         <FadeIn>
           <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 dark:text-white mb-16">
             Voices of the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Sangam</span>
@@ -544,7 +724,6 @@ const TestimonialsSection = () => {
     </section>
   );
 };
-
 // 8. Collaboration Section
 const CollaborationSection = () => {
   const companies = [
@@ -557,8 +736,41 @@ const CollaborationSection = () => {
   ];
 
   return (
-    <section className="py-20 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 transition-colors duration-500">
-      <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
+    <section
+      className="py-20 bg-slate-50 dark:bg-slate-900 transition-colors duration-500 relative"
+      // NEW BACKGROUND DESIGN: Subtle diagonal stripes applied via inline style
+      style={{
+        backgroundImage: `repeating-linear-gradient(45deg, 
+                var(--tw-color-slate-100) 0, var(--tw-color-slate-100) 1px, 
+                transparent 1px, transparent 15px)`,
+        backgroundSize: '30px 30px',
+      }}
+    >
+      {/* Dark Mode Overlay for Diagonal Stripes */}
+      <div
+        className="absolute inset-0 z-0 pointer-events-none opacity-[0.05] dark:opacity-[0.03]"
+        style={{
+          backgroundImage: `repeating-linear-gradient(45deg, 
+                    var(--tw-color-white) 0, var(--tw-color-white) 1px, 
+                    transparent 1px, transparent 15px)`,
+          backgroundSize: '30px 30px',
+        }}
+      />
+
+      {/* MODIFIED: Replacing border-t with a decorative divider (Z-10) */}
+      <div className="absolute top-0 w-full h-[2px] opacity-30 z-10">
+        <div
+          className="w-full h-full"
+          style={{
+            // Creates a dashed, gradient line
+            background: 'repeating-linear-gradient(to right, #f59e0b 0, #f59e0b 2px, transparent 2px, transparent 10px, #ef4444 10px, #ef4444 12px, transparent 12px, transparent 20px)',
+            backgroundSize: '100% 2px',
+            filter: 'opacity(0.6) saturate(1.5)'
+          }}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 md:px-12 text-center relative z-20">
         <FadeIn>
           <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-10">
             Trusted by Innovative Companies
@@ -578,7 +790,6 @@ const CollaborationSection = () => {
     </section>
   );
 };
-
 // 9. FAQ Section (New)
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState(null);
@@ -591,8 +802,21 @@ const FAQSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 transition-colors duration-500">
-      <div className="max-w-3xl mx-auto">
+    <section className="py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 transition-colors duration-500 relative overflow-hidden">
+
+      {/* NEW: Background Design Elements (z-0) */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {/* 1. Subtle Radial Glow (Top Left) */}
+        <div className="absolute top-0 left-0 w-80 h-80 bg-amber-500/10 dark:bg-amber-800/10 rounded-full blur-[100px] -ml-20 -mt-20"></div>
+
+        {/* 2. Subtle Radial Glow (Bottom Right) */}
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-sky-500/10 dark:bg-sky-800/10 rounded-full blur-[100px] -mr-20 -mb-20"></div>
+
+        {/* 3. Fixed Line Pattern (Similar to Value Section) */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:44px_44px] dark:opacity-[0.05]"></div>
+      </div>
+
+      <div className="max-w-3xl mx-auto relative z-10">
         <FadeIn>
           <h2 className="text-3xl md:text-4xl font-bold text-center text-slate-900 dark:text-white mb-12">
             Common Queries
@@ -634,7 +858,6 @@ const FAQSection = () => {
     </section>
   );
 };
-
 // --- Landing Page Component (Main Export) ---
 const LandingPage = () => (
   <>
