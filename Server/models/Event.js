@@ -9,6 +9,14 @@ const EventSchema = new mongoose.Schema(
         image: String, // URL to image
         link: String,  // Registration or details link
         content: String, // Full markdown content
+        maxRegistrations: { type: Number, default: 100 },
+        currentRegistrations: { type: Number, default: 0 },
+        ticketTypes: [
+            {
+                name: { type: String, required: true },
+                price: { type: Number, required: true }
+            }
+        ]
     },
     { timestamps: true }
 );

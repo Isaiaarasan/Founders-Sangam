@@ -11,6 +11,7 @@ const Payment = require("./models/Payment");
 const Event = require("./models/Event");
 const Admin = require("./models/Admin");
 const PageContent = require("./models/PageContent");
+const Ticket = require("./models/Ticket");
 const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
@@ -127,17 +128,49 @@ app.post("/verify-payment", async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-      await Payment.create({
-        orderId: razorpay_order_id,
-        paymentId: razorpay_payment_id,
-        signature: razorpay_signature,
-        amount: 500,
-        status: "success",
-        name,
-        brandName,
-        email,
-        contact,
-      });
+      // 1. Check if this is a TICKET payment or MEMBERSHIP payment
+      // For now, we assume if "ticketId" exists in body (passed from frontend), it's a ticket payment
+      // BUT frontend passes extra data in verify-payment body usually.
+      // Let's rely on `notes` or passed fields.
+
+      if (req.body.ticketId) {
+        // --- EVENT TICKET LOGIC ---
+        // Verify payment for a specific ticket
+        // The "ticketId" passed here is actually the Razorpay Payment ID in the frontend logic for membership,
+        // BUT for events, we might pass the DB Ticket ID.
+        // Let's clarify: The User requested flow:
+        // 1. Create Ticket (PENDING) -> Get DB Ticket ID
+        // 2. Pay -> Redirect
+        // 3. Verify -> We need to update that DB Ticket to PAID.
+
+        // So here, req.body should contain the DB Ticket _id presumably, or we find it via order_id if we saved it?
+        // Simpler: Client sends the DB Ticket _id in the verify request.
+
+        const dbTicketId = req.body.dbTicketId;
+        if (dbTicketId) {
+          await Ticket.findByIdAndUpdate(dbTicketId, {
+            status: "PAID",
+            paymentId: razorpay_payment_id,
+            signature: razorpay_signature
+          });
+          // Increment Event Registration Count
+          const ticket = await Ticket.findById(dbTicketId);
+          await Event.findByIdAndUpdate(ticket.eventId, { $inc: { currentRegistrations: ticket.quantity } });
+        }
+      } else {
+        // --- MEMBERSHIP LOGIC (Existing) ---
+        await Payment.create({
+          orderId: razorpay_order_id,
+          paymentId: razorpay_payment_id,
+          signature: razorpay_signature,
+          amount: 500,
+          status: "success",
+          name,
+          brandName,
+          email,
+          contact,
+        });
+      }
 
       res.json({ success: true, message: "Payment verified and saved" });
     } else {
@@ -273,6 +306,50 @@ app.get("/events/:id", async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Failed to fetch event" });
+  }
+});
+
+// Register for Event (Create Pending Ticket)
+app.post("/events/:id/register", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, email, contact, ticketType, quantity, amount } = req.body;
+
+    const event = await Event.findById(id);
+    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+
+    // Check Capacity
+    if (event.currentRegistrations + quantity > event.maxRegistrations) {
+      return res.status(400).json({ success: false, message: "Registration Full" });
+    }
+
+    const ticket = await Ticket.create({
+      eventId: id,
+      name,
+      email,
+      contact,
+      ticketType,
+      quantity,
+      amount,
+      status: "PENDING"
+    });
+
+    res.json({ success: true, ticketId: ticket._id });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Registration failed" });
+  }
+});
+
+// Get Ticket Details
+app.get("/tickets/:id", async (req, res) => {
+  try {
+    const ticket = await Ticket.findById(req.params.id).populate("eventId");
+    if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found" });
+    res.json({ success: true, ticket });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch ticket" });
   }
 });
 
