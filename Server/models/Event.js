@@ -8,6 +8,7 @@ const EventSchema = new mongoose.Schema(
         location: String,
         image: String, // URL to image
         link: String,  // Registration or details link
+        content: String, // Full markdown content
     },
     { timestamps: true }
 );

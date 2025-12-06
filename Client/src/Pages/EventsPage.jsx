@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Calendar, MapPin, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const EventsPage = () => {
@@ -62,9 +63,11 @@ const EventsPage = () => {
                   </div>
                 </div>
                 <div className="p-8">
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 group-hover:text-amber-500 transition-colors">
-                    {event.title}
-                  </h3>
+                  <Link to={`/event/${event._id}`} className="block">
+                    <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 group-hover:text-amber-500 transition-colors">
+                      {event.title}
+                    </h3>
+                  </Link>
                   <div className="flex flex-col gap-3 mb-6">
                     <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
                       <Calendar size={18} className="text-amber-500" />
@@ -79,16 +82,24 @@ const EventsPage = () => {
                     {event.description}
                   </p>
 
-                  {event.registrationLink && (
-                    <a
-                      href={event.registrationLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-slate-900 dark:text-white font-bold hover:gap-4 transition-all"
+                  <div className="flex items-center gap-4">
+                    <Link
+                      to={`/event/${event._id}`}
+                      className="px-4 py-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-semibold text-sm hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
                     >
-                      Register Now <ArrowRight size={20} className="text-amber-500" />
-                    </a>
-                  )}
+                      Read More
+                    </Link>
+                    {event.registrationLink && (
+                      <a
+                        href={event.registrationLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-slate-900 dark:text-white font-bold hover:gap-4 transition-all"
+                      >
+                        Register Now <ArrowRight size={20} className="text-amber-500" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             ))}

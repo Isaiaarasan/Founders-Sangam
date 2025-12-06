@@ -3,12 +3,18 @@ import axios from "axios";
 import { useForm } from "react-hook-form";
 import { Plus, Edit2, Trash2, X, Calendar as CalendarIcon, MapPin, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 
 const Events = () => {
     const [events, setEvents] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
-    const { register, handleSubmit, reset, setValue } = useForm();
+    const { register, handleSubmit, reset, setValue, watch } = useForm();
+
+    const WatchContent = ({ register }) => {
+        const content = watch("content");
+        return <ReactMarkdown>{content || "*No content yet...*"}</ReactMarkdown>;
+    };
 
     const fetchEvents = async () => {
         try {
@@ -66,6 +72,7 @@ const Events = () => {
             setValue("description", event.description);
             setValue("image", event.image);
             setValue("registrationLink", event.registrationLink);
+            setValue("content", event.content);
         } else {
             reset();
         }
@@ -170,7 +177,7 @@ const Events = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="bg-white dark:bg-[#0A0A0A] rounded-2xl w-full max-w-lg border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                            className="bg-white dark:bg-[#0A0A0A] rounded-2xl w-full max-w-4xl border border-neutral-200 dark:border-neutral-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                         >
                             <div className="p-6 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-900/50">
                                 <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
@@ -242,13 +249,32 @@ const Events = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Description</label>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Short Description (Card)</label>
                                         <textarea
                                             {...register("description", { required: true })}
-                                            rows={4}
+                                            rows={3}
                                             className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all leading-relaxed resize-none"
-                                            placeholder="Enter event details..."
+                                            placeholder="Brief summary for the event card..."
                                         />
+                                    </div>
+
+                                    {/* Markdown Editor */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Full Content (Markdown)</label>
+                                            <textarea
+                                                {...register("content")}
+                                                rows={15}
+                                                className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all leading-relaxed font-mono text-sm"
+                                                placeholder="# Event Details&#10;&#10;Write your content in markdown..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Live Preview</label>
+                                            <div className="w-full h-[370px] px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 overflow-y-auto prose dark:prose-invert prose-sm max-w-none">
+                                                <WatchContent register={register} />
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <button

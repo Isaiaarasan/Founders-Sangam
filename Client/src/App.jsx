@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 const LandingPage = lazy(() => import("./Pages/Landing"));
 const PaymentPage = lazy(() => import("./Pages/PaymentPage"));
 const EventsPage = lazy(() => import("./Pages/EventsPage"));
+const EventDetails = lazy(() => import("./Pages/EventDetails"));
 const AdminLogin = lazy(() => import("./Pages/Admin/AdminLogin"));
 const Dashboard = lazy(() => import("./Pages/Admin/Dashboard"));
 const Members = lazy(() => import("./Pages/Admin/Members"));
@@ -55,6 +56,7 @@ function App() {
               </Layout>
             }
           />
+          <Route path="/event/:id" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><EventDetails /></Layout>} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Admin Routes */}
