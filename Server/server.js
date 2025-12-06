@@ -12,6 +12,7 @@ const Event = require("./models/Event");
 const Admin = require("./models/Admin");
 const PageContent = require("./models/PageContent");
 const Ticket = require("./models/Ticket");
+const SystemSettings = require("./models/SystemSettings");
 const authMiddleware = require("./middleware/authMiddleware");
 
 const app = express();
@@ -408,6 +409,51 @@ app.post("/content/:section", authMiddleware, async (req, res) => {
     res.json({ success: true, content: updatedContent });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to update content" });
+  }
+});
+
+// -------------------------------
+// 10. System Settings (Maintenance)
+// -------------------------------
+app.get("/settings/status", async (req, res) => {
+  try {
+    let settings = await SystemSettings.findOne({ key: "global" });
+    if (!settings) {
+      settings = await SystemSettings.create({ key: "global" });
+    }
+    res.json({ success: true, isMaintenanceMode: settings.isMaintenanceMode, message: settings.maintenanceMessage });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch settings" });
+  }
+});
+
+app.post("/admin/settings/maintenance", authMiddleware, async (req, res) => {
+  try {
+    const { isMaintenanceMode } = req.body;
+    let settings = await SystemSettings.findOne({ key: "global" });
+    if (!settings) {
+      settings = await SystemSettings.create({ key: "global", isMaintenanceMode });
+    } else {
+      settings.isMaintenanceMode = isMaintenanceMode;
+      await settings.save();
+    }
+    res.json({ success: true, isMaintenanceMode: settings.isMaintenanceMode });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to update settings" });
+  }
+});
+
+// -------------------------------
+// 11. Event Registrations (Admin)
+// -------------------------------
+app.get("/admin/registrations", authMiddleware, async (req, res) => {
+  try {
+    const tickets = await Ticket.find({ status: "PAID" })
+      .populate("eventId", "title date location")
+      .sort({ createdAt: -1 });
+    res.json({ success: true, registrations: tickets });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Failed to fetch registrations" });
   }
 });
 

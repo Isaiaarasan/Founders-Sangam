@@ -168,14 +168,14 @@ const Dashboard = () => {
                             stats.recentActivity.map((activity, i) => (
                                 <div key={i} className="flex items-start gap-4">
                                     <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center shrink-0 text-amber-600 dark:text-amber-500 font-bold text-xs">
-                                        {activity.name.charAt(0)}
+                                        {(activity.name || "?").charAt(0).toUpperCase()}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">
-                                            {activity.name}
+                                            {activity.name || "Unknown User"}
                                         </p>
                                         <p className="text-xs text-neutral-500 truncate mt-0.5">
-                                            Joined {activity.brandName}
+                                            Joined {activity.brandName || "Founders Sangam"}
                                         </p>
                                     </div>
                                     <div className="text-right">
