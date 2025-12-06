@@ -1,14 +1,16 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { toPng } from "html-to-image"; // <--- NEW LIBRARY
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import QRCode from "react-qr-code";
-import { Calendar, MapPin, Download, CheckCircle2, Home, Star, Loader2 } from "lucide-react";
+import { Calendar, MapPin, Download, CheckCircle2, Home, Star, Loader2, AlertCircle } from "lucide-react";
 import FadeIn from "../components/FadeIn";
+import { getTicketById } from "../api/eventService";
 
 // --- PREMIUM GOLD TICKET COMPONENT ---
 const TicketStructure = ({ data }) => {
-    const { name, brandName, ticketId, date, amountPaid, eventType } = data;
+    const { name, ticketId, date, eventId } = data;
+    const eventType = data.ticketType || "General";
 
     // PREMIUM GOLD THEME STYLES (Pure Inline CSS)
     const styles = {
@@ -19,7 +21,7 @@ const TicketStructure = ({ data }) => {
             borderRadius: "24px",
             overflow: "hidden",
             display: "flex",
-            fontFamily: "Arial, sans-serif", // Safe font
+            fontFamily: "Arial, sans-serif",
             position: "relative",
             boxSizing: "border-box",
             border: "1px solid #333333",
@@ -30,7 +32,6 @@ const TicketStructure = ({ data }) => {
             left: 0,
             right: 0,
             height: "6px",
-            // html-to-image handles this gradient perfectly
             background: "linear-gradient(90deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C)",
             zIndex: 10,
         },
@@ -89,7 +90,7 @@ const TicketStructure = ({ data }) => {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "24px" }}>
                         <div>
                             <h2 style={styles.h2}>Founders Sangam</h2>
-                            <p style={styles.smallText}>Premium Access Pass</p>
+                            <p style={styles.smallText}>{eventId?.title || "Event Pass"}</p>
                         </div>
                         <div>
                             <Star size={24} fill="#D4AF37" color="#D4AF37" />
@@ -99,31 +100,30 @@ const TicketStructure = ({ data }) => {
                     <div>
                         <p style={styles.label}>Attendee</p>
                         <h3 style={styles.value}>{name}</h3>
-                        <p style={styles.subValue}>{brandName}</p>
                     </div>
 
                     <div style={styles.row}>
                         <div>
                             <p style={styles.label}>Event Date</p>
                             <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "#eeeeee", fontSize: "14px" }}>
-                                <Calendar size={14} color="#D4AF37" /> <span>{date}</span>
+                                <Calendar size={14} color="#D4AF37" /> <span>{eventId?.title ? new Date(eventId.date).toLocaleDateString() : date}</span>
                             </div>
                         </div>
                         <div>
                             <p style={styles.label}>Tier</p>
-                            <div style={{ color: "#eeeeee", fontSize: "14px", fontWeight: "bold" }}>VIP / GOLD</div>
+                            <div style={{ color: "#eeeeee", fontSize: "14px", fontWeight: "bold" }}>{eventType}</div>
                         </div>
                     </div>
 
                     <div style={{ marginTop: "20px" }}>
                         <p style={styles.label}>Ticket ID</p>
-                        <div style={styles.ticketIdBox}>{ticketId}</div>
+                        <div style={styles.ticketIdBox}>{ticketId ? ticketId.slice(-6).toUpperCase() : "###"}</div>
                     </div>
                 </div>
 
                 <div style={styles.footer}>
                     <MapPin size={12} color="#D4AF37" />
-                    <span style={{ textTransform: "uppercase", letterSpacing: "1px" }}>Tirupur, Tamil Nadu</span>
+                    <span style={{ textTransform: "uppercase", letterSpacing: "1px" }}>{eventId?.location || "Tirupur, Tamil Nadu"}</span>
                 </div>
             </div>
 
@@ -133,7 +133,7 @@ const TicketStructure = ({ data }) => {
                 <div style={styles.holeBottom}></div>
 
                 <QRCode
-                    value={JSON.stringify({ ticketId, name, type: eventType, tier: "GOLD" })}
+                    value={JSON.stringify({ ticketId, name, type: eventType })}
                     size={110}
                     style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                     viewBox={`0 0 256 256`}
@@ -151,80 +151,138 @@ const TicketStructure = ({ data }) => {
 };
 
 const TicketPage = () => {
-    const location = useLocation();
+    const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const [ticket, setTicket] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [isDownloading, setIsDownloading] = useState(false);
 
-    const data = location.state?.paymentData;
-
     useEffect(() => {
-        if (!data) navigate("/");
-    }, [data, navigate]);
-
-    if (!data) return null;
+        const fetchTicket = async () => {
+            // Priority 1: Instant Data via State (Membership or Fresh Payment)
+            if (location.state?.paymentData) {
+                const data = location.state.paymentData;
+                // Normalize to Ticket Format
+                setTicket({
+                    _id: data.ticketId,
+                    name: data.name,
+                    createdAt: new Date().toISOString(),
+                    ticketType: data.ticketType || "Membership",
+                    eventId: {
+                        title: "Founders Sangam",
+                        location: "Tirupur, TN"
+                    }
+                });
+                setLoading(false);
+            }
+            // Priority 2: Fetch Event Ticket via ID (URL)
+            else if (id && id !== "access-card") {
+                try {
+                    const data = await getTicketById(id);
+                    if (data) {
+                        setTicket(data);
+                    } else {
+                        setError("Ticket not found");
+                    }
+                } catch (err) {
+                    setError("Failed to load ticket");
+                } finally {
+                    setLoading(false);
+                }
+            }
+            else {
+                setError("Invalid Ticket Access");
+                setLoading(false);
+            }
+        };
+        fetchTicket();
+    }, [id, location.state]);
 
     const handleDownload = async () => {
         setIsDownloading(true);
-
         // Allow UI to settle
         await new Promise((resolve) => setTimeout(resolve, 500));
-
         try {
             const element = document.getElementById("ticket-node");
-
-            // Using html-to-image (toPng) instead of html2canvas
-            // This handles gradients and modern CSS perfectly
             const dataUrl = await toPng(element, {
                 cacheBust: true,
+                width: 600,
+                height: 300,
+                pixelRatio: 3, // High quality
                 style: {
-                    transform: 'scale(1)', // Prevents shifting
+                    transform: 'none',
+                    margin: '0',
                 }
             });
 
-            // PDF Generation
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const imgWidth = 180;
-            // Approximate height based on 2:1 aspect ratio of ticket
-            const imgHeight = 90;
-            const xOffset = (210 - imgWidth) / 2;
+            // Creates a PDF with exactly the dimensions of the ticket image
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'px',
+                format: [600, 300]
+            });
 
-            pdf.addImage(dataUrl, 'PNG', xOffset, 40, imgWidth, imgHeight);
-            pdf.save(`FS_Gold_Ticket_${data.ticketId}.pdf`);
-
+            pdf.addImage(dataUrl, 'PNG', 0, 0, 600, 300);
+            pdf.save(`FS_Ticket_${ticket._id}.pdf`);
         } catch (error) {
             console.error("Download Error:", error);
-            alert("Download failed. Please take a screenshot manually.");
+            alert("Download failed.");
         } finally {
             setIsDownloading(false);
         }
     };
 
+    if (loading) return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+            <Loader2 className="animate-spin text-amber-500" size={48} />
+        </div>
+    );
+
+    if (error || !ticket) return (
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center text-slate-900 dark:text-white">
+            <AlertCircle size={48} className="text-red-500 mb-4" />
+            <h2 className="text-2xl font-bold">{error || "Ticket not found"}</h2>
+            <button onClick={() => navigate("/")} className="mt-6 px-6 py-2 bg-amber-500 rounded-lg text-white font-bold">Go Home</button>
+        </div>
+    );
+
+    // Normalize Data Structure
+    const ticketData = {
+        name: ticket.name,
+        ticketId: ticket._id,
+        date: ticket.createdAt,
+        ticketType: ticket.ticketType || "Membership",
+        eventId: ticket.eventId
+    };
+
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-black p-6">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-6 transition-colors duration-500">
             <FadeIn>
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#111] border border-[#333] mb-4 shadow-2xl">
-                        <CheckCircle2 size={32} color="#D4AF37" />
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-4 shadow-xl">
+                        <CheckCircle2 size={32} className="text-amber-500" />
                     </div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                        Welcome to the Club
+                    <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+                        You're In!
                     </h1>
-                    <p className="text-[#888] text-sm max-w-sm mx-auto">
-                        Your premium membership is confirmed.
+                    <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mx-auto">
+                        Registration confirmed. Here is your ticket.
                     </p>
                 </div>
 
                 <div className="flex flex-col items-center justify-center w-full">
                     {/* Display the Premium Ticket */}
-                    <div className="transform scale-90 md:scale-100 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
-                        <TicketStructure data={data} />
+                    <div className="transform scale-90 md:scale-100 shadow-2xl shadow-slate-300 dark:shadow-black/50 rounded-[24px] overflow-hidden">
+                        <TicketStructure data={ticketData} />
                     </div>
 
                     <div className="flex gap-4 mt-12">
                         <button
                             onClick={() => navigate("/")}
-                            className="flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all text-sm hover:scale-105"
-                            style={{ backgroundColor: '#222', color: '#fff', border: '1px solid #444' }}
+                            className="flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all text-sm hover:scale-105 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm"
                         >
                             <Home size={18} />
                             Home
@@ -232,16 +290,14 @@ const TicketPage = () => {
                         <button
                             onClick={handleDownload}
                             disabled={isDownloading}
-                            className="flex items-center gap-2 px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-all active:scale-95 text-sm disabled:opacity-70"
+                            className="flex items-center gap-2 px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-all active:scale-95 text-sm disabled:opacity-70 text-black border-none"
                             style={{
                                 background: 'linear-gradient(90deg, #BF953F, #AA771C)',
-                                color: '#000000',
-                                border: 'none',
                                 boxShadow: '0 0 20px rgba(191, 149, 63, 0.4)'
                             }}
                         >
                             {isDownloading ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-                            {isDownloading ? "Generating..." : "Download Gold Pass"}
+                            {isDownloading ? "Generating..." : "Download Ticket"}
                         </button>
                     </div>
                 </div>

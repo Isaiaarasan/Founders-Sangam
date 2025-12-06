@@ -158,14 +158,15 @@ const PaymentPage = () => {
             if (verifyRes.data.success) {
 
               // 4️⃣ REDIRECT TO TICKET PAGE
-              navigate("/ticket", {
+              // Use /ticket/membership for URL but pass state for data
+              navigate("/ticket/access-card", {
                 state: {
                   paymentData: {
                     ...formData,
                     ticketId: response.razorpay_payment_id,
                     date: displayDate,
                     amountPaid: price,
-                    eventType: title
+                    ticketType: "Membership" // Explicit type
                   }
                 }
               });

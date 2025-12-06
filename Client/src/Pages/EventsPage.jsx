@@ -89,16 +89,13 @@ const EventsPage = () => {
                     >
                       Read More
                     </Link>
-                    {event.registrationLink && (
-                      <a
-                        href={event.registrationLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-slate-900 dark:text-white font-bold hover:gap-4 transition-all"
-                      >
-                        Register Now <ArrowRight size={20} className="text-amber-500" />
-                      </a>
-                    )}
+
+                    <Link
+                      to={`/event/${event._id}/register`}
+                      className="inline-flex items-center gap-2 text-slate-900 dark:text-white font-bold hover:gap-4 transition-all"
+                    >
+                      Register Now <ArrowRight size={20} className="text-amber-500" />
+                    </Link>
                   </div>
                 </div>
               </motion.div>

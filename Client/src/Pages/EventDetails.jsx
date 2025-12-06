@@ -94,19 +94,15 @@ const EventDetails = () => {
                     </div>
 
                     <div className="p-8 md:p-12">
-                        {/* Registration Button */}
-                        {event.registrationLink && (
-                            <div className="mb-10">
-                                <a
-                                    href={event.registrationLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-amber-500/20 transition-all transform hover:-translate-y-1"
-                                >
-                                    Register Now <ExternalLink size={20} />
-                                </a>
-                            </div>
-                        )}
+                        {/* Register Now Button */}
+                        <div className="mb-10">
+                            <Link
+                                to={`/event/${id}/register`}
+                                className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-amber-500/20 transition-all transform hover:-translate-y-1"
+                            >
+                                Register Now <ExternalLink size={20} />
+                            </Link>
+                        </div>
 
                         {/* Content */}
                         <div className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-a:text-amber-500 hover:prose-a:text-amber-600 prose-img:rounded-xl">

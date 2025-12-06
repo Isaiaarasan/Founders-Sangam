@@ -73,8 +73,24 @@ const Events = () => {
             setValue("image", event.image);
             setValue("registrationLink", event.registrationLink);
             setValue("content", event.content);
+            setValue("maxRegistrations", event.maxRegistrations);
+            setValue("ticketTypes", event.ticketTypes); // Expecting array of {name, price}
         } else {
-            reset();
+            reset({
+                title: "",
+                date: "",
+                location: "",
+                image: "",
+                registrationLink: "",
+                description: "",
+                content: "",
+                maxRegistrations: 100,
+                ticketTypes: [
+                    { name: "Gold Pass", price: 500 },
+                    { name: "Platinum Pass", price: 1000 },
+                    { name: "Diamond Pass", price: 2000 }
+                ]
+            });
         }
         setIsModalOpen(true);
     };
@@ -237,14 +253,62 @@ const Events = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Registration Link</label>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Registration Link (External)</label>
                                         <div className="relative">
                                             <input
                                                 {...register("registrationLink")}
                                                 className="w-full pl-10 pr-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium"
-                                                placeholder="https://..."
+                                                placeholder="Optional: External URL"
                                             />
                                             <LinkIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Max Registrations</label>
+                                        <input
+                                            type="number"
+                                            {...register("maxRegistrations", { required: true, valueAsNumber: true })}
+                                            className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all font-medium"
+                                        />
+                                    </div>
+
+                                    {/* Ticket Types Management */}
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-2 ml-1">Ticket Types (Name & Price)</label>
+                                        <div className="space-y-3 bg-neutral-50 dark:bg-[#111] p-4 rounded-xl border border-neutral-200 dark:border-neutral-800">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-neutral-400">Gold Pass</label>
+                                                    <input type="hidden" {...register("ticketTypes.0.name")} value="Gold Pass" />
+                                                    <input
+                                                        type="number"
+                                                        {...register("ticketTypes.0.price", { valueAsNumber: true })}
+                                                        placeholder="Price"
+                                                        className="w-full p-2 rounded-lg border dark:border-neutral-700 bg-white dark:bg-black"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-neutral-400">Platinum Pass</label>
+                                                    <input type="hidden" {...register("ticketTypes.1.name")} value="Platinum Pass" />
+                                                    <input
+                                                        type="number"
+                                                        {...register("ticketTypes.1.price", { valueAsNumber: true })}
+                                                        placeholder="Price"
+                                                        className="w-full p-2 rounded-lg border dark:border-neutral-700 bg-white dark:bg-black"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs text-neutral-400">Diamond Pass</label>
+                                                    <input type="hidden" {...register("ticketTypes.2.name")} value="Diamond Pass" />
+                                                    <input
+                                                        type="number"
+                                                        {...register("ticketTypes.2.price", { valueAsNumber: true })}
+                                                        placeholder="Price"
+                                                        className="w-full p-2 rounded-lg border dark:border-neutral-700 bg-white dark:bg-black"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 

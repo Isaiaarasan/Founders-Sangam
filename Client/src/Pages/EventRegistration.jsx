@@ -38,7 +38,8 @@ const EventRegistration = () => {
             if (result.success) {
                 // Redirect to Payment with Ticket Context
                 // We pass ticketId, eventId, and amount to the Payment Page
-                navigate("/payment", {
+                // Redirect to Separate Event Payment Page
+                navigate("/event-payment", {
                     state: {
                         type: "TICKET",
                         data: {

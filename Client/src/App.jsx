@@ -11,6 +11,7 @@ const PaymentPage = lazy(() => import("./Pages/PaymentPage"));
 const EventsPage = lazy(() => import("./Pages/EventsPage"));
 const EventDetails = lazy(() => import("./Pages/EventDetails"));
 const EventRegistration = lazy(() => import("./Pages/EventRegistration"));
+const EventPaymentPage = lazy(() => import("./Pages/EventPaymentPage"));
 const AdminLogin = lazy(() => import("./Pages/Admin/AdminLogin"));
 const Dashboard = lazy(() => import("./Pages/Admin/Dashboard"));
 const Members = lazy(() => import("./Pages/Admin/Members"));
@@ -50,7 +51,7 @@ function App() {
           <Route path="/payment" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><PaymentPage /></Layout>} />
           <Route path="/events" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><EventsPage /></Layout>} />
           <Route
-            path="/ticket"
+            path="/ticket/:id"
             element={
               <Layout isDark={isDark} toggleTheme={toggleTheme}>
                 <TicketPage /> {/* Use the new component */}
@@ -59,6 +60,7 @@ function App() {
           />
           <Route path="/event/:id" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><EventDetails /></Layout>} />
           <Route path="/event/:id/register" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><EventRegistration /></Layout>} />
+          <Route path="/event-payment" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><EventPaymentPage /></Layout>} />
           <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Admin Routes */}
