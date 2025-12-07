@@ -32,6 +32,7 @@ const AdminLayout = ({ isDark, toggleTheme }) => {
         { icon: Calendar, label: "Events", path: "/admin/events" },
         { icon: CreditCard, label: "Payments", path: "/admin/payments" },
         { icon: FileText, label: "Content", path: "/admin/content" },
+        { icon: Briefcase, label: "Collaborations", path: "/admin/collaborations" },
         { icon: Settings, label: "Settings", path: "/admin/settings" },
     ];
 

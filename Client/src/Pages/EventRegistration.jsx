@@ -120,7 +120,11 @@ const EventRegistration = () => {
                             <p className="text-slate-500 dark:text-slate-400 mt-2">Secure your spot for this exclusive event.</p>
                         </div>
 
-                        {isFull ? (
+                        {new Date(event.date) < new Date() ? (
+                            <div className="p-6 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl text-center font-bold text-lg">
+                                🔒 Registration Closed: Event has ended
+                            </div>
+                        ) : isFull ? (
                             <div className="p-6 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-center font-bold text-lg">
                                 🚫 Registration Full
                             </div>

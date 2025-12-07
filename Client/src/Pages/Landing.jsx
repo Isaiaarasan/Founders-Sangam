@@ -261,6 +261,34 @@ const Hero = () => {
       >
         <ArrowRight className="rotate-90" />
       </motion.div>
+
+      {/* Temple Image */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.8 }}
+        transition={{ delay: 1.5, duration: 1 }}
+        className="absolute bottom-0 left-2 md:bottom-7 md:left-4 z-20 pointer-events-none select-none"
+      >
+        <img
+          src="/Images/Tempel.png"
+          alt="Temple structure"
+          className="w-40 md:w-55 lg:w-68 object-contain drop-shadow-lg"
+        />
+      </motion.div>
+
+      {/* Tiruppur Image */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.8 }}
+        transition={{ delay: 1.5, duration: 1 }}
+        className="absolute top-1/2 right-0 md:right-0 transform -translate-y-1/2 z-20 pointer-events-none select-none hidden md:block"
+      >
+        <img
+          src="/Images/Tiruppur.png"
+          alt="Tiruppur structure"
+          className="w-40 md:w-55 lg:w-68 object-contain drop-shadow-lg"
+        />
+      </motion.div>
     </section>
   );
 };
@@ -741,14 +769,28 @@ const TestimonialsSection = () => {
 };
 // 8. Collaboration Section
 const CollaborationSection = () => {
-  const companies = [
+  const [companies, setCompanies] = useState([
     "Company A",
     "Company B",
     "Company C",
     "Company D",
     "Company E",
     "Company F",
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const res = await axios.get("https://founders-sangam.onrender.com/content/collaboration");
+        if (res.data.success && res.data.content && res.data.content.companies && res.data.content.companies.length > 0) {
+          setCompanies(res.data.content.companies);
+        }
+      } catch (err) {
+        console.error("Failed to fetch collaboration companies");
+      }
+    };
+    fetchCompanies();
+  }, []);
 
   return (
     <section

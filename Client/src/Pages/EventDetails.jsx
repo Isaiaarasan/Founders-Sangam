@@ -96,12 +96,21 @@ const EventDetails = () => {
                     <div className="p-8 md:p-12">
                         {/* Register Now Button */}
                         <div className="mb-10">
-                            <Link
-                                to={`/event/${id}/register`}
-                                className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-amber-500/20 transition-all transform hover:-translate-y-1"
-                            >
-                                Register Now <ExternalLink size={20} />
-                            </Link>
+                            {new Date(event.date) < new Date() ? (
+                                <button
+                                    disabled
+                                    className="inline-flex items-center gap-2 bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 px-8 py-4 rounded-xl font-bold text-lg cursor-not-allowed"
+                                >
+                                    Event Ended
+                                </button>
+                            ) : (
+                                <Link
+                                    to={`/event/${id}/register`}
+                                    className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-amber-500/20 transition-all transform hover:-translate-y-1"
+                                >
+                                    Register Now <ExternalLink size={20} />
+                                </Link>
+                            )}
                         </div>
 
                         {/* Content */}

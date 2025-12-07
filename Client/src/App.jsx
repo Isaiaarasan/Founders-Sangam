@@ -22,6 +22,7 @@ const Events = lazy(() => import("./Pages/Admin/Events"));
 const EventMembers = lazy(() => import("./Pages/Admin/EventMembers"));
 const Payments = lazy(() => import("./Pages/Admin/Payments"));
 const ContentManager = lazy(() => import("./Pages/Admin/ContentManager"));
+const Collaborations = lazy(() => import("./Pages/Admin/Collaborations"));
 const Settings = lazy(() => import("./Pages/Admin/Settings"));
 const TicketPage = lazy(() => import("./Pages/TicketPage"));
 
@@ -109,6 +110,7 @@ function App() {
               <Route path="events" element={<Events />} />
               <Route path="payments" element={<Payments />} />
               <Route path="content" element={<ContentManager />} />
+              <Route path="collaborations" element={<Collaborations />} />
               <Route path="settings" element={<Settings />} />
             </Route>
           </Route>
