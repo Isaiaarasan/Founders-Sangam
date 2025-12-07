@@ -49,7 +49,9 @@ const TicketForm = ({ event, onSubmit, loading }) => {
     useEffect(() => {
         const selectedTicket = ticketOptions.find(t => t.name === formData.ticketType);
         if (selectedTicket) {
-            setTotalPrice(selectedTicket.price * formData.quantity);
+            // Handle empty quantity safely
+            const qty = formData.quantity === '' ? 0 : parseInt(formData.quantity) || 0;
+            setTotalPrice(selectedTicket.price * qty);
         }
     }, [formData.ticketType, formData.quantity, ticketOptions]);
 
@@ -58,9 +60,25 @@ const TicketForm = ({ event, onSubmit, loading }) => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleQuantityChange = (e) => {
+        const val = e.target.value;
+        // Allow empty string to let user clear the field
+        if (val === '') {
+            setFormData(prev => ({ ...prev, quantity: '' }));
+            return;
+        }
+        // Otherwise prompt for number but don't force fallback immediately on typing
+        const parsed = parseInt(val);
+        if (!isNaN(parsed) && parsed >= 0) {
+            setFormData(prev => ({ ...prev, quantity: parsed }));
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit({ ...formData, amount: totalPrice });
+        // Ensure quantity is at least 1 before submitting
+        const finalQty = formData.quantity === '' || formData.quantity < 1 ? 1 : formData.quantity;
+        onSubmit({ ...formData, quantity: finalQty, amount: totalPrice });
     };
 
     return (
@@ -126,7 +144,7 @@ const TicketForm = ({ event, onSubmit, loading }) => {
                         type="number"
                         placeholder="1"
                         value={formData.quantity}
-                        onChange={(e) => setFormData(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
+                        onChange={handleQuantityChange}
                         icon={Hash}
                     />
                 </div>

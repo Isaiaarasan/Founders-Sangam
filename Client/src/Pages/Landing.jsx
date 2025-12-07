@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import {
   motion,
   useScroll,
   useTransform,
   useSpring,
   useInView,
-  AnimatePresence
+  AnimatePresence,
 } from "framer-motion";
+import axios from "axios";
 import {
   ArrowRight,
   Users,
@@ -19,11 +19,10 @@ import {
   Globe,
   BookOpen,
   Plus,
-  Minus,
-  Clock // Added Clock icon import for completeness if using EventCard logic elsewhere
+  Minus
 } from "lucide-react";
 
-// --- Theme Constants ---
+// --- Theme Constants (Not directly used in Hero, but good practice) ---
 const BRAND_COLORS = {
   yellow: "from-amber-400 to-yellow-500",
   red: "from-red-500 to-rose-600",
@@ -45,6 +44,7 @@ const FadeIn = ({ children, delay = 0, className = "" }) => (
   </motion.div>
 );
 
+// Counter utility is defined for completeness but not strictly needed for Hero
 const Counter = ({ value, suffix = "" }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
@@ -61,24 +61,18 @@ const Counter = ({ value, suffix = "" }) => {
   return <motion.span ref={ref}>{displayValue}</motion.span>;
 };
 
-// --- NEW 3D Background Component (from previous step) ---
+// --- 3D Background Component ---
 const DepthElements = () => (
   <div className="absolute inset-0 w-full h-full perspective-[1000px] pointer-events-none">
-
     {/* Cube 1: Top Left - Rotates slowly */}
     <motion.div
       animate={{ rotateX: 360, rotateY: 360, opacity: [0.1, 0.2, 0.1] }}
       transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
       className="absolute top-[10%] left-[10%] w-24 h-24 bg-sky-500/10 border border-sky-300/20 rounded-lg"
-      style={{ transformStyle: 'preserve-3d', transform: 'translateZ(-200px) rotateX(45deg) rotateY(-30deg)' }}
-    />
-
-    {/* Hexagon 2: Bottom Right - Floats and rotates */}
-    <motion.div
-      animate={{ rotateZ: 360, y: [0, 50, 0] }}
-      transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-      className="absolute bottom-[10%] right-[10%] w-32 h-32 bg-amber-500/10 border border-amber-300/20 rounded-xl"
-      style={{ transformStyle: 'preserve-3d', transform: 'translateZ(-100px) rotateX(60deg)' }}
+      style={{
+        transformStyle: "preserve-3d",
+        transform: "translateZ(-200px) rotateX(45deg) rotateY(-30deg)",
+      }}
     />
 
     {/* Small Detail: Center Left */}
@@ -86,13 +80,12 @@ const DepthElements = () => (
       animate={{ rotate: 360, scale: [1, 1.1, 1] }}
       transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
       className="absolute top-1/2 left-[5%] w-10 h-10 bg-red-500/10 rounded-full border border-red-300/20"
-      style={{ transform: 'translateZ(-50px)' }}
+      style={{ transform: "translateZ(-50px)" }}
     />
   </div>
 );
 
-
-// --- NEW Cursor Trail Component (must be imported or defined here) ---
+// --- Cursor Trail Component ---
 const CursorTrail = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
@@ -112,7 +105,7 @@ const CursorTrail = () => {
     type: "spring",
     stiffness: 150,
     damping: 18,
-    mass: 0.5
+    mass: 0.5,
   };
 
   // Primary element style (follows slightly slower)
@@ -121,7 +114,7 @@ const CursorTrail = () => {
     y: mousePosition.y,
     translateX: "-50%",
     translateY: "-50%",
-    transition: springConfig
+    transition: springConfig,
   };
 
   // Secondary element style (lags slightly behind primary)
@@ -130,12 +123,12 @@ const CursorTrail = () => {
     y: mousePosition.y,
     translateX: "-50%",
     translateY: "-50%",
-    transition: { ...springConfig, stiffness: 100, damping: 25, mass: 0.8 }
+    transition: { ...springConfig, stiffness: 100, damping: 25, mass: 0.8 },
   };
 
   return (
     <motion.div
-      style={{ pointerEvents: 'none' }} // Ensures it doesn't block clicks
+      style={{ pointerEvents: "none" }} // Ensures it doesn't block clicks
       className="fixed inset-0 z-50"
     >
       <motion.div
@@ -151,16 +144,11 @@ const CursorTrail = () => {
   );
 };
 
-
-// --- SECTIONS ---
-
 // 1. Hero Section
 const Hero = () => {
   const navigate = useNavigate();
-
   return (
     <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-25 pb-12 transition-colors duration-500">
-
       {/* NEW: Cursor Trail component for interaction */}
       <CursorTrail />
 
@@ -186,35 +174,42 @@ const Hero = () => {
       {/* 3D Depth Elements Layer (z-10, behind the content) */}
       <DepthElements />
 
-
       <div className="w-full px-6 md:px-12 relative z-20 h-full flex flex-col justify-center">
         <FadeIn className="w-full relative flex flex-col items-center justify-center max-w-7xl mx-auto text-center">
-          {/* Logo Animation Rings */}
+
+          {/* Logo Animation Rings - UPDATED WITH OUTWARD MOVEMENT */}
           <div className="relative w-64 h-32 mb-12 flex justify-center items-center">
             {[
               { color: "border-amber-400", delay: 0, x: -70 },
               { color: "border-red-500", delay: 0.1, x: -25 },
               { color: "border-emerald-500", delay: 0.2, x: 25 },
               { color: "border-sky-500", delay: 0.3, x: 70 },
-            ].map((ring, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, scale: 0.5, x: ring.x }}
-                animate={{
-                  opacity: [0, 1, 1, 1, 1, 0],
-                  scale: [0.5, 1, 1, 1, 1, 0.5],
-                  x: [ring.x, ring.x, ring.x, ring.x, ring.x, ring.x],
-                }}
-                transition={{
-                  duration: 8,
-                  times: [0, 0.1, 0.6, 0.75, 0.9, 1],
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  delay: ring.delay,
-                }}
-                className={`absolute w-32 h-32 rounded-full border-[12px] ${ring.color} mix-blend-multiply dark:mix-blend-screen opacity-80 bg-white/10 dark:bg-black/10`}
-              />
-            ))}
+            ].map((ring, i) => {
+              // Calculate the final off-screen X position
+              const finalX = ring.x < 0 ? -200 : 200;
+              const initialX = ring.x;
+
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.5, x: initialX }}
+                  animate={{
+                    opacity: [0, 1, 1, 1, 0, 0], // Opacity drops to 0 at step 5
+                    scale: [0.5, 1, 1, 1, 0.5, 0.5], // Scale decreases with the fade-out
+                    x: [initialX, initialX, initialX, initialX, finalX, initialX], // MOVED OUT & BACK
+                  }}
+                  transition={{
+                    duration: 8,
+                    // Times align with the 6 steps in the animate arrays
+                    times: [0, 0.1, 0.7, 0.8, 0.9, 1],
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: ring.delay,
+                  }}
+                  className={`absolute w-32 h-32 rounded-full border-[12px] ${ring.color} mix-blend-multiply dark:mix-blend-screen opacity-80 bg-white/10 dark:bg-black/10`}
+                />
+              );
+            })}
           </div>
 
           <h1 className="text-6xl md:text-8xl lg:text-7xl font-extrabold tracking-tighter text-slate-900 dark:text-white leading-[0.9] transition-colors duration-500">
@@ -238,17 +233,17 @@ const Hero = () => {
             className="mt-12 flex flex-col sm:flex-row gap-4"
           >
             <button
-              onClick={() => navigate("/payment")}
+              onClick={() => navigate("/events")}
               className="bg-slate-900 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 hover:scale-105 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 transition-all flex items-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50"
             >
-              Apply for Membership <ArrowRight size={20} />
+              Explore Events <ArrowRight size={20} />
             </button>
 
             <button
-              onClick={() => navigate("/events")}
+              onClick={() => navigate("/broadcast")}
               className="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
             >
-              Explore Events
+              Explore Broadcast <ArrowRight size={20} />
             </button>
           </motion.div>
         </FadeIn>
@@ -260,34 +255,6 @@ const Hero = () => {
         className="absolute bottom-10 left-1/2 -translate-x-1/2 text-slate-300 dark:text-slate-600"
       >
         <ArrowRight className="rotate-90" />
-      </motion.div>
-
-      {/* Temple Image */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.8 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-0 left-2 md:bottom-7 md:left-4 z-20 pointer-events-none select-none"
-      >
-        <img
-          src="/Images/Tempel.png"
-          alt="Temple structure"
-          className="w-40 md:w-55 lg:w-68 object-contain drop-shadow-lg"
-        />
-      </motion.div>
-
-      {/* Tiruppur Image */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.8 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute top-1/2 right-0 md:right-0 transform -translate-y-1/2 z-20 pointer-events-none select-none hidden md:block"
-      >
-        <img
-          src="/Images/Tiruppur.png"
-          alt="Tiruppur structure"
-          className="w-40 md:w-55 lg:w-68 object-contain drop-shadow-lg"
-        />
       </motion.div>
     </section>
   );
@@ -334,6 +301,47 @@ const ManifestoMarquee = () => {
   );
 };
 
+// 2.5 Video Section
+const VideoSection = () => {
+  const videos = [
+    "/videos/reel.mp4",
+    "/videos/reel2.mp4",
+    "/videos/reel3.mp4"
+  ];
+
+  return (
+    <section className="py-24 bg-slate-50 dark:bg-slate-900 w-full flex flex-col items-center justify-center relative z-20 transition-colors duration-500 border-b border-slate-200 dark:border-slate-800">
+      <FadeIn className="w-full max-w-7xl px-6 md:px-12">
+        <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 dark:text-white mb-12">
+          Experience the <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Vibe</span>
+        </h2>
+
+        {/* Container: Horizontal Scroll on Mobile, Grid on Desktop */}
+        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto md:overflow-visible snap-x snap-mandatory pb-8 md:pb-0 hide-scrollbar justify-start md:justify-center">
+          {videos.map((src, index) => (
+            <div
+              key={index}
+              className="min-w-[280px] w-[80%] md:w-full max-w-[320px] aspect-[9/16] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 md:border-8 border-white dark:border-slate-800 flex-shrink-0 snap-center transform hover:scale-[1.02] transition-transform duration-500 bg-black mx-auto"
+            >
+              <video
+                className="w-full h-full object-cover"
+                src={src}
+                autoPlay
+                loop
+                muted
+                playsInline
+                controls
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          ))}
+        </div>
+      </FadeIn>
+    </section>
+  );
+};
+
 // 3. Stats Section
 const StatsSection = () => {
   const navigate = useNavigate();
@@ -341,7 +349,7 @@ const StatsSection = () => {
     const CardContent = (
       <FadeIn
         delay={delay}
-        className="flex flex-col gap-6 p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden cursor-pointer h-full"
+        className="flex flex-col gap-6 p-6 md:p-10 bg-white dark:bg-slate-800 rounded-[2rem] md:rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden cursor-pointer h-full"
       >
         <div
           className={`absolute -right-10 -top-10 w-40 h-40 bg-gradient-to-br ${gradient} opacity-10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700`}
@@ -357,7 +365,7 @@ const StatsSection = () => {
           </div>
         </div>
         <div className="mt-4 relative z-10">
-          <h3 className="text-6xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h3 className="text-4xl md:text-6xl font-bold text-slate-900 dark:text-white tracking-tight">
             {value}
           </h3>
           <p className="text-slate-500 dark:text-slate-400 font-semibold uppercase text-xs tracking-widest mt-2">
@@ -410,7 +418,7 @@ const StatsSection = () => {
           delay={0.1}
           gradient={BRAND_COLORS.yellow}
           icon={Users}
-          onClick={() => navigate("/founders")}
+          onClick={() => navigate("/events")}
         />
         <StatsCard
           value={<Counter value={100} suffix="%" />}
@@ -445,19 +453,19 @@ const BenefitsSection = () => {
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
               The <span className="italic font-serif">Unfair Advantage</span> <br />
-              for Tirupur Founders.
+              for Founders.
             </h2>
           </div>
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Large */}
-          <FadeIn delay={0.1} className="md:col-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800">
+          <FadeIn delay={0.1} className="md:col-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800">
             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/50 dark:bg-amber-900/20 rounded-full blur-[80px] -mr-16 -mt-16 transition-all group-hover:bg-amber-200/50 dark:group-hover:bg-amber-800/20"></div>
             <div className="relative z-10">
-              <div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 mb-6">
+              {/*<div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 mb-6">
                 <Users size={24} />
-              </div>
+              </div>*/}
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Curated Founder Gatherings</h3>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
                 Every event is curated. Every member is intentional. We bring niche-driven businesses into one room to create an environment where honest conversations lead to real progress.
@@ -469,19 +477,19 @@ const BenefitsSection = () => {
           <FadeIn delay={0.2}
             // Background kept light (bg-slate-50) for contrast with dark text.
             // Added dark:bg-slate-900 and border for dark theme adaptability.
-            className="md:row-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 flex flex-col justify-between border border-slate-200 dark:border-slate-700"
+            className="md:row-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col justify-between border border-slate-200 dark:border-slate-700"
           >
             <div
               // Gradient removed or adjusted for light mode/dark theme
               className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-black/50 to-transparent dark:from-slate-900/50"
             ></div>
             <div>
-              <div
-                // Icon: Set to be dark text on light background in light mode, and amber on dark in dark mode.
-                className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-slate-900 dark:text-amber-400 mb-6"
+              {/*<div
+              // Icon: Set to be dark text on light background in light mode, and amber on dark in dark mode.
+              className="w-12 h-12 bg-slate-200 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-slate-900 dark:text-amber-400 mb-6"
               >
                 <Globe size={24} />
-              </div>
+              </div>*/}
               <h3
                 // Text: Changed to dark slate for light mode, fixed to white for dark mode.
                 className="text-2xl font-bold text-slate-900 dark:text-white mb-4"
@@ -493,20 +501,20 @@ const BenefitsSection = () => {
                 mentorship sessions with experienced operators who help you clarify your direction and network with intent.
               </p>
             </div>
-            <button
+            {/* <button
               // Button: Set to dark text on light background in light mode, and reversed in dark mode.
               className="mt-8 w-full py-4 rounded-xl bg-slate-200 dark:bg-white/10 backdrop-blur-md text-slate-900 dark:text-white font-bold border border-slate-300 dark:border-white/10 hover:bg-slate-300 dark:hover:bg-white dark:hover:text-black transition-all"
             >
               Join the Circle
-            </button>
+            </button> */}
           </FadeIn>
           {/* Card 3: Standard */}
-          <FadeIn delay={0.3} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800">
+          <FadeIn delay={0.3} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800">
             <div className="absolute top-0 right-0 w-64 h-64 bg-sky-100/50 dark:bg-sky-900/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
             <div className="relative z-10">
-              <div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center text-sky-600 mb-6">
+              {/*<div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center text-sky-600 mb-6">
                 <Zap size={24} />
-              </div>
+              </div>*/}
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Member-Exclusive Resources</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
                 Unlock insights, advantages, and tools specifically designed for serious builders.
@@ -515,12 +523,12 @@ const BenefitsSection = () => {
           </FadeIn>
 
           {/* Card 4: Standard */}
-          <FadeIn delay={0.4} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2.5rem] p-10 border border-slate-100 dark:border-slate-800">
+          <FadeIn delay={0.4} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800">
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
             <div className="relative z-10">
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
+              {/*<div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
                 <BookOpen size={24} />
-              </div>
+              </div>*/}
               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Private Community</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
                 Access our digital community where real opportunities and collaboration happen.
@@ -648,13 +656,13 @@ const ValueSection = () => {
           <div className="w-full md:w-1/2 relative h-[500px] flex items-center justify-center">
             <motion.div
               initial={{ rotate: 0 }}
-              whileInView={{ rotate: 90 }}
+              whileInView={{ rotate: 5 }}
               transition={{ duration: 2, ease: "backOut" }}
               viewport={{ margin: "-100px" }}
               className="relative z-10 w-80 h-80 rounded-[3rem] overflow-hidden shadow-2xl"
             >
               <img
-                src="/Images/Founder_Sangam.png"
+                src="/Images/Logo.jpeg"
                 alt="Collaboration"
                 className="w-full h-full object-cover"
               />
@@ -662,13 +670,13 @@ const ValueSection = () => {
             </motion.div>
             <motion.div
               initial={{ x: 0, y: 0 }}
-              whileInView={{ x: 40, y: -40 }}
+              whileInView={{ x: 15, y: -15 }}
               transition={{ duration: 1.5, delay: 0.2 }}
               className="absolute w-80 h-80 border-4 border-amber-400 rounded-[3rem] mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
             />
             <motion.div
               initial={{ x: 0, y: 0 }}
-              whileInView={{ x: -40, y: 40 }}
+              whileInView={{ x: -15, y: 15 }}
               transition={{ duration: 1.5, delay: 0.4 }}
               className="absolute w-80 h-80 border-4 border-sky-500 rounded-[3rem] mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
             />
@@ -746,7 +754,7 @@ const TestimonialsSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((item, i) => (
-            <FadeIn key={i} delay={i * 0.1} className={`bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-sm border-t-4 ${item.color} relative`}>
+            <FadeIn key={i} delay={i * 0.1} className={`bg-white dark:bg-slate-800 p-6 md:p-8 rounded-[2rem] shadow-sm border-t-4 ${item.color} relative`}>
               <Quote className="text-slate-200 dark:text-slate-700 absolute top-8 right-8" size={40} />
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-8 relative z-10">
                 "{item.content}"
@@ -920,6 +928,7 @@ const LandingPage = () => (
   <>
     <Hero />
     <ManifestoMarquee />
+    <VideoSection />
     <StatsSection />
     <BenefitsSection />
     <FoundersSection />

@@ -13,6 +13,7 @@ import { Search, ChevronLeft, ChevronRight, Download, Ticket } from "lucide-reac
 const EventMembers = () => {
     const [data, setData] = useState([]);
     const [globalFilter, setGlobalFilter] = useState("");
+    const [selectedEvent, setSelectedEvent] = useState("All");
 
     useEffect(() => {
         const fetchRegistrations = async () => {
@@ -30,6 +31,18 @@ const EventMembers = () => {
         };
         fetchRegistrations();
     }, []);
+
+    // Extract unique events for the filter dropdown
+    const uniqueEvents = useMemo(() => {
+        const events = data.map(item => item.eventId?.title || "Unknown Event");
+        return [...new Set(events)].sort();
+    }, [data]);
+
+    // Filter data based on selected event
+    const filteredData = useMemo(() => {
+        if (selectedEvent === "All") return data;
+        return data.filter(item => (item.eventId?.title || "Unknown Event") === selectedEvent);
+    }, [data, selectedEvent]);
 
     const columns = useMemo(
         () => [
@@ -57,8 +70,8 @@ const EventMembers = () => {
                 accessorKey: "ticketType",
                 cell: (info) => (
                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${info.getValue() === 'Platinum' ? 'bg-slate-100 text-slate-700 border-slate-200' :
-                            info.getValue() === 'Gold' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                'bg-emerald-50 text-emerald-700 border-emerald-200'
+                        info.getValue() === 'Gold' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            'bg-emerald-50 text-emerald-700 border-emerald-200'
                         }`}>
                         {info.getValue()}
                     </span>
@@ -93,7 +106,7 @@ const EventMembers = () => {
     );
 
     const table = useReactTable({
-        data,
+        data: filteredData,
         columns,
         state: { globalFilter },
         onGlobalFilterChange: setGlobalFilter,
@@ -105,14 +118,15 @@ const EventMembers = () => {
 
     const exportToCSV = () => {
         const headers = ["Event,Name,Ticket Type,Quantity,Amount,Contact,Date"];
-        const rows = data.map(row =>
+        // Use filteredData for export so it respects the current filter
+        const rows = filteredData.map(row =>
             `"${row.eventId?.title || '-'}","${row.name}","${row.ticketType}","${row.quantity}","${row.amount}","${row.contact}","${new Date(row.createdAt).toLocaleDateString()}"`
         );
         const csvContent = "data:text/csv;charset=utf-8," + headers.concat(rows).join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "event_members.csv");
+        link.setAttribute("download", `event_members_${selectedEvent === 'All' ? 'all' : selectedEvent.replace(/\s+/g, '_').toLowerCase()}.csv`);
         document.body.appendChild(link);
         link.click();
     };
@@ -128,6 +142,23 @@ const EventMembers = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    {/* Event Filter Dropdown */}
+                    <div className="relative">
+                        <select
+                            value={selectedEvent}
+                            onChange={(e) => setSelectedEvent(e.target.value)}
+                            className="w-full sm:w-48 pl-3 pr-8 py-2 rounded-lg bg-white dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all shadow-sm appearance-none cursor-pointer"
+                        >
+                            <option value="All">All Events</option>
+                            {uniqueEvents.map((event, idx) => (
+                                <option key={idx} value={event}>{event}</option>
+                            ))}
+                        </select>
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-400">
+                            <ChevronRight size={12} className="rotate-90" />
+                        </div>
+                    </div>
+
                     <div className="relative flex-1 sm:w-64 group">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-amber-500 transition-colors" size={14} />
                         <input

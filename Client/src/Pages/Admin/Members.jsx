@@ -130,13 +130,13 @@ const Members = () => {
                             className="w-full pl-8 pr-4 py-2 rounded-lg bg-white dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all shadow-sm"
                         />
                     </div>
-                    <button
+                    {/* <button
                         onClick={exportToCSV}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg font-bold text-xs hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all duration-200 shadow-neutral-200 dark:shadow-none"
                     >
                         <Download size={14} />
                         Export
-                    </button>
+                    </button> */}
                 </div>
             </div>
 

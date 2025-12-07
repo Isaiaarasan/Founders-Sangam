@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 import QRCode from "react-qr-code";
-import { Calendar, MapPin, Download, CheckCircle2, Home, Star, Loader2, AlertCircle } from "lucide-react";
+import { Calendar, MapPin, Download, CheckCircle2, Home, Star, Loader2, AlertCircle, Ticket } from "lucide-react";
 import FadeIn from "../components/FadeIn";
 import { getTicketById } from "../api/eventService";
 
@@ -143,8 +143,12 @@ const TicketStructure = ({ data }) => {
                 <div style={styles.verified}>
                     <CheckCircle2 size={14} strokeWidth={3} /> Verified
                 </div>
-                <div style={{ width: "40px", height: "2px", backgroundColor: "#D4AF37", marginTop: "10px" }}></div>
-                <p style={{ fontSize: "10px", color: "#000000", marginTop: "6px", fontWeight: "bold", opacity: 0.6 }}>ADMIT ONE</p>
+                <div style={{ marginTop: "12px", display: "flex", flexDirection: "column", alignItems: "center", opacity: 0.7 }}>
+                    <div style={{ fontSize: "10px", color: "#000000", fontWeight: "bold", textTransform: "uppercase", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <Ticket size={12} /> Single Entry
+                    </div>
+                    <p style={{ fontSize: "8px", color: "#444", marginTop: "2px" }}>Valid for one visit only</p>
+                </div>
             </div>
         </div>
     );
@@ -261,7 +265,7 @@ const TicketPage = () => {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-6 transition-colors duration-500">
             <FadeIn>
-                <div className="text-center mb-8">
+                <div className="text-center mb-4 md:mb-8 mt-4 md:mt-0">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-4 shadow-xl">
                         <CheckCircle2 size={32} className="text-amber-500" />
                     </div>
@@ -275,14 +279,19 @@ const TicketPage = () => {
 
                 <div className="flex flex-col items-center justify-center w-full">
                     {/* Display the Premium Ticket */}
-                    <div className="transform scale-90 md:scale-100 shadow-2xl shadow-slate-300 dark:shadow-black/50 rounded-[24px] overflow-hidden">
+                    {/* Responsive Scaling: 
+                        - Mobile (<640px): scale-[0.55] (Fits 600px into ~330px)
+                        - SMB (<768px): scale-75
+                        - Desktop (>=768px): scale-100
+                    */}
+                    <div className="transform scale-[0.55] sm:scale-75 md:scale-100 shadow-2xl shadow-slate-300 dark:shadow-black/50 rounded-[24px] overflow-hidden origin-center transition-transform duration-300">
                         <TicketStructure data={ticketData} />
                     </div>
 
-                    <div className="flex gap-4 mt-12">
+                    <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-12 w-full max-w-[300px] sm:max-w-none items-center justify-center">
                         <button
                             onClick={() => navigate("/")}
-                            className="flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all text-sm hover:scale-105 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold transition-all text-sm hover:scale-105 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm"
                         >
                             <Home size={18} />
                             Home
@@ -290,7 +299,7 @@ const TicketPage = () => {
                         <button
                             onClick={handleDownload}
                             disabled={isDownloading}
-                            className="flex items-center gap-2 px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-all active:scale-95 text-sm disabled:opacity-70 text-black border-none"
+                            className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-all active:scale-95 text-sm disabled:opacity-70 text-black border-none"
                             style={{
                                 background: 'linear-gradient(90deg, #BF953F, #AA771C)',
                                 boxShadow: '0 0 20px rgba(191, 149, 63, 0.4)'

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { Users, Calendar, CreditCard, Activity, ArrowUpRight, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const [stats, setStats] = useState({
         communityCount: 0,
         eventRegCount: 0,
@@ -65,7 +67,10 @@ const Dashboard = () => {
                     <h2 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight">Overview</h2>
                     <p className="text-neutral-500 dark:text-neutral-400 mt-1">Here's what's happening with your community today.</p>
                 </div>
-                <button className="flex items-center gap-2 px-5 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-neutral-200 dark:shadow-none">
+                <button
+                    onClick={() => navigate('/admin/registrations')}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg shadow-neutral-200 dark:shadow-none"
+                >
                     <ArrowUpRight size={18} />
                     View Reports
                 </button>

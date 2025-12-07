@@ -6,13 +6,17 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 
 // Lazy load pages
-const LandingPage = lazy(() => import("./Pages/Landing"));
-const PaymentPage = lazy(() => import("./Pages/PaymentPage"));
+import LandingPage from "./Pages/Landing";
+import PaymentPage from "./Pages/PaymentPage";
+import EventPaymentPage from "./Pages/EventPaymentPage";
+import Payments from "./Pages/Admin/Payments";
+
+// Lazy load other pages
 const EventsPage = lazy(() => import("./Pages/EventsPage"));
 const EventDetails = lazy(() => import("./Pages/EventDetails"));
 const EventRegistration = lazy(() => import("./Pages/EventRegistration"));
-const EventPaymentPage = lazy(() => import("./Pages/EventPaymentPage"));
 const MaintenancePage = lazy(() => import("./Pages/MaintenancePage"));
+const Broadcast = lazy(() => import("./Pages/Broadcast"));
 
 // Admin Pages
 const AdminLogin = lazy(() => import("./Pages/Admin/AdminLogin"));
@@ -20,7 +24,6 @@ const Dashboard = lazy(() => import("./Pages/Admin/Dashboard"));
 const Members = lazy(() => import("./Pages/Admin/Members"));
 const Events = lazy(() => import("./Pages/Admin/Events"));
 const EventMembers = lazy(() => import("./Pages/Admin/EventMembers"));
-const Payments = lazy(() => import("./Pages/Admin/Payments"));
 const ContentManager = lazy(() => import("./Pages/Admin/ContentManager"));
 const Collaborations = lazy(() => import("./Pages/Admin/Collaborations"));
 const Settings = lazy(() => import("./Pages/Admin/Settings"));
@@ -88,6 +91,7 @@ function App() {
           <Route path="/" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><LandingPage /></Layout>} />
           <Route path="/payment" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><PaymentPage /></Layout>} />
           <Route path="/events" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><EventsPage /></Layout>} />
+          <Route path="/broadcast" element={<Layout isDark={isDark} toggleTheme={toggleTheme}><Broadcast /></Layout>} />
           <Route
             path="/ticket/:id"
             element={

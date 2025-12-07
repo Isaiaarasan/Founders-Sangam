@@ -27,7 +27,7 @@ const AdminLayout = ({ isDark, toggleTheme }) => {
 
     const navItems = [
         { icon: LayoutDashboard, label: "Dashboard", path: "/admin/dashboard" },
-        { icon: Users, label: "Members", path: "/admin/members" },
+        // { icon: Users, label: "Members", path: "/admin/members" }, // Hidden for now
         { icon: Ticket, label: "Event Members", path: "/admin/registrations" },
         { icon: Calendar, label: "Events", path: "/admin/events" },
         { icon: CreditCard, label: "Payments", path: "/admin/payments" },
@@ -70,7 +70,7 @@ const AdminLayout = ({ isDark, toggleTheme }) => {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 px-4 py-6 space-y-1">
+                <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto custom-scrollbar">
                     <p className="px-4 text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2">
                         Menu
                     </p>

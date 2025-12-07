@@ -40,8 +40,8 @@ const Payments = () => {
                     const isCommunity = info.getValue() === "Community";
                     return (
                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${isCommunity
-                                ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
-                                : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800'
+                            : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800'
                             }`}>
                             {info.getValue()}
                         </span>
@@ -129,13 +129,13 @@ const Payments = () => {
                             className="w-full pl-8 pr-4 py-2 rounded-lg bg-white dark:bg-[#111] border border-neutral-200 dark:border-neutral-800 text-neutral-900 dark:text-white placeholder:text-neutral-400 text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all shadow-sm"
                         />
                     </div>
-                    <button
+                    {/* <button
                         onClick={exportToCSV}
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-neutral-900 dark:bg-white text-white dark:text-black rounded-lg font-bold text-xs hover:shadow-lg hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
                     >
                         <Download size={14} />
                         Export Data
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
