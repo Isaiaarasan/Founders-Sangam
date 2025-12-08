@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { Loader2 } from "lucide-react";
 import Layout from "./components/Layout";
 import AdminLayout from "./Layouts/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -71,7 +72,14 @@ function App() {
 
   const toggleTheme = () => setIsDark(!isDark);
 
-  if (checkingMaintenance) return <div className="min-h-screen bg-black" />;
+  if (checkingMaintenance) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center flex-col gap-4">
+        <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
+        <p className="text-slate-400 text-sm font-medium animate-pulse">Initializing Sangam...</p>
+      </div>
+    );
+  }
 
   const isAdminRoute = window.location.pathname.startsWith("/admin");
 

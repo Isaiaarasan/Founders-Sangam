@@ -13,23 +13,35 @@ import { Search, ChevronLeft, ChevronRight, Download, Users } from "lucide-react
 const Members = () => {
     const [data, setData] = useState([]);
     const [globalFilter, setGlobalFilter] = useState("");
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+    const [pageCount, setPageCount] = useState(0);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const fetchMembers = async () => {
+            setLoading(true);
             try {
                 const token = localStorage.getItem("adminToken");
                 const res = await axios.get("https://founders-sangam.onrender.com/members", {
                     headers: { Authorization: `Bearer ${token}` },
+                    params: {
+                        page: pagination.pageIndex + 1,
+                        limit: pagination.pageSize,
+                        search: globalFilter
+                    }
                 });
                 if (res.data.success) {
                     setData(res.data.members);
+                    setPageCount(res.data.pagination.pages);
                 }
             } catch (err) {
                 console.error("Failed to fetch members");
+            } finally {
+                setLoading(false);
             }
         };
         fetchMembers();
-    }, []);
+    }, [pagination.pageIndex, pagination.pageSize, globalFilter]);
 
     const columns = useMemo(
         () => [
@@ -83,14 +95,16 @@ const Members = () => {
     const table = useReactTable({
         data,
         columns,
+        pageCount,
         state: {
             globalFilter,
+            pagination,
         },
         onGlobalFilterChange: setGlobalFilter,
+        onPaginationChange: setPagination,
         getCoreRowModel: getCoreRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
+        manualPagination: true,
+        manualFiltering: true,
     });
 
     const exportToCSV = () => {

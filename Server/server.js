@@ -210,12 +210,42 @@ app.post("/validate-user", async (req, res) => {
 });
 
 // -------------------------------
-// 7. Get Members (Protected)
+// 7. Get Members (Protected) - WITH PAGINATION
 // -------------------------------
 app.get("/members", authMiddleware, async (req, res) => {
   try {
-    const members = await Payment.find({ status: "success" }).sort({ createdAt: -1 });
-    res.json({ success: true, members });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
+
+    // Build search query
+    const searchQuery = { status: "success" };
+    if (search) {
+      searchQuery.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { brandName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { contact: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const total = await Payment.countDocuments(searchQuery);
+    const members = await Payment.find(searchQuery)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      members,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        current: page,
+        limit
+      }
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Failed to fetch members" });
@@ -334,40 +364,95 @@ app.get("/admin/stats", authMiddleware, async (req, res) => {
 });
 
 // -------------------------------
-// 7.5 Unified Payments API (Admin)
+// 7.5 Unified Payments API (Admin) - WITH PAGINATION
 // -------------------------------
 app.get("/admin/payments", authMiddleware, async (req, res) => {
   try {
-    const community = await Payment.find({ status: "success" }).sort({ createdAt: -1 }).lean();
-    const tickets = await Ticket.find({ status: "PAID" }).populate("eventId", "title").sort({ createdAt: -1 }).lean();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
 
-    const formattedCommunity = community.map(p => ({
-      id: p._id,
-      paymentId: p.paymentId,
-      name: p.name,
-      email: p.email,
-      contact: p.contact,
-      amount: p.amount || 500,
-      date: p.createdAt,
-      type: "Membership",
-      source: "Community"
-    }));
+    // Build search conditions
+    const searchConditions = search ? {
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { contact: { $regex: search, $options: "i" } }
+      ]
+    } : {};
 
-    const formattedTickets = tickets.map(t => ({
-      id: t._id,
-      paymentId: t.paymentId,
-      name: t.name,
-      email: t.email,
-      contact: t.contact,
-      amount: t.amount,
-      date: t.createdAt,
-      type: t.ticketType || "Ticket",
-      source: t.eventId?.title || "Event"
-    }));
+    // Aggregate Community Payments
+    const communityPipeline = [
+      { $match: { status: "success", ...searchConditions } },
+      {
+        $project: {
+          _id: 1,
+          paymentId: 1,
+          name: 1,
+          email: 1,
+          contact: 1,
+          amount: { $ifNull: ["$amount", 500] },
+          date: "$createdAt",
+          type: { $literal: "Membership" },
+          source: { $literal: "Community" }
+        }
+      }
+    ];
 
-    const allPayments = [...formattedCommunity, ...formattedTickets].sort((a, b) => new Date(b.date) - new Date(a.date));
+    // Aggregate Event Tickets
+    const ticketsPipeline = [
+      { $match: { status: "PAID", ...searchConditions } },
+      {
+        $lookup: {
+          from: "events",
+          localField: "eventId",
+          foreignField: "_id",
+          as: "eventData"
+        }
+      },
+      {
+        $project: {
+          _id: 1,
+          paymentId: 1,
+          name: 1,
+          email: 1,
+          contact: 1,
+          amount: 1,
+          date: "$createdAt",
+          type: { $ifNull: ["$ticketType", "Ticket"] },
+          source: { $ifNull: [{ $arrayElemAt: ["$eventData.title", 0] }, "Event"] }
+        }
+      }
+    ];
 
-    res.json({ success: true, payments: allPayments });
+    // Union both collections
+    const allPaymentsPipeline = [
+      ...communityPipeline,
+      { $unionWith: { coll: "tickets", pipeline: ticketsPipeline } },
+      { $sort: { date: -1 } },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [{ $skip: skip }, { $limit: limit }]
+        }
+      }
+    ];
+
+    const result = await Payment.aggregate(allPaymentsPipeline);
+    const total = result[0].metadata[0]?.total || 0;
+    const payments = result[0].data;
+
+    res.json({
+      success: true,
+      payments,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        current: page,
+        limit
+      }
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Failed to fetch payments" });
@@ -378,11 +463,40 @@ app.get("/admin/payments", authMiddleware, async (req, res) => {
 // 8. Events API
 // -------------------------------
 
-// Get All Events (Public)
+// Get All Events (Public) - WITH PAGINATION
 app.get("/events", async (req, res) => {
   try {
-    const events = await Event.find().sort({ date: 1 });
-    res.json({ success: true, events });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const skip = (page - 1) * limit;
+
+    // Build search query
+    const searchQuery = {};
+    if (search) {
+      searchQuery.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { location: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } }
+      ];
+    }
+
+    const total = await Event.countDocuments(searchQuery);
+    const events = await Event.find(searchQuery)
+      .sort({ date: 1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.json({
+      success: true,
+      events,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        current: page,
+        limit
+      }
+    });
   } catch (err) {
     console.log(err);
     res.status(500).json({ success: false, message: "Failed to fetch events" });

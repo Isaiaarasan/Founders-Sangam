@@ -9,6 +9,10 @@ const Events = () => {
     const [events, setEvents] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState(null);
+    const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 9 });
+    const [pageCount, setPageCount] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const { register, handleSubmit, reset, setValue, watch } = useForm();
 
     const WatchContent = ({ register }) => {
@@ -17,19 +21,29 @@ const Events = () => {
     };
 
     const fetchEvents = async () => {
+        setLoading(true);
         try {
-            const res = await axios.get("https://founders-sangam.onrender.com/events");
+            const res = await axios.get("https://founders-sangam.onrender.com/events", {
+                params: {
+                    page: pagination.pageIndex + 1,
+                    limit: pagination.pageSize,
+                    search: searchQuery
+                }
+            });
             if (res.data.success) {
                 setEvents(res.data.events);
+                setPageCount(res.data.pagination.pages);
             }
         } catch (err) {
             console.error("Failed to fetch events");
+        } finally {
+            setLoading(false);
         }
     };
 
     useEffect(() => {
         fetchEvents();
-    }, []);
+    }, [pagination.pageIndex, pagination.pageSize, searchQuery]);
 
     const onSubmit = async (data) => {
         const token = localStorage.getItem("adminToken");
@@ -120,70 +134,106 @@ const Events = () => {
 
             {/* Events Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {events.map((event) => (
-                    <motion.div
-                        key={event._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="group bg-white dark:bg-[#0A0A0A] rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full"
-                    >
-                        <div className="h-48 overflow-hidden relative">
-                            <img
-                                src={event.image || "https://via.placeholder.com/400x200"}
-                                alt={event.title}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
-                                <button
-                                    onClick={() => openModal(event)}
-                                    className="p-2 bg-white/90 dark:bg-black/90 backdrop-blur-md rounded-lg text-neutral-900 dark:text-white hover:bg-amber-500 hover:text-white dark:hover:bg-amber-500 transition-colors shadow-lg"
-                                >
-                                    <Edit2 size={16} />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(event._id)}
-                                    className="p-2 bg-white/90 dark:bg-black/90 backdrop-blur-md rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg"
-                                >
-                                    <Trash2 size={16} />
-                                </button>
-                            </div>
+                {loading ? (
+                    <div className="col-span-full flex items-center justify-center py-20">
+                        <div className="text-center">
+                            <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <p className="text-neutral-500 dark:text-neutral-400">Loading events...</p>
                         </div>
+                    </div>
+                ) : events.length === 0 ? (
+                    <div className="col-span-full text-center py-20">
+                        <p className="text-neutral-500 dark:text-neutral-400">No events found</p>
+                    </div>
+                ) : (
+                    events.map((event) => (
+                        <motion.div
+                            key={event._id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="group bg-white dark:bg-[#0A0A0A] rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col h-full"
+                        >
+                            <div className="h-48 overflow-hidden relative">
+                                <img
+                                    src={event.image || "https://via.placeholder.com/400x200"}
+                                    alt={event.title}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                        <div className="p-6 flex flex-col flex-1">
-                            <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-3">
-                                <CalendarIcon size={14} />
-                                {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
+                                    <button
+                                        onClick={() => openModal(event)}
+                                        className="p-2 bg-white/90 dark:bg-black/90 backdrop-blur-md rounded-lg text-neutral-900 dark:text-white hover:bg-amber-500 hover:text-white dark:hover:bg-amber-500 transition-colors shadow-lg"
+                                    >
+                                        <Edit2 size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(event._id)}
+                                        className="p-2 bg-white/90 dark:bg-black/90 backdrop-blur-md rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-colors shadow-lg"
+                                    >
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
                             </div>
 
-                            <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3 leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-500 transition-colors">
-                                {event.title}
-                            </h3>
+                            <div className="p-6 flex flex-col flex-1">
+                                <div className="flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-3">
+                                    <CalendarIcon size={14} />
+                                    {new Date(event.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </div>
 
-                            <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 text-sm mb-4">
-                                <MapPin size={16} />
-                                {event.location}
+                                <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3 leading-tight group-hover:text-amber-600 dark:group-hover:text-amber-500 transition-colors">
+                                    {event.title}
+                                </h3>
+
+                                <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 text-sm mb-4">
+                                    <MapPin size={16} />
+                                    {event.location}
+                                </div>
+
+                                <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed line-clamp-3 mb-6 flex-1">
+                                    {event.description}
+                                </p>
+
+                                {event.registrationLink && (
+                                    <a
+                                        href={event.registrationLink}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white hover:underline decoration-amber-500 underline-offset-4"
+                                    >
+                                        <LinkIcon size={14} /> Registration Link
+                                    </a>
+                                )}
                             </div>
-
-                            <p className="text-neutral-600 dark:text-neutral-400 text-sm leading-relaxed line-clamp-3 mb-6 flex-1">
-                                {event.description}
-                            </p>
-
-                            {event.registrationLink && (
-                                <a
-                                    href={event.registrationLink}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 text-sm font-semibold text-neutral-900 dark:text-white hover:underline decoration-amber-500 underline-offset-4"
-                                >
-                                    <LinkIcon size={14} /> Registration Link
-                                </a>
-                            )}
-                        </div>
-                    </motion.div>
-                ))}
+                        </motion.div>
+                    ))
+                )}
             </div>
+
+            {/* Pagination Controls */}
+            {pageCount > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-12">
+                    <button
+                        onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.max(0, prev.pageIndex - 1) }))}
+                        disabled={pagination.pageIndex === 0 || loading}
+                        className="px-4 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                        Previous
+                    </button>
+                    <span className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
+                        Page {pagination.pageIndex + 1} of {pageCount}
+                    </span>
+                    <button
+                        onClick={() => setPagination(prev => ({ ...prev, pageIndex: Math.min(pageCount - 1, prev.pageIndex + 1) }))}
+                        disabled={pagination.pageIndex >= pageCount - 1 || loading}
+                        className="px-4 py-2 rounded-lg bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-white font-medium hover:bg-neutral-200 dark:hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
 
             {/* Modal */}
             <AnimatePresence>
