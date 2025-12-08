@@ -525,8 +525,20 @@ app.post("/events/:id/register", async (req, res) => {
     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
     // Check Capacity
-    if (event.currentRegistrations + quantity > event.maxRegistrations) {
-      return res.status(400).json({ success: false, message: "Registration Full" });
+    const availableTickets = event.maxRegistrations - event.currentRegistrations;
+    if (quantity > availableTickets) {
+      if (availableTickets === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Registration Full",
+          availableTickets: 0
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: `Only ${availableTickets} ticket${availableTickets === 1 ? '' : 's'} available`,
+        availableTickets: availableTickets
+      });
     }
 
     const ticket = await Ticket.create({

@@ -45,8 +45,18 @@ const EventRegistration = () => {
 
     const handleRegistration = async (formData) => {
         setSubmitting(true);
+        setError(null);
+
         try {
-            // 1. Load Razorpay SDK first to fail early if offline/blocked
+            // 1. Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(formData.email)) {
+                alert("Please enter a valid email address");
+                setSubmitting(false);
+                return;
+            }
+
+            // 2. Load Razorpay SDK first to fail early if offline/blocked
             const loaded = await loadRazorpayScript();
             if (!loaded) {
                 alert("Razorpay SDK failed to load. Please check your internet connection.");
@@ -54,11 +64,11 @@ const EventRegistration = () => {
                 return;
             }
 
-            // 2. Register for Event (Create Ticket in DB with PENDING status)
+            // 3. Register for Event (Create Ticket in DB with PENDING status)
             const result = await registerForEvent(id, formData);
 
             if (result.success) {
-                // 3. Create Order (Backend)
+                // 4. Create Order (Backend)
                 const res = await axios.post(
                     "https://founders-sangam.onrender.com/create-order",
                     { amount: formData.amount }
@@ -67,7 +77,7 @@ const EventRegistration = () => {
                 const order = res.data.order;
                 const dbTicketId = result.ticketId;
 
-                // 4. Open Razorpay Checkout
+                // 5. Open Razorpay Checkout
                 const options = {
                     key: "rzp_test_Rp6GD9RsE0Gej7",
                     amount: order.amount,
@@ -86,7 +96,7 @@ const EventRegistration = () => {
                     },
                     handler: async function (response) {
                         try {
-                            // 5. Verify Payment
+                            // 6. Verify Payment
                             const verifyRes = await axios.post(
                                 "https://founders-sangam.onrender.com/verify-payment",
                                 {
@@ -97,7 +107,7 @@ const EventRegistration = () => {
                             );
 
                             if (verifyRes.data.success) {
-                                // 6. Success -> Redirect to Ticket Page
+                                // 7. Success -> Redirect to Ticket Page
                                 navigate(`/ticket/${dbTicketId}`);
                             } else {
                                 alert("Payment Verification Failed!");
@@ -127,7 +137,17 @@ const EventRegistration = () => {
             }
         } catch (err) {
             console.error(err);
-            alert(err.message || "Registration failed");
+
+            // Handle specific error messages
+            let errorMessage = "Registration failed";
+
+            if (typeof err === 'string') {
+                errorMessage = err;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+
+            alert(errorMessage);
             setSubmitting(false);
         }
         // Note: We don't setSubmitting(false) here immediately because the modal might be open.
