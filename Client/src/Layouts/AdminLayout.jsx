@@ -12,7 +12,8 @@ import {
     Sun,
     Moon,
     Ticket,
-    Briefcase
+    Briefcase,
+    Video
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -31,6 +32,7 @@ const AdminLayout = ({ isDark, toggleTheme }) => {
         { icon: Ticket, label: "Event Members", path: "/admin/registrations" },
         { icon: Calendar, label: "Events", path: "/admin/events" },
         { icon: CreditCard, label: "Payments", path: "/admin/payments" },
+        { icon: Video, label: "Videos", path: "/admin/videos" },
         { icon: FileText, label: "Content", path: "/admin/content" },
         { icon: Briefcase, label: "Collaborations", path: "/admin/collaborations" },
         { icon: Settings, label: "Settings", path: "/admin/settings" },

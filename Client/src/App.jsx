@@ -27,6 +27,7 @@ const Events = lazy(() => import("./Pages/Admin/Events"));
 const EventMembers = lazy(() => import("./Pages/Admin/EventMembers"));
 const ContentManager = lazy(() => import("./Pages/Admin/ContentManager"));
 const Collaborations = lazy(() => import("./Pages/Admin/Collaborations"));
+const Videos = lazy(() => import("./Pages/Admin/Videos"));
 const Settings = lazy(() => import("./Pages/Admin/Settings"));
 const TicketPage = lazy(() => import("./Pages/TicketPage"));
 
@@ -53,16 +54,26 @@ function App() {
   }, [isDark]);
 
   useEffect(() => {
-    // Check maintenance status
+    // Check maintenance status with timeout
     const checkStatus = async () => {
       try {
-        const res = await fetch("https://founders-sangam.onrender.com/settings/status");
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+        const res = await fetch("https://founders-sangam.onrender.com/settings/status", {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
         const data = await res.json();
         if (data.success) {
           setIsMaintenance(data.isMaintenanceMode);
         }
       } catch (err) {
-        console.error("Failed to check maintenance status");
+        // If timeout or error, assume not in maintenance mode and continue
+        console.error("Failed to check maintenance status:", err.message);
+        setIsMaintenance(false);
       } finally {
         setCheckingMaintenance(false);
       }
@@ -77,6 +88,9 @@ function App() {
       <div className="min-h-screen bg-slate-950 flex items-center justify-center flex-col gap-4">
         <Loader2 className="w-12 h-12 text-amber-500 animate-spin" />
         <p className="text-slate-400 text-sm font-medium animate-pulse">Initializing Sangam...</p>
+        <p className="text-slate-500 text-xs max-w-md text-center">
+          First load may take a moment as the server wakes up
+        </p>
       </div>
     );
   }
@@ -121,6 +135,7 @@ function App() {
               <Route path="registrations" element={<EventMembers />} />
               <Route path="events" element={<Events />} />
               <Route path="payments" element={<Payments />} />
+              <Route path="videos" element={<Videos />} />
               <Route path="content" element={<ContentManager />} />
               <Route path="collaborations" element={<Collaborations />} />
               <Route path="settings" element={<Settings />} />

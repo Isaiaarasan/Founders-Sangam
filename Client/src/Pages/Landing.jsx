@@ -303,11 +303,100 @@ const ManifestoMarquee = () => {
 
 // 2.5 Video Section
 const VideoSection = () => {
-  const videos = [
+  const [videos, setVideos] = useState([
     "/videos/reel.mp4",
     "/videos/reel2.mp4",
     "/videos/reel3.mp4"
-  ];
+  ]);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
+  const videoRef = useRef(null);
+
+  // Fetch videos from API
+  useEffect(() => {
+    const fetchVideos = async () => {
+      try {
+        const res = await axios.get("https://founders-sangam.onrender.com/content/videos", {
+          timeout: 3000
+        });
+        if (res.data.success && res.data.content && Array.isArray(res.data.content) && res.data.content.length > 0) {
+          console.log("Fetched videos from API:", res.data.content);
+          setVideos(res.data.content);
+        } else {
+          console.log("No videos from API, using defaults");
+        }
+      } catch (err) {
+        console.error("Failed to fetch videos, using defaults:", err.message);
+      }
+    };
+    fetchVideos();
+  }, []);
+
+  // Auto-advance to next video when current one ends
+  const handleVideoEnd = () => {
+    // Check if this is the last video
+    if (currentVideoIndex === videos.length - 1) {
+      // Last video ended - stop playing
+      console.log("All videos played. Stopping.");
+      return;
+    }
+
+    // Move to next video
+    setDirection(1);
+    setCurrentVideoIndex((prevIndex) => prevIndex + 1);
+  };
+
+  // Navigate to next video
+  const goToNext = () => {
+    setDirection(1);
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videos.length);
+  };
+
+  // Navigate to previous video
+  const goToPrev = () => {
+    setDirection(-1);
+    setCurrentVideoIndex((prevIndex) => (prevIndex - 1 + videos.length) % videos.length);
+  };
+
+  // Auto-play video when index changes
+  useEffect(() => {
+    if (videoRef.current) {
+      // Small delay to ensure video element is ready
+      const timer = setTimeout(() => {
+        const playPromise = videoRef.current?.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(err => {
+            // Silently handle autoplay errors (browser policy, etc.)
+            if (err.name !== 'AbortError') {
+              console.log("Auto-play prevented:", err.name);
+            }
+          });
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentVideoIndex]);
+
+  const slideVariants = {
+    enter: (direction) => ({
+      rotateY: direction > 0 ? 90 : -90,
+      opacity: 0,
+      scale: 0.9,
+    }),
+    center: {
+      rotateY: 0,
+      opacity: 1,
+      scale: 1,
+    },
+    exit: (direction) => ({
+      rotateY: direction > 0 ? -90 : 90,
+      opacity: 0,
+      scale: 0.9,
+    }),
+  };
 
   return (
     <section className="py-24 bg-slate-50 dark:bg-slate-900 w-full flex flex-col items-center justify-center relative z-20 transition-colors duration-500 border-b border-slate-200 dark:border-slate-800">
@@ -316,25 +405,108 @@ const VideoSection = () => {
           Experience the <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Vibe</span>
         </h2>
 
-        {/* Container: Horizontal Scroll on Mobile, Grid on Desktop */}
-        <div className="flex md:grid md:grid-cols-3 gap-6 overflow-x-auto md:overflow-visible snap-x snap-mandatory pb-8 md:pb-0 hide-scrollbar justify-start md:justify-center">
-          {videos.map((src, index) => (
-            <div
-              key={index}
-              className="min-w-[280px] w-[80%] md:w-full max-w-[320px] aspect-[9/16] rounded-[2.5rem] overflow-hidden shadow-2xl border-4 md:border-8 border-white dark:border-slate-800 flex-shrink-0 snap-center transform hover:scale-[1.02] transition-transform duration-500 bg-black mx-auto"
+        {/* Video Container with Navigation */}
+        <div className="relative flex items-center justify-center gap-4 md:gap-8">
+          {/* Left Button */}
+          <button
+            onClick={goToPrev}
+            className="absolute left-0 md:left-8 z-10 p-3 md:p-4 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-slate-700 transition-all hover:scale-110 active:scale-95"
+            aria-label="Previous video"
+          >
+            <svg className="w-6 h-6 md:w-7 md:h-7 text-slate-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+
+          {/* Video with Animation - 9:16 Ratio, Smaller Size */}
+          <div className="w-full max-w-[280px] sm:max-w-[320px] md:max-w-[350px] lg:max-w-[380px] aspect-[9/16] rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-2xl border-4 md:border-8 border-white dark:border-slate-800 bg-black relative">
+            {/* Mute/Unmute Button */}
+            <button
+              onClick={() => setIsMuted(!isMuted)}
+              className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/50 backdrop-blur-sm hover:bg-black/70 transition-all"
+              aria-label={isMuted ? "Unmute" : "Mute"}
             >
-              <video
-                className="w-full h-full object-cover"
-                src={src}
-                autoPlay
-                loop
-                muted
-                playsInline
-                controls
+              {isMuted ? (
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              <motion.div
+                key={currentVideoIndex}
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  rotateY: { type: "spring", stiffness: 500, damping: 35 },
+                  opacity: { duration: 0.2 },
+                  scale: { duration: 0.2 },
+                }}
+                style={{ transformStyle: "preserve-3d", perspective: 1000 }}
+                className="absolute inset-0"
               >
-                Your browser does not support the video tag.
-              </video>
-            </div>
+                <video
+                  key={videos[currentVideoIndex]} // Force re-render when URL changes
+                  ref={videoRef}
+                  className="w-full h-full object-cover cursor-pointer"
+                  src={videos[currentVideoIndex]}
+                  autoPlay // Add autoplay attribute
+                  muted={isMuted} // Control mute state
+                  playsInline
+                  onClick={(e) => {
+                    // Click to play if paused
+                    if (e.target.paused) {
+                      e.target.play();
+                    } else {
+                      e.target.pause();
+                    }
+                  }}
+                  onEnded={handleVideoEnd}
+                  onError={(e) => console.error("Video error:", e.target.error, "URL:", videos[currentVideoIndex])}
+                  onLoadedData={() => console.log("Video loaded:", videos[currentVideoIndex])}
+                  preload="auto"
+                >
+                  Your browser does not support the video tag.
+                </video>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Right Button */}
+          <button
+            onClick={goToNext}
+            className="absolute right-0 md:right-8 z-10 p-3 md:p-4 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-slate-700 transition-all hover:scale-110 active:scale-95"
+            aria-label="Next video"
+          >
+            <svg className="w-6 h-6 md:w-7 md:h-7 text-slate-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Video Indicators */}
+        <div className="flex justify-center gap-2 mt-8">
+          {videos.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => {
+                setDirection(index > currentVideoIndex ? 1 : -1);
+                setCurrentVideoIndex(index);
+              }}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentVideoIndex
+                ? 'bg-purple-500 w-8'
+                : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500'
+                }`}
+              aria-label={`Go to video ${index + 1}`}
+            />
           ))}
         </div>
       </FadeIn>
