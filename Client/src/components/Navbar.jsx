@@ -5,13 +5,21 @@ import { Sun, Moon, Menu, X } from "lucide-react";
 
 const NavPill = ({ text, route, active }) => {
   const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    navigate(route);
+    // Scroll to top smoothly
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <button
-      onClick={() => navigate(route)}
-      className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${active
-        ? "bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-900"
-        : "bg-gray-100/50 text-gray-600 hover:bg-gray-200 hover:text-black dark:bg-slate-800/50 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
-        }`}
+      onClick={handleNavigate}
+      className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
+        active
+          ? "bg-slate-900 text-white shadow-lg dark:bg-white dark:text-slate-900"
+          : "bg-gray-100/50 text-gray-600 hover:bg-gray-200 hover:text-black dark:bg-slate-800/50 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-white"
+      }`}
     >
       {text}
     </button>
@@ -32,6 +40,17 @@ const Navbar = ({ isDark, toggleTheme }) => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const handleLogoClick = () => {
+    navigate("/");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleMobileNavigate = (path) => {
+    navigate(path);
+    setIsMobileMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <motion.nav
       initial={{ y: -100 }}
@@ -45,31 +64,32 @@ const Navbar = ({ isDark, toggleTheme }) => {
         animate={
           isScrolled
             ? {
-              width: "fit-content",
-              borderRadius: "9999px",
-              paddingLeft: "1.5rem",
-              paddingRight: "1.5rem",
-              y: 0,
-            }
+                width: "fit-content",
+                borderRadius: "9999px",
+                paddingLeft: "1.5rem",
+                paddingRight: "1.5rem",
+                y: 0,
+              }
             : {
-              width: "100%",
-              maxWidth: "80rem",
-              borderRadius: "9999px",
-              paddingLeft: "1rem",
-              paddingRight: "1rem",
-              y: 0,
-            }
+                width: "100%",
+                maxWidth: "80rem",
+                borderRadius: "9999px",
+                paddingLeft: "1rem",
+                paddingRight: "1rem",
+                y: 0,
+              }
         }
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className={`pointer-events-auto flex items-center justify-between py-3 border transition-all duration-500 ${isScrolled
-          ? "bg-white/90 backdrop-blur-md border-slate-200 shadow-lg dark:bg-slate-900/90 dark:border-slate-700"
-          : "bg-transparent border-transparent shadow-none"
-          }`}
+        className={`pointer-events-auto flex items-center justify-between py-3 border transition-all duration-500 ${
+          isScrolled
+            ? "bg-white/90 backdrop-blur-md border-slate-200 shadow-lg dark:bg-slate-900/90 dark:border-slate-700"
+            : "bg-transparent border-transparent shadow-none"
+        }`}
       >
         <div className="flex items-center gap-6">
           <div
             className="flex items-center gap-2 cursor-pointer"
-            onClick={() => navigate("/")}
+            onClick={handleLogoClick}
           >
             <div className="flex -space-x-1">
               <div className="w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 bg-amber-400"></div>
@@ -95,13 +115,13 @@ const Navbar = ({ isDark, toggleTheme }) => {
               </span>
             )}
           </div>
-          <div className={`h-6 w-[1px] hidden md:block transition-colors ${isScrolled ? "bg-gray-200 dark:bg-slate-700" : "bg-transparent"}`}></div>
+          <div
+            className={`h-6 w-[1px] hidden md:block transition-colors ${
+              isScrolled ? "bg-gray-200 dark:bg-slate-700" : "bg-transparent"
+            }`}
+          ></div>
           <motion.div className="hidden md:flex gap-2">
-            <NavPill
-              text="Home"
-              route="/"
-              active={location.pathname === "/"}
-            />
+            <NavPill text="Home" route="/" active={location.pathname === "/"} />
             <NavPill
               text="Events"
               route="/events"
@@ -155,38 +175,32 @@ const Navbar = ({ isDark, toggleTheme }) => {
             className="absolute top-24 left-4 right-4 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 pointer-events-auto flex flex-col gap-4 md:hidden"
           >
             <button
-              onClick={() => {
-                navigate("/");
-                setIsMobileMenuOpen(false);
-              }}
-              className={`text-lg font-bold p-4 rounded-xl text-left transition-colors ${location.pathname === "/"
-                ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                }`}
+              onClick={() => handleMobileNavigate("/")}
+              className={`text-lg font-bold p-4 rounded-xl text-left transition-colors ${
+                location.pathname === "/"
+                  ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              }`}
             >
               Home
             </button>
             <button
-              onClick={() => {
-                navigate("/events");
-                setIsMobileMenuOpen(false);
-              }}
-              className={`text-lg font-bold p-4 rounded-xl text-left transition-colors ${location.pathname === "/events"
-                ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                }`}
+              onClick={() => handleMobileNavigate("/events")}
+              className={`text-lg font-bold p-4 rounded-xl text-left transition-colors ${
+                location.pathname === "/events"
+                  ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              }`}
             >
               Events
             </button>
             <button
-              onClick={() => {
-                navigate("/broadcast");
-                setIsMobileMenuOpen(false);
-              }}
-              className={`text-lg font-bold p-4 rounded-xl text-left transition-colors ${location.pathname === "/broadcast"
-                ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
-                : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                }`}
+              onClick={() => handleMobileNavigate("/broadcast")}
+              className={`text-lg font-bold p-4 rounded-xl text-left transition-colors ${
+                location.pathname === "/broadcast"
+                  ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              }`}
             >
               Broadcast
             </button>

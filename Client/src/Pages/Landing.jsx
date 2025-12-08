@@ -19,7 +19,7 @@ import {
   Globe,
   BookOpen,
   Plus,
-  Minus
+  Minus,
 } from "lucide-react";
 
 // --- Theme Constants (Not directly used in Hero, but good practice) ---
@@ -32,62 +32,118 @@ const BRAND_COLORS = {
 
 // --- Utility Components ---
 
-const FadeIn = ({ children, delay = 0, className = "" }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 40 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true, margin: "10px" }}
-    transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
-    className={className}
-  >
-    {children}
-  </motion.div>
-);
+const FadeIn = ({ children, delay = 0, className = "" }) => {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
-// Counter utility is defined for completeness but not strictly needed for Hero
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: isMobile ? 20 : 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "10px" }}
+      transition={{
+        duration: isMobile ? 0.5 : 0.8,
+        delay: isMobile ? 0 : delay,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+};
+
+// FIXED: Counter with proper ref and visibility detection
 const Counter = ({ value, suffix = "" }) => {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
-  const springValue = useSpring(0, { stiffness: 60, damping: 20 });
-  const displayValue = useTransform(
-    springValue,
-    (latest) => `${Math.round(latest)}${suffix}`
-  );
+  const [isVisible, setIsVisible] = useState(false);
+  const [displayValue, setDisplayValue] = useState(0);
 
   useEffect(() => {
-    if (isInView) springValue.set(value);
-  }, [isInView, value, springValue]);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          // Disconnect after triggering once
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
 
-  return <motion.span ref={ref}>{displayValue}</motion.span>;
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let current = 0;
+    const increment = Math.ceil(value / 40); // 40 frames for smoother animation
+    const timer = setInterval(() => {
+      current += increment;
+      if (current >= value) {
+        setDisplayValue(value);
+        clearInterval(timer);
+      } else {
+        setDisplayValue(current);
+      }
+    }, 25); // 25ms per frame = ~1 second total
+
+    return () => clearInterval(timer);
+  }, [isVisible, value]);
+
+  return (
+    <span ref={ref} className="font-bold">
+      {displayValue}
+      {suffix}
+    </span>
+  );
 };
 
 // --- 3D Background Component ---
-const DepthElements = () => (
-  <div className="absolute inset-0 w-full h-full perspective-[1000px] pointer-events-none">
-    {/* Cube 1: Top Left - Rotates slowly */}
-    <motion.div
-      animate={{ rotateX: 360, rotateY: 360, opacity: [0.1, 0.2, 0.1] }}
-      transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-      className="absolute top-[10%] left-[10%] w-24 h-24 bg-sky-500/10 border border-sky-300/20 rounded-lg"
-      style={{
-        transformStyle: "preserve-3d",
-        transform: "translateZ(-200px) rotateX(45deg) rotateY(-30deg)",
-      }}
-    />
+const DepthElements = () => {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
-    {/* Small Detail: Center Left */}
-    <motion.div
-      animate={{ rotate: 360, scale: [1, 1.1, 1] }}
-      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-      className="absolute top-1/2 left-[5%] w-10 h-10 bg-red-500/10 rounded-full border border-red-300/20"
-      style={{ transform: "translateZ(-50px)" }}
-    />
-  </div>
-);
+  if (isMobile) {
+    // Simpler static background for mobile
+    return (
+      <div className="absolute inset-0 w-full h-full pointer-events-none">
+        <div className="absolute top-[10%] left-[10%] w-20 h-20 bg-sky-500/5 border border-sky-300/10 rounded-lg opacity-50" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="absolute inset-0 w-full h-full perspective-[1000px] pointer-events-none">
+      {/* Cube 1: Top Left - Rotates slowly */}
+      <motion.div
+        animate={{ rotateX: 360, rotateY: 360, opacity: [0.1, 0.2, 0.1] }}
+        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+        className="absolute top-[10%] left-[10%] w-24 h-24 bg-sky-500/10 border border-sky-300/20 rounded-lg"
+        style={{
+          transformStyle: "preserve-3d",
+          transform: "translateZ(-200px) rotateX(45deg) rotateY(-30deg)",
+        }}
+      />
+
+      {/* Small Detail: Center Left */}
+      <motion.div
+        animate={{ rotate: 360, scale: [1, 1.1, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+        className="absolute top-1/2 left-[5%] w-10 h-10 bg-red-500/10 rounded-full border border-red-300/20"
+        style={{ transform: "translateZ(-50px)" }}
+      />
+    </div>
+  );
+};
 
 // --- Cursor Trail Component ---
 const CursorTrail = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
+  // Skip cursor trail on mobile
+  if (isMobile) return null;
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -147,6 +203,12 @@ const CursorTrail = () => {
 // 1. Hero Section
 const Hero = () => {
   const navigate = useNavigate();
+
+  const handleNavigation = (path) => {
+    navigate(path);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-25 pb-12 transition-colors duration-500">
       {/* NEW: Cursor Trail component for interaction */}
@@ -176,7 +238,6 @@ const Hero = () => {
 
       <div className="w-full px-6 md:px-12 relative z-20 h-full flex flex-col justify-center">
         <FadeIn className="w-full relative flex flex-col items-center justify-center max-w-7xl mx-auto text-center">
-
           {/* Logo Animation Rings - UPDATED WITH OUTWARD MOVEMENT */}
           <div className="relative w-64 h-32 mb-12 flex justify-center items-center">
             {[
@@ -196,7 +257,14 @@ const Hero = () => {
                   animate={{
                     opacity: [0, 1, 1, 1, 0, 0], // Opacity drops to 0 at step 5
                     scale: [0.5, 1, 1, 1, 0.5, 0.5], // Scale decreases with the fade-out
-                    x: [initialX, initialX, initialX, initialX, finalX, initialX], // MOVED OUT & BACK
+                    x: [
+                      initialX,
+                      initialX,
+                      initialX,
+                      initialX,
+                      finalX,
+                      initialX,
+                    ], // MOVED OUT & BACK
                   }}
                   transition={{
                     duration: 8,
@@ -220,7 +288,7 @@ const Hero = () => {
           </h1>
 
           <p className="mt-8 text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-2xl font-medium transition-colors duration-500">
-            A circle of bold founders shaping what’s next. <br />
+            A circle of bold founders shaping what's next. <br />
             <span className="text-black dark:text-white font-semibold">
               Networking. Collaboration. Growth.
             </span>
@@ -233,14 +301,14 @@ const Hero = () => {
             className="mt-12 flex flex-col sm:flex-row gap-4"
           >
             <button
-              onClick={() => navigate("/events")}
+              onClick={() => handleNavigation("/events")}
               className="bg-slate-900 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 hover:scale-105 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 transition-all flex items-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50"
             >
               Explore Events <ArrowRight size={20} />
             </button>
 
             <button
-              onClick={() => navigate("/broadcast")}
+              onClick={() => handleNavigation("/broadcast")}
               className="bg-white flex items-center gap-2 text-slate-900 border shrink-0 border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
             >
               Explore Broadcast <ArrowRight size={20} />
@@ -306,33 +374,48 @@ const VideoSection = () => {
   const [videos, setVideos] = useState([
     "/videos/reel.mp4",
     "/videos/reel2.mp4",
-    "/videos/reel3.mp4"
+    "/videos/reel3.mp4",
   ]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(true); // Start muted for autoplay
+  const [hasFetched, setHasFetched] = useState(false);
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
   const videoRef = useRef(null);
 
-  // Fetch videos from API
+  // Fetch videos from API only when in view
   useEffect(() => {
-    const fetchVideos = async () => {
-      try {
-        const res = await axios.get("https://founders-sangam.onrender.com/content/videos", {
-          timeout: 3000
-        });
-        if (res.data.success && res.data.content && Array.isArray(res.data.content) && res.data.content.length > 0) {
-          console.log("Fetched videos from API:", res.data.content);
-          setVideos(res.data.content);
-        } else {
-          console.log("No videos from API, using defaults");
+    if (isInView && !hasFetched) {
+      const fetchVideos = async () => {
+        try {
+          const res = await axios.get(
+            "https://founders-sangam.onrender.com/content/videos",
+            {
+              timeout: 3000,
+            }
+          );
+          if (
+            res.data.success &&
+            res.data.content &&
+            Array.isArray(res.data.content) &&
+            res.data.content.length > 0
+          ) {
+            console.log("Fetched videos from API:", res.data.content);
+            setVideos(res.data.content);
+          } else {
+            console.log("No videos from API, using defaults");
+          }
+        } catch (err) {
+          console.error("Failed to fetch videos, using defaults:", err.message);
+        } finally {
+          setHasFetched(true);
         }
-      } catch (err) {
-        console.error("Failed to fetch videos, using defaults:", err.message);
-      }
-    };
-    fetchVideos();
-  }, []);
+      };
+      fetchVideos();
+    }
+  }, [isInView, hasFetched]);
 
   // Auto-advance to next video when current one ends
   const handleVideoEnd = () => {
@@ -357,7 +440,9 @@ const VideoSection = () => {
   // Navigate to previous video
   const goToPrev = () => {
     setDirection(-1);
-    setCurrentVideoIndex((prevIndex) => (prevIndex - 1 + videos.length) % videos.length);
+    setCurrentVideoIndex(
+      (prevIndex) => (prevIndex - 1 + videos.length) % videos.length
+    );
   };
 
   // Auto-play video when index changes
@@ -367,9 +452,9 @@ const VideoSection = () => {
       const timer = setTimeout(() => {
         const playPromise = videoRef.current?.play();
         if (playPromise !== undefined) {
-          playPromise.catch(err => {
+          playPromise.catch((err) => {
             // Silently handle autoplay errors (browser policy, etc.)
-            if (err.name !== 'AbortError') {
+            if (err.name !== "AbortError") {
               console.log("Auto-play prevented:", err.name);
             }
           });
@@ -399,10 +484,16 @@ const VideoSection = () => {
   };
 
   return (
-    <section className="py-24 bg-slate-50 dark:bg-slate-900 w-full flex flex-col items-center justify-center relative z-20 transition-colors duration-500 border-b border-slate-200 dark:border-slate-800">
+    <section
+      ref={containerRef}
+      className="py-24 bg-slate-50 dark:bg-slate-900 w-full flex flex-col items-center justify-center relative z-20 transition-colors duration-500 border-b border-slate-200 dark:border-slate-800"
+    >
       <FadeIn className="w-full max-w-7xl px-6 md:px-12">
         <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 dark:text-white mb-12">
-          Experience the <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Vibe</span>
+          Experience the{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">
+            Vibe
+          </span>
         </h2>
 
         {/* Video Container with Navigation */}
@@ -413,8 +504,18 @@ const VideoSection = () => {
             className="absolute left-0 md:left-8 z-10 p-3 md:p-4 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-slate-700 transition-all hover:scale-110 active:scale-95"
             aria-label="Previous video"
           >
-            <svg className="w-6 h-6 md:w-7 md:h-7 text-slate-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-6 h-6 md:w-7 md:h-7 text-slate-900 dark:text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
 
@@ -427,12 +528,28 @@ const VideoSection = () => {
               aria-label={isMuted ? "Unmute" : "Mute"}
             >
               {isMuted ? (
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               ) : (
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z" clipRule="evenodd" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 10a5.984 5.984 0 01-1.757 4.243 1 1 0 01-1.415-1.415A3.984 3.984 0 0013 10a3.983 3.983 0 00-1.172-2.828 1 1 0 010-1.415z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               )}
             </button>
@@ -470,8 +587,17 @@ const VideoSection = () => {
                     }
                   }}
                   onEnded={handleVideoEnd}
-                  onError={(e) => console.error("Video error:", e.target.error, "URL:", videos[currentVideoIndex])}
-                  onLoadedData={() => console.log("Video loaded:", videos[currentVideoIndex])}
+                  onError={(e) =>
+                    console.error(
+                      "Video error:",
+                      e.target.error,
+                      "URL:",
+                      videos[currentVideoIndex]
+                    )
+                  }
+                  onLoadedData={() =>
+                    console.log("Video loaded:", videos[currentVideoIndex])
+                  }
                   preload="auto"
                 >
                   Your browser does not support the video tag.
@@ -486,8 +612,18 @@ const VideoSection = () => {
             className="absolute right-0 md:right-8 z-10 p-3 md:p-4 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm shadow-lg hover:bg-white dark:hover:bg-slate-700 transition-all hover:scale-110 active:scale-95"
             aria-label="Next video"
           >
-            <svg className="w-6 h-6 md:w-7 md:h-7 text-slate-900 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              className="w-6 h-6 md:w-7 md:h-7 text-slate-900 dark:text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
@@ -501,10 +637,11 @@ const VideoSection = () => {
                 setDirection(index > currentVideoIndex ? 1 : -1);
                 setCurrentVideoIndex(index);
               }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentVideoIndex
-                ? 'bg-purple-500 w-8'
-                : 'bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500'
-                }`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentVideoIndex
+                  ? "bg-purple-500 w-8"
+                  : "bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500"
+              }`}
               aria-label={`Go to video ${index + 1}`}
             />
           ))}
@@ -517,10 +654,22 @@ const VideoSection = () => {
 // 3. Stats Section
 const StatsSection = () => {
   const navigate = useNavigate();
-  const StatsCard = ({ value, label, delay, gradient, icon: Icon, onClick, href }) => {
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
+
+  const StatsCard = ({
+    value,
+    label,
+    delay,
+    gradient,
+    icon: Icon,
+    onClick,
+    href,
+  }) => {
     const CardContent = (
       <FadeIn
-        delay={delay}
+        delay={isInView ? delay : 0}
         className="flex flex-col gap-6 p-6 md:p-10 bg-white dark:bg-slate-800 rounded-[2rem] md:rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 hover:shadow-[0_30px_60px_rgba(0,0,0,0.1)] transition-all duration-500 group relative overflow-hidden cursor-pointer h-full"
       >
         <div
@@ -547,8 +696,12 @@ const StatsSection = () => {
         <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mt-2">
           <motion.div
             initial={{ width: 0 }}
-            whileInView={{ width: "100%" }}
-            transition={{ duration: 1.5, delay: delay + 0.2, ease: "circOut" }}
+            animate={isInView ? { width: "100%" } : { width: 0 }}
+            transition={{
+              duration: isMobile ? 0.8 : 1.2,
+              delay: isInView ? delay + 0.3 : 0,
+              ease: "circOut",
+            }}
             className={`h-full bg-gradient-to-r ${gradient} rounded-full`}
           />
         </div>
@@ -557,7 +710,12 @@ const StatsSection = () => {
 
     if (href) {
       return (
-        <a href={href} target="_blank" rel="noopener noreferrer" className="block h-full">
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block h-full"
+        >
           {CardContent}
         </a>
       );
@@ -571,7 +729,10 @@ const StatsSection = () => {
   };
 
   return (
-    <section className="py-32 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500">
+    <section
+      ref={sectionRef}
+      className="py-32 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500"
+    >
       <div className="max-w-7xl mx-auto mb-16 text-left">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
@@ -624,7 +785,8 @@ const BenefitsSection = () => {
               Membership Perks
             </span>
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
-              The <span className="italic font-serif">Unfair Advantage</span> <br />
+              The <span className="italic font-serif">Unfair Advantage</span>{" "}
+              <br />
               for Founders.
             </h2>
           </div>
@@ -632,21 +794,29 @@ const BenefitsSection = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1: Large */}
-          <FadeIn delay={0.1} className="md:col-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800">
+          <FadeIn
+            delay={0.1}
+            className="md:col-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800"
+          >
             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100/50 dark:bg-amber-900/20 rounded-full blur-[80px] -mr-16 -mt-16 transition-all group-hover:bg-amber-200/50 dark:group-hover:bg-amber-800/20"></div>
             <div className="relative z-10">
               {/*<div className="w-12 h-12 bg-amber-100 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center text-amber-600 mb-6">
                 <Users size={24} />
               </div>*/}
-              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Curated Founder Gatherings</h3>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                Curated Founder Gatherings
+              </h3>
               <p className="text-slate-500 dark:text-slate-400 leading-relaxed max-w-md">
-                Every event is curated. Every member is intentional. We bring niche-driven businesses into one room to create an environment where honest conversations lead to real progress.
+                Every event is curated. Every member is intentional. We bring
+                niche-driven businesses into one room to create an environment
+                where honest conversations lead to real progress.
               </p>
             </div>
           </FadeIn>
 
           {/* Card 2: Tall - MODIFIED: LIGHT BACKGROUND, DARK TEXT */}
-          <FadeIn delay={0.2}
+          <FadeIn
+            delay={0.2}
             // Background kept light (bg-slate-50) for contrast with dark text.
             // Added dark:bg-slate-900 and border for dark theme adaptability.
             className="md:row-span-2 relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 flex flex-col justify-between border border-slate-200 dark:border-slate-700"
@@ -665,12 +835,15 @@ const BenefitsSection = () => {
               <h3
                 // Text: Changed to dark slate for light mode, fixed to white for dark mode.
                 className="text-2xl font-bold text-slate-900 dark:text-white mb-4"
-              >Focused Mentorship</h3>
+              >
+                Focused Mentorship
+              </h3>
               <p
                 // Text: Changed to gray for light mode, light gray for dark mode.
                 className="text-slate-600 dark:text-slate-300 leading-relaxed"
               >
-                mentorship sessions with experienced operators who help you clarify your direction and network with intent.
+                mentorship sessions with experienced operators who help you
+                clarify your direction and network with intent.
               </p>
             </div>
             {/* <button
@@ -681,29 +854,41 @@ const BenefitsSection = () => {
             </button> */}
           </FadeIn>
           {/* Card 3: Standard */}
-          <FadeIn delay={0.3} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800">
+          <FadeIn
+            delay={0.3}
+            className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800"
+          >
             <div className="absolute top-0 right-0 w-64 h-64 bg-sky-100/50 dark:bg-sky-900/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
             <div className="relative z-10">
               {/*<div className="w-12 h-12 bg-sky-100 dark:bg-sky-900/30 rounded-2xl flex items-center justify-center text-sky-600 mb-6">
                 <Zap size={24} />
               </div>*/}
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Member-Exclusive Resources</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                Member-Exclusive Resources
+              </h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Unlock insights, advantages, and tools specifically designed for serious builders.
+                Unlock insights, advantages, and tools specifically designed for
+                serious builders.
               </p>
             </div>
           </FadeIn>
 
           {/* Card 4: Standard */}
-          <FadeIn delay={0.4} className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800">
+          <FadeIn
+            delay={0.4}
+            className="relative group overflow-hidden bg-slate-50 dark:bg-slate-900 rounded-[2rem] md:rounded-[2.5rem] p-6 md:p-10 border border-slate-100 dark:border-slate-800"
+          >
             <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-100/50 dark:bg-emerald-900/20 rounded-full blur-[80px] -mr-16 -mt-16"></div>
             <div className="relative z-10">
               {/*<div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center text-emerald-600 mb-6">
                 <BookOpen size={24} />
               </div>*/}
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Private Community</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                Private Community
+              </h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                Access our digital community where real opportunities and collaboration happen.
+                Access our digital community where real opportunities and
+                collaboration happen.
               </p>
             </div>
           </FadeIn>
@@ -719,37 +904,41 @@ const FoundersSection = () => {
   // as it handles the initial reveal/load animation, but the specific rotation/scale animations are removed.
   return (
     <section className="py-20 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500 border-t border-slate-200 dark:border-slate-800">
-
       {/* Background Design - Retaining only the subtle Blob for focus */}
       <div className="absolute inset-0 z-0 pointer-events-none">
-
         {/* Highlight Blob behind Title (Static) */}
         {/* Note: Removed motion.div, keeping static classes */}
-        <div
-          className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-24 bg-red-400/20 dark:bg-red-900/10 rounded-full blur-3xl"
-        />
+        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-96 h-24 bg-red-400/20 dark:bg-red-900/10 rounded-full blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
         <FadeIn>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white leading-tight mb-12 text-center">
-            Meet the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Visionaries</span>
+            Meet the{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">
+              Visionaries
+            </span>
           </h2>
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-
           {/* Founder 1 */}
           <FadeIn delay={0.1} className="relative group">
             {/* Main Card (Removed motion.div and animation properties) */}
-            <div
-              className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all relative z-10"
-            >
+            <div className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all relative z-10">
               <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-amber-400/50 dark:border-amber-400/50 group-hover:border-8 transition-all">
-                <img src="Images/Founder.png" alt="Founder" className="w-full h-full object-cover" />
+                <img
+                  src="Images/Founder.png"
+                  alt="Founder"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Kaviya Maruthasalam</h3>
-              <p className="text-amber-500 font-semibold text-sm mb-3">Founder Founders Sangam</p>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                Kaviya Maruthasalam
+              </h3>
+              <p className="text-amber-500 font-semibold text-sm mb-3">
+                Founder Founders Sangam
+              </p>
               <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
                 "Top 1% Personal Branding Expert & an Intrapreneur"
               </p>
@@ -759,8 +948,8 @@ const FoundersSection = () => {
             <div
               className="absolute inset-0 w-full h-full border-4 border-amber-400 rounded-3xl mix-blend-multiply dark:mix-blend-color-dodge opacity-50 z-0"
               style={{
-                transform: 'translate(-10px, 15px)', // Static position from the last animation
-                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))', // Extra Design: Subtle Shadow
+                transform: "translate(-10px, 15px)", // Static position from the last animation
+                filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))", // Extra Design: Subtle Shadow
               }}
             />
           </FadeIn>
@@ -768,14 +957,20 @@ const FoundersSection = () => {
           {/* Founder 2 */}
           <FadeIn delay={0.2} className="relative group">
             {/* Main Card (Removed motion.div and animation properties) */}
-            <div
-              className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all relative z-10"
-            >
+            <div className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all relative z-10">
               <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-red-500/50 dark:border-red-500/50 group-hover:border-8 transition-all">
-                <img src="Images/Co-founder.png" alt="Co-Founder" className="w-full h-full object-cover" />
+                <img
+                  src="Images/Co-founder.png"
+                  alt="Co-Founder"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Naveen Kumar</h3>
-              <p className="text-red-500 font-semibold text-sm mb-3">Founder Founders Sangam Community</p>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                Naveen Kumar
+              </h3>
+              <p className="text-red-500 font-semibold text-sm mb-3">
+                Founder Founders Sangam Community
+              </p>
               <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
                 "Tiurpur's Leading Textilepreneur"
               </p>
@@ -785,8 +980,8 @@ const FoundersSection = () => {
             <div
               className="absolute inset-0 w-full h-full border-4 border-sky-500 rounded-3xl mix-blend-multiply dark:mix-blend-color-dodge opacity-50 z-0"
               style={{
-                transform: 'translate(10px, 15px)', // Static position from the last animation
-                filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.1))', // Extra Design: Subtle Shadow
+                transform: "translate(10px, 15px)", // Static position from the last animation
+                filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.1))", // Extra Design: Subtle Shadow
               }}
             />
           </FadeIn>
@@ -814,11 +1009,18 @@ const ValueSection = () => {
                 </span>
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
-                We’re building a founder-first community in the heart of India’s tier 2 cities — because ambition isn’t limited to metros.
-                <br /><br />
-                Our focus is simple: bring niche-driven businesses into one room where honest conversations lead to real progress.
-                <br /><br />
-                No noise, no filler, just builders who want to move forward. We exist to make the startup community a strong, evolving hub for founders who want clarity, support, and the right network, right where they are.
+                We’re building a founder-first community in the heart of India’s
+                tier 2 cities — because ambition isn’t limited to metros.
+                <br />
+                <br />
+                Our focus is simple: bring niche-driven businesses into one room
+                where honest conversations lead to real progress.
+                <br />
+                <br />
+                No noise, no filler, just builders who want to move forward. We
+                exist to make the startup community a strong, evolving hub for
+                founders who want clarity, support, and the right network, right
+                where they are.
               </p>
               <button className="text-slate-900 dark:text-white font-bold border-b-2 border-slate-900 dark:border-white pb-1 hover:text-emerald-600 hover:border-emerald-600 dark:hover:text-emerald-400 dark:hover:border-emerald-400 transition-colors">
                 Read our Vision
@@ -831,26 +1033,30 @@ const ValueSection = () => {
               whileInView={{ rotate: 5 }}
               transition={{ duration: 2, ease: "backOut" }}
               viewport={{ margin: "-100px" }}
-              className="relative z-10 w-80 h-80 rounded-[3rem] overflow-hidden shadow-2xl"
+              className="relative z-10 w-80 h-80 rounded-[3rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-gray-50 dark:bg-black group"
             >
               <img
                 src="/Images/Logo.jpeg"
                 alt="Collaboration"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-[3rem] group-hover:shadow-xl transition-shadow"
               />
               <div className="absolute inset-0 bg-slate-900/20 mix-blend-overlay"></div>
             </motion.div>
+
             <motion.div
               initial={{ x: 0, y: 0 }}
               whileInView={{ x: 15, y: -15 }}
               transition={{ duration: 1.5, delay: 0.2 }}
-              className="absolute w-80 h-80 border-4 border-amber-400 rounded-[3rem] mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
+              className="absolute w-80 h-80 border-4 border-amber-400 rounded-[3rem]
+      mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
             />
+
             <motion.div
               initial={{ x: 0, y: 0 }}
               whileInView={{ x: -15, y: 15 }}
               transition={{ duration: 1.5, delay: 0.4 }}
-              className="absolute w-80 h-80 border-4 border-sky-500 rounded-[3rem] mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
+              className="absolute w-80 h-80 border-4 border-sky-500 rounded-[3rem]
+      mix-blend-multiply dark:mix-blend-color-dodge opacity-60"
             />
           </div>
         </div>
@@ -864,55 +1070,75 @@ const TestimonialsSection = () => {
     {
       name: "Rajesh Kumar",
       role: "CEO, TexValley Tech",
-      content: "I found my technical co-founder at the last Sangam meetup. The quality of crowd here is unlike any other event in the city.",
-      color: "border-amber-400"
+      content:
+        "I found my technical co-founder at the last Sangam meetup. The quality of crowd here is unlike any other event in the city.",
+      color: "border-amber-400",
     },
     {
       name: "Sneha Reddy",
       role: "Founder, GreenLoom",
-      content: "Founders Sangam gave me the mentorship I needed to pivot my D2C brand. The ecosystem they are building is vital for Tirupur.",
-      color: "border-emerald-500"
+      content:
+        "Founders Sangam gave me the mentorship I needed to pivot my D2C brand. The ecosystem they are building is vital for Tirupur.",
+      color: "border-emerald-500",
     },
     {
       name: "Arun Karthik",
       role: "Director, AK Exports",
-      content: "Bridging the gap between traditional textile business and modern SaaS tools. This community is opening new doors for us.",
-      color: "border-sky-500"
-    }
+      content:
+        "Bridging the gap between traditional textile business and modern SaaS tools. This community is opening new doors for us.",
+      color: "border-sky-500",
+    },
   ]);
 
+  const [hasFetched, setHasFetched] = useState(false);
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+
   useEffect(() => {
-    const fetchTestimonials = async () => {
-      try {
-        const res = await axios.get("https://founders-sangam.onrender.com/content/testimonials");
-        if (res.data.success && res.data.content && Array.isArray(res.data.content) && res.data.content.length > 0) {
-          setTestimonials(res.data.content);
+    if (isInView && !hasFetched) {
+      const fetchTestimonials = async () => {
+        try {
+          const res = await axios.get(
+            "https://founders-sangam.onrender.com/content/testimonials"
+          );
+          if (
+            res.data.success &&
+            res.data.content &&
+            Array.isArray(res.data.content) &&
+            res.data.content.length > 0
+          ) {
+            setTestimonials(res.data.content);
+          }
+        } catch (err) {
+          console.error("Failed to fetch testimonials, using fallback.");
+        } finally {
+          setHasFetched(true);
         }
-      } catch (err) {
-        console.error("Failed to fetch testimonials, using fallback.");
-      }
-    };
-    fetchTestimonials();
-  }, []);
+      };
+      fetchTestimonials();
+    }
+  }, [isInView, hasFetched]);
 
   return (
-    <section className="py-24 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500">
-
+    <section
+      ref={containerRef}
+      className="py-24 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500"
+    >
       {/* NEW: Dynamic Radial Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <motion.div
           initial={{ opacity: 0.3 }}
           animate={{
             background: [
-              'radial-gradient(circle at 10% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)',
-              'radial-gradient(circle at 90% 80%, rgba(255,255,255,0.08) 0%, transparent 50%)'
-            ]
+              "radial-gradient(circle at 10% 20%, rgba(255,255,255,0.05) 0%, transparent 50%)",
+              "radial-gradient(circle at 90% 80%, rgba(255,255,255,0.08) 0%, transparent 50%)",
+            ],
           }}
           transition={{ duration: 15, repeat: Infinity, repeatType: "mirror" }}
           className="absolute inset-0 dark:opacity-10 opacity-30"
           style={{
-            backgroundColor: 'transparent',
-            mixBlendMode: 'soft-light' // Makes the gradient blend nicely with the dark background
+            backgroundColor: "transparent",
+            mixBlendMode: "soft-light", // Makes the gradient blend nicely with the dark background
           }}
         />
       </div>
@@ -920,14 +1146,24 @@ const TestimonialsSection = () => {
       <div className="max-w-7xl mx-auto relative z-10">
         <FadeIn>
           <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 dark:text-white mb-16">
-            Voices of the <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">Sangam</span>
+            Voices of the{" "}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-red-500">
+              Sangam
+            </span>
           </h2>
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((item, i) => (
-            <FadeIn key={i} delay={i * 0.1} className={`bg-white dark:bg-slate-800 p-6 md:p-8 rounded-[2rem] shadow-sm border-t-4 ${item.color} relative`}>
-              <Quote className="text-slate-200 dark:text-slate-700 absolute top-8 right-8" size={40} />
+            <FadeIn
+              key={i}
+              delay={i * 0.1}
+              className={`bg-white dark:bg-slate-800 p-6 md:p-8 rounded-[2rem] shadow-sm border-t-4 ${item.color} relative`}
+            >
+              <Quote
+                className="text-slate-200 dark:text-slate-700 absolute top-8 right-8"
+                size={40}
+              />
               <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-8 relative z-10">
                 "{item.content}"
               </p>
@@ -936,8 +1172,12 @@ const TestimonialsSection = () => {
                   {item.name.charAt(0)}
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white">{item.name}</h4>
-                  <p className="text-xs text-slate-500 uppercase tracking-wide">{item.role}</p>
+                  <h4 className="font-bold text-slate-900 dark:text-white">
+                    {item.name}
+                  </h4>
+                  <p className="text-xs text-slate-500 uppercase tracking-wide">
+                    {item.role}
+                  </p>
                 </div>
               </div>
             </FadeIn>
@@ -958,29 +1198,45 @@ const CollaborationSection = () => {
     "Company F",
   ]);
 
+  const [hasFetched, setHasFetched] = useState(false);
+  const containerRef = useRef(null);
+  const isInView = useInView(containerRef, { once: true, margin: "-100px" });
+
   useEffect(() => {
-    const fetchCompanies = async () => {
-      try {
-        const res = await axios.get("https://founders-sangam.onrender.com/content/collaboration");
-        if (res.data.success && res.data.content && res.data.content.companies && res.data.content.companies.length > 0) {
-          setCompanies(res.data.content.companies);
+    if (isInView && !hasFetched) {
+      const fetchCompanies = async () => {
+        try {
+          const res = await axios.get(
+            "https://founders-sangam.onrender.com/content/collaboration"
+          );
+          if (
+            res.data.success &&
+            res.data.content &&
+            res.data.content.companies &&
+            res.data.content.companies.length > 0
+          ) {
+            setCompanies(res.data.content.companies);
+          }
+        } catch (err) {
+          console.error("Failed to fetch collaboration companies");
+        } finally {
+          setHasFetched(true);
         }
-      } catch (err) {
-        console.error("Failed to fetch collaboration companies");
-      }
-    };
-    fetchCompanies();
-  }, []);
+      };
+      fetchCompanies();
+    }
+  }, [isInView, hasFetched]);
 
   return (
     <section
+      ref={containerRef}
       className="py-20 bg-slate-50 dark:bg-slate-900 transition-colors duration-500 relative"
       // NEW BACKGROUND DESIGN: Subtle diagonal stripes applied via inline style
       style={{
         backgroundImage: `repeating-linear-gradient(45deg, 
                 var(--tw-color-slate-100) 0, var(--tw-color-slate-100) 1px, 
                 transparent 1px, transparent 15px)`,
-        backgroundSize: '30px 30px',
+        backgroundSize: "30px 30px",
       }}
     >
       {/* Dark Mode Overlay for Diagonal Stripes */}
@@ -990,7 +1246,7 @@ const CollaborationSection = () => {
           backgroundImage: `repeating-linear-gradient(45deg, 
                     var(--tw-color-white) 0, var(--tw-color-white) 1px, 
                     transparent 1px, transparent 15px)`,
-          backgroundSize: '30px 30px',
+          backgroundSize: "30px 30px",
         }}
       />
 
@@ -1000,9 +1256,10 @@ const CollaborationSection = () => {
           className="w-full h-full"
           style={{
             // Creates a dashed, gradient line
-            background: 'repeating-linear-gradient(to right, #f59e0b 0, #f59e0b 2px, transparent 2px, transparent 10px, #ef4444 10px, #ef4444 12px, transparent 12px, transparent 20px)',
-            backgroundSize: '100% 2px',
-            filter: 'opacity(0.6) saturate(1.5)'
+            background:
+              "repeating-linear-gradient(to right, #f59e0b 0, #f59e0b 2px, transparent 2px, transparent 10px, #ef4444 10px, #ef4444 12px, transparent 12px, transparent 20px)",
+            backgroundSize: "100% 2px",
+            filter: "opacity(0.6) saturate(1.5)",
           }}
         />
       </div>
@@ -1032,15 +1289,30 @@ const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState(null);
 
   const faqs = [
-    { question: "Is this membership only for Tech Founders?", answer: "Not at all. We welcome founders from Textile, D2C, Manufacturing, and Service sectors. Innovation happens at the intersection of industries." },
-    { question: "How often do meetups happen?", answer: "We host an official Founders Meetup once a month, with smaller casual mixers happening bi-weekly at partner cafes." },
-    { question: "Is the ₹500 fee a monthly subscription?", answer: "No! It is a one-time lifetime membership fee for the Early Adopter batch. Prices will move to a subscription model soon." },
-    { question: "Can I bring my co-founder?", answer: "Yes, but memberships are individual. We highly recommend your co-founder registers separately to access the digital community benefits." },
+    {
+      question: "Is this membership only for Tech Founders?",
+      answer:
+        "Not at all. We welcome founders from Textile, D2C, Manufacturing, and Service sectors. Innovation happens at the intersection of industries.",
+    },
+    {
+      question: "How often do meetups happen?",
+      answer:
+        "We host an official Founders Meetup once a month, with smaller casual mixers happening bi-weekly at partner cafes.",
+    },
+    {
+      question: "Is the ₹500 fee a monthly subscription?",
+      answer:
+        "No! It is a one-time lifetime membership fee for the Early Adopter batch. Prices will move to a subscription model soon.",
+    },
+    {
+      question: "Can I bring my co-founder?",
+      answer:
+        "Yes, but memberships are individual. We highly recommend your co-founder registers separately to access the digital community benefits.",
+    },
   ];
 
   return (
     <section className="py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 transition-colors duration-500 relative overflow-hidden">
-
       {/* NEW: Background Design Elements (z-0) */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {/* 1. Subtle Radial Glow (Top Left) */}
@@ -1068,9 +1340,19 @@ const FAQSection = () => {
                 className="cursor-pointer bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-400 transition-colors"
               >
                 <div className="flex justify-between items-center">
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">{faq.question}</h3>
-                  <div className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""}`}>
-                    {openIndex === index ? <Minus size={20} className="text-amber-500" /> : <Plus size={20} className="text-slate-400" />}
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white">
+                    {faq.question}
+                  </h3>
+                  <div
+                    className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${
+                      openIndex === index ? "rotate-180" : ""
+                    }`}
+                  >
+                    {openIndex === index ? (
+                      <Minus size={20} className="text-amber-500" />
+                    ) : (
+                      <Plus size={20} className="text-slate-400" />
+                    )}
                   </div>
                 </div>
                 <AnimatePresence>
@@ -1095,6 +1377,7 @@ const FAQSection = () => {
     </section>
   );
 };
+
 // --- Landing Page Component (Main Export) ---
 const LandingPage = () => (
   <>
