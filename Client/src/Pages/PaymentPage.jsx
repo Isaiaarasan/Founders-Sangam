@@ -139,7 +139,7 @@ const PaymentPage = () => {
 
       // 3️⃣ Open Razorpay Checkout
       const options = {
-        key: "rzp_test_RnAgUVl3ntYn9p", // Replace with your Live Key if needed
+        key: "rzp_test_Rp6GD9RsE0Gej7", // Replace with your Live Key if needed
         amount: order.amount,
         currency: order.currency,
         name: "Founders Sangam",
