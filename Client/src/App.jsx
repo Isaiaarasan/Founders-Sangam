@@ -5,19 +5,25 @@ import Layout from "./components/Layout";
 import AdminLayout from "./Layouts/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MaintenanceCheck from "./middleware/MaintenanceCheck";
+import PrivacyPolicy from "./components/Policy/PrivacyPolicy";
+import RefundCancellationPolicy from "./components/Policy/Refund&CancellationPolicy";
+import TermsConditions from "./components/Policy/Terms&Conditions";
 
 // Lazy load pages
 import LandingPage from "./Pages/Landing";
 import PaymentPage from "./Pages/PaymentPage";
 import EventPaymentPage from "./Pages/EventPaymentPage";
 import Payments from "./Pages/Admin/Payments";
+import EventsPage from "./Pages/EventsPage";
+
 
 // Lazy load other pages
-const EventsPage = lazy(() => import("./Pages/EventsPage"));
+
 const EventDetails = lazy(() => import("./Pages/EventDetails"));
 const EventRegistration = lazy(() => import("./Pages/EventRegistration"));
 const MaintenancePage = lazy(() => import("./Pages/MaintenancePage"));
 const Broadcast = lazy(() => import("./Pages/Broadcast"));
+const Courses = lazy(() => import("./Pages/Courses"));
 
 // Admin Pages
 const AdminLogin = lazy(() => import("./Pages/Admin/AdminLogin"));
@@ -100,6 +106,14 @@ function App() {
               }
             />
             <Route
+              path="/courses"
+              element={
+                <Layout isDark={isDark} toggleTheme={toggleTheme}>
+                  <Courses />
+                </Layout>
+              }
+            ></Route>
+            <Route
               path="/ticket/:id"
               element={
                 <Layout isDark={isDark} toggleTheme={toggleTheme}>
@@ -132,6 +146,12 @@ function App() {
               }
             />
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route
+              path="/refund-cancellation-policy"
+              element={<RefundCancellationPolicy />}
+            />
+            <Route path="/terms-conditions" element={<TermsConditions />} />
 
             {/* Admin Routes */}
             <Route path="/admin" element={<ProtectedRoute />}>

@@ -5,7 +5,7 @@ import FadeIn from '../components/FadeIn';
 
 const Broadcast = () => {
     return (
-        <div className="min-h-screen bg-white dark:bg-slate-950 pt-20 pb-12 px-4 md:px-12 transition-colors duration-500 flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="min-h-screen bg-white dark:bg-slate-950 pt-1 pb-4 px-4 md:px-12 transition-colors duration-500 flex flex-col items-center justify-center relative overflow-hidden">
 
             {/* Background Decoration */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
@@ -15,9 +15,9 @@ const Broadcast = () => {
 
             <div className="max-w-4xl mx-auto w-full relative z-10 text-center">
                 <FadeIn>
-                    <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 mb-6 md:mb-8 shadow-lg shadow-amber-500/20">
+                    {/* <div className="inline-flex items-center justify-center w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 mb-6 md:mb-8 shadow-lg shadow-amber-500/20">
                         <Radio size={32} className="md:w-10 md:h-10" strokeWidth={1.5} />
-                    </div>
+                    </div> */}
 
                     <h1 className="text-4xl md:text-7xl font-bold text-slate-900 dark:text-white mb-4 md:mb-6 tracking-tight leading-tight">
                         Broadcasts <br />

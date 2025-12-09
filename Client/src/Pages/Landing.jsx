@@ -290,7 +290,8 @@ const Hero = () => {
           <p className="mt-8 text-xl md:text-2xl text-slate-500 dark:text-slate-400 max-w-2xl font-medium transition-colors duration-500">
             A circle of bold founders shaping what's next. <br />
             <span className="text-black dark:text-white font-semibold">
-              Networking. Collaboration. Growth.
+              A space built for sharp minds to connect, collaborate, and grow
+              faster together
             </span>
           </p>
 
@@ -302,16 +303,16 @@ const Hero = () => {
           >
             <button
               onClick={() => handleNavigation("/events")}
-              className="bg-slate-900 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-800 hover:scale-105 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 transition-all flex items-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50"
+              className="bg-slate-900 flex item-center text-white px-8 py-4 rounded-full text-lg shrink-0 font-bold hover:bg-slate-800 hover:scale-105 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-200 transition-all flex items-center gap-2 shadow-xl shadow-slate-200 dark:shadow-slate-900/50"
             >
-              Explore Events <ArrowRight size={20} />
+              Regsiter Next Event <ArrowRight size={20} />
             </button>
 
             <button
-              onClick={() => handleNavigation("/broadcast")}
+              onClick={() => handleNavigation("/")}
               className="bg-white flex items-center gap-2 text-slate-900 border shrink-0 border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
             >
-              Explore Broadcast <ArrowRight size={20} />
+              Unlock deeper insights <ArrowRight size={20} />
             </button>
           </motion.div>
         </FadeIn>
@@ -490,9 +491,9 @@ const VideoSection = () => {
     >
       <FadeIn className="w-full max-w-7xl px-6 md:px-12">
         <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 dark:text-white mb-12">
-          Experience the{" "}
+          What Founder’s Tell About Our{" "}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">
-            Vibe
+            Community
           </span>
         </h2>
 
@@ -736,9 +737,9 @@ const StatsSection = () => {
       <div className="max-w-7xl mx-auto mb-16 text-left">
         <FadeIn>
           <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
-            Building a startup culture, <br />
+            Building a bold entrepreneur culture <br />
             <span className="text-slate-400 dark:text-slate-600">
-              in the heart of Tirupur.
+              from the heart of India’s tier-2 cities
             </span>
           </h2>
         </FadeIn>
@@ -838,12 +839,14 @@ const BenefitsSection = () => {
               >
                 Focused Mentorship
               </h3>
-              <p
-                // Text: Changed to gray for light mode, light gray for dark mode.
-                className="text-slate-600 dark:text-slate-300 leading-relaxed"
-              >
-                mentorship sessions with experienced operators who help you
-                clarify your direction and network with intent.
+              <img
+                src="/Images/Founder_img.JPG"
+                alt="Founders Mentorship"
+                className="w-full h-auto object-cover"
+              />
+              <p>
+                Mentorship sessions with experienced operators who help you
+                clarify your direction and network with intern
               </p>
             </div>
             {/* <button
@@ -936,8 +939,11 @@ const FoundersSection = () => {
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                 Kaviya Maruthasalam
               </h3>
-              <p className="text-amber-500 font-semibold text-sm mb-3">
-                Founder Founders Sangam
+              <p className="text-amber-500 text-sm mb-3 font-bold text-amber-500">
+                Founder
+              </p>
+              <p className="text-amber-500 font-semibold text-sm mb-3 font-bold text-amber-500">
+                Founders Sangam
               </p>
               <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
                 "Top 1% Personal Branding Expert & an Intrapreneur"
@@ -960,7 +966,7 @@ const FoundersSection = () => {
             <div className="flex flex-col items-center p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-700 hover:shadow-2xl transition-all relative z-10">
               <div className="w-40 h-40 rounded-full bg-slate-200 dark:bg-slate-700 mb-4 overflow-hidden border-4 border-red-500/50 dark:border-red-500/50 group-hover:border-8 transition-all">
                 <img
-                  src="Images/Co-founder.png"
+                  src="Images/Naveen1.jpeg "
                   alt="Co-Founder"
                   className="w-full h-full object-cover"
                 />
@@ -968,8 +974,11 @@ const FoundersSection = () => {
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">
                 Naveen Kumar
               </h3>
+              <p className="text-red-500 font-bold text-sm mb-3 text-red-500 text-bold">
+                Founder
+              </p>
               <p className="text-red-500 font-semibold text-sm mb-3">
-                Founder Founders Sangam Community
+                Founders Sangam Community
               </p>
               <p className="text-slate-500 dark:text-slate-400 text-center text-sm leading-relaxed">
                 "Tiurpur's Leading Textilepreneur"
@@ -1010,7 +1019,7 @@ const ValueSection = () => {
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
                 We’re building a founder-first community in the heart of India’s
-                tier 2 cities — because ambition isn’t limited to metros.
+                tier 2 cities , because ambition isn’t limited to metros.
                 <br />
                 <br />
                 Our focus is simple: bring niche-driven businesses into one room
@@ -1036,7 +1045,7 @@ const ValueSection = () => {
               className="relative z-10 w-80 h-80 rounded-[3rem] overflow-hidden border-4 border-white dark:border-slate-800 shadow-2xl bg-gray-50 dark:bg-black group"
             >
               <img
-                src="/Images/Logo.jpeg"
+                src="/Images/Founders.png"
                 alt="Collaboration"
                 className="w-full h-full object-cover rounded-[3rem] group-hover:shadow-xl transition-shadow"
               />
@@ -1290,24 +1299,24 @@ const FAQSection = () => {
 
   const faqs = [
     {
-      question: "Is this membership only for Tech Founders?",
+      question: "Am I fit to attend the event?",
       answer:
-        "Not at all. We welcome founders from Textile, D2C, Manufacturing, and Service sectors. Innovation happens at the intersection of industries.",
+        "If you’re an entrepreneur or someone serious about building something, you’ll fit right in.",
     },
     {
       question: "How often do meetups happen?",
       answer:
-        "We host an official Founders Meetup once a month, with smaller casual mixers happening bi-weekly at partner cafes.",
+        " We host meetups regularly, and you’ll get updates the moment a new one drops.",
     },
     {
-      question: "Is the ₹500 fee a monthly subscription?",
+      question: "Is there any fee for events and membership?",
       answer:
-        "No! It is a one-time lifetime membership fee for the Early Adopter batch. Prices will move to a subscription model soon.",
+        "Most events are kept accessible with a minimal fee. Membership details are shared once you join the waitlist.",
     },
     {
-      question: "Can I bring my co-founder?",
+      question: "How do I join the community?",
       answer:
-        "Yes, but memberships are individual. We highly recommend your co-founder registers separately to access the digital community benefits.",
+        "Hit the join button, fill your details, and you’ll get added to the circle.",
     },
   ];
 
@@ -1389,7 +1398,7 @@ const LandingPage = () => (
     <FoundersSection />
     <ValueSection />
     <TestimonialsSection />
-    <CollaborationSection />
+    {/* <CollaborationSection /> */}
     <FAQSection />
 
     <div className="h-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900"></div>

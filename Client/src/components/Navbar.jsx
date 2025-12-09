@@ -132,6 +132,11 @@ const Navbar = ({ isDark, toggleTheme }) => {
               route="/broadcast"
               active={location.pathname === "/broadcast"}
             />
+            <NavPill
+              text="Courses"
+              route="/courses"
+              active={location.pathname === "/courses"}
+            />
           </motion.div>
         </div>
 
@@ -203,6 +208,16 @@ const Navbar = ({ isDark, toggleTheme }) => {
               }`}
             >
               Broadcast
+            </button>
+            <button
+              onClick={() => handleMobileNavigate("/courses")}
+              className={`text-lg font-bold p-4 rounded-xl text-left transition-colors ${
+                location.pathname === "/courses"
+                  ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white"
+                  : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              }`}
+            >
+              Courses
             </button>
           </motion.div>
         )}
