@@ -392,7 +392,7 @@ const VideoSection = () => {
       const fetchVideos = async () => {
         try {
           const res = await axios.get(
-            "https://founders-sangam.onrender.com/content/videos",
+            "http://localhost:5000/content/videos",
             {
               timeout: 3000,
             }
@@ -638,11 +638,10 @@ const VideoSection = () => {
                 setDirection(index > currentVideoIndex ? 1 : -1);
                 setCurrentVideoIndex(index);
               }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentVideoIndex
-                  ? "bg-purple-500 w-8"
-                  : "bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500"
-              }`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentVideoIndex
+                ? "bg-purple-500 w-8"
+                : "bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500"
+                }`}
               aria-label={`Go to video ${index + 1}`}
             />
           ))}
@@ -1108,7 +1107,7 @@ const TestimonialsSection = () => {
       const fetchTestimonials = async () => {
         try {
           const res = await axios.get(
-            "https://founders-sangam.onrender.com/content/testimonials"
+            "http://localhost:5000/content/testimonials"
           );
           if (
             res.data.success &&
@@ -1216,7 +1215,7 @@ const CollaborationSection = () => {
       const fetchCompanies = async () => {
         try {
           const res = await axios.get(
-            "https://founders-sangam.onrender.com/content/collaboration"
+            "http://localhost:5000/content/collaboration"
           );
           if (
             res.data.success &&
@@ -1353,9 +1352,8 @@ const FAQSection = () => {
                     {faq.question}
                   </h3>
                   <div
-                    className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${
-                      openIndex === index ? "rotate-180" : ""
-                    }`}
+                    className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""
+                      }`}
                   >
                     {openIndex === index ? (
                       <Minus size={20} className="text-amber-500" />

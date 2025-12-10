@@ -12,7 +12,7 @@ const Settings = () => {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await axios.get("https://founders-sangam.onrender.com/settings/status");
+                const res = await axios.get("http://localhost:5000/settings/status");
                 if (res.data.success) {
                     setIsMaintenance(res.data.isMaintenanceMode);
                 }
@@ -30,7 +30,7 @@ const Settings = () => {
         try {
             const token = localStorage.getItem("adminToken");
             await axios.post(
-                "https://founders-sangam.onrender.com/admin/settings/maintenance",
+                "http://localhost:5000/admin/settings/maintenance",
                 { isMaintenanceMode: isMaintenance },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

@@ -20,6 +20,7 @@
     "file-saver": "^2.0.5",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.0",
+    "pg-sdk-node": "^2.0.2",
     "razorpay": "^2.9.6",
     "xlsx": "^0.18.5"
   }

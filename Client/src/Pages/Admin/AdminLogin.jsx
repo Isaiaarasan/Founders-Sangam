@@ -13,7 +13,7 @@ const AdminLogin = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post("https://founders-sangam.onrender.com/admin/login", {
+            const res = await axios.post("http://localhost:5000/admin/login", {
                 username,
                 password,
             });

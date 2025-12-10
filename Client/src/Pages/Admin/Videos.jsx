@@ -16,7 +16,7 @@ const Videos = () => {
     const fetchVideos = async () => {
         setLoading(true);
         try {
-            const res = await axios.get("https://founders-sangam.onrender.com/content/videos");
+            const res = await axios.get("http://localhost:5000/content/videos");
             if (res.data.success && res.data.content && Array.isArray(res.data.content)) {
                 setVideos(res.data.content);
             }
@@ -32,7 +32,7 @@ const Videos = () => {
         try {
             const token = localStorage.getItem("adminToken");
             await axios.post(
-                "https://founders-sangam.onrender.com/content/videos",
+                "http://localhost:5000/content/videos",
                 { content: updatedVideos },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

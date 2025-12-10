@@ -33,7 +33,7 @@ const Payments = () => {
       try {
         const token = localStorage.getItem("adminToken");
         const res = await axios.get(
-          "https://founders-sangam.onrender.com/admin/payments",
+          "http://localhost:5000/admin/payments",
           {
             headers: { Authorization: `Bearer ${token}` },
             params: {
@@ -93,11 +93,10 @@ const Payments = () => {
           const isCommunity = info.getValue() === "Community";
           return (
             <span
-              className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${
-                isCommunity
-                  ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800"
-                  : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
-              }`}
+              className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider border ${isCommunity
+                ? "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800"
+                : "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800"
+                }`}
             >
               {info.getValue()}
             </span>

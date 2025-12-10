@@ -16,7 +16,7 @@ const EventsPage = () => {
     const fetchEvents = async () => {
       try {
         const res = await axios.get(
-          "https://founders-sangam.onrender.com/events"
+          "http://localhost:5000/events"
         );
         if (res.data.success) {
           const allEvents = res.data.events;

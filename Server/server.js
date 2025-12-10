@@ -184,49 +184,43 @@ app.post("/admin/login", async (req, res) => {
 // });
 
 // -------------------------------
-// 4. PHONEPE INTEGRATION
+// 4. PHONEPE SDK INTEGRATION
 // -------------------------------
-const axios = require('axios');
+const { StandardCheckoutClient, Env, MetaInfo, StandardCheckoutPayRequest } = require('pg-sdk-node');
 
-const PHONEPE_HOST_URL = process.env.PHONEPE_HOST_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox";
-const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
-const SALT_KEY = process.env.PHONEPE_SALT_KEY;
-const SALT_INDEX = process.env.PHONEPE_SALT_INDEX || 1;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
 const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
 
-// Initiate Payment
+// Initialize PhonePe SDK Client (only once)
+const phonepeClient = StandardCheckoutClient.getInstance(
+  process.env.PHONEPE_CLIENT_ID,
+  process.env.PHONEPE_CLIENT_SECRET,
+  parseInt(process.env.PHONEPE_CLIENT_VERSION || 1),
+  process.env.PHONEPE_ENV === 'PRODUCTION' ? Env.PRODUCTION : Env.SANDBOX
+);
+
+console.log("✅ PhonePe SDK initialized with Client ID:", process.env.PHONEPE_CLIENT_ID);
+
+// Initiate Payment using SDK
 app.post("/api/phonepe/pay", async (req, res) => {
   try {
-    const { name, amount, number, mid, transactionId, type, ticketId, brandName, email } = req.body;
+    const { name, amount, number, transactionId, type, ticketId, brandName, email } = req.body;
 
-    const merchantTransactionId = transactionId || `TXN_${Date.now()}`;
-    const userId = "USER_" + Date.now();
+    console.log("=== PhonePe SDK Payment Request ===");
+    console.log("Request Body:", { name, amount, type, ticketId, brandName, email });
 
-    // Payload
-    const data = {
-      merchantId: MERCHANT_ID,
-      merchantTransactionId: merchantTransactionId,
-      merchantUserId: userId,
-      amount: amount * 100, // paise
-      redirectUrl: `${SERVER_URL}/api/phonepe/validate/${merchantTransactionId}`,
-      redirectMode: "POST",
-      callbackUrl: `${SERVER_URL}/api/phonepe/callback`,
-      mobileNumber: number,
-      paymentInstrument: {
-        type: "PAY_PAGE",
-      },
-    };
+    const merchantOrderId = transactionId || `ORD_${Date.now()}`;
 
-    // Save Context
+    // Save Context BEFORE calling PhonePe
     if (type === 'TICKET' && ticketId) {
       await Ticket.findByIdAndUpdate(ticketId, {
-        paymentId: merchantTransactionId,
+        paymentId: merchantOrderId,
         status: 'PENDING'
       });
+      console.log("✅ Updated Ticket:", ticketId);
     } else {
       await Payment.create({
-        orderId: merchantTransactionId,
+        orderId: merchantOrderId,
         amount: amount,
         status: "PENDING",
         name,
@@ -234,39 +228,53 @@ app.post("/api/phonepe/pay", async (req, res) => {
         email,
         contact: number,
       });
+      console.log("✅ Created Payment record");
     }
 
-    const payload = JSON.stringify(data);
-    const payloadMain = Buffer.from(payload).toString("base64");
-    const stringToSign = payloadMain + "/pg/v1/pay" + SALT_KEY;
-    const sha256 = crypto
-      .createHash("sha256")
-      .update(stringToSign)
-      .digest("hex");
-    const checksum = sha256 + "###" + SALT_INDEX;
+    // Build payment request using SDK
+    const metaInfo = MetaInfo.builder()
+      .udf1(type) // TICKET or MEMBERSHIP
+      .udf2(ticketId || 'N/A')
+      .udf3(name)
+      .udf4(email)
+      .build();
 
-    // Call PhonePe
-    const response = await axios.post(
-      `${PHONEPE_HOST_URL}/pg/v1/pay`,
-      { request: payloadMain },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum,
-          accept: "application/json",
-        },
-      }
-    );
+    const redirectUrl = `${SERVER_URL}/api/phonepe/validate/${merchantOrderId}`;
+
+    const paymentRequest = StandardCheckoutPayRequest.builder()
+      .merchantOrderId(merchantOrderId)
+      .amount(amount * 100) // Convert to paise
+      .redirectUrl(redirectUrl)
+      .metaInfo(metaInfo)
+      .build();
+
+    console.log("📤 Initiating payment with SDK...");
+
+    // Call PhonePe SDK
+    const response = await phonepeClient.pay(paymentRequest);
+
+    console.log("✅ PhonePe SDK Response:", response);
+
+    const checkoutUrl = response.redirectUrl;
+
+    if (!checkoutUrl) {
+      throw new Error("No checkout URL in PhonePe response");
+    }
 
     res.json({
       success: true,
-      url: response.data.data.instrumentResponse.redirectInfo.url,
-      merchantTransactionId
+      url: checkoutUrl,
+      merchantTransactionId: merchantOrderId
     });
 
   } catch (err) {
-    console.error("PhonePe Pay Error:", err.response ? err.response.data : err.message);
-    res.status(500).json({ success: false, message: "Payment initiation failed" });
+    console.error("=== PhonePe SDK Pay Error ===");
+    console.error("Error Message:", err.message);
+    console.error("Error Stack:", err.stack);
+    if (err.response) {
+      console.error("Response Data:", err.response.data);
+    }
+    res.status(500).json({ success: false, message: err.message || "Payment initiation failed" });
   }
 });
 
@@ -290,52 +298,47 @@ app.post("/api/phonepe/callback", async (req, res) => {
   }
 });
 
-// Validate Payment (Redirect URL)
-app.post("/api/phonepe/validate/:txnId", async (req, res) => {
+// Validate Payment (Redirect URL) - Using SDK - Accepts GET and POST
+app.all("/api/phonepe/validate/:txnId", async (req, res) => {
   try {
     const { txnId } = req.params;
 
-    const stringToSign = `/pg/v1/status/${MERCHANT_ID}/${txnId}` + SALT_KEY;
-    const sha256 = crypto
-      .createHash("sha256")
-      .update(stringToSign)
-      .digest("hex");
-    const checksum = sha256 + "###" + SALT_INDEX;
+    console.log("🔍 Checking order status for:", txnId);
 
-    const response = await axios.get(
-      `${PHONEPE_HOST_URL}/pg/v1/status/${MERCHANT_ID}/${txnId}`,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-VERIFY": checksum,
-          "X-MERCHANT-ID": MERCHANT_ID,
-        },
-      }
-    );
+    // Use SDK to check order status
+    const orderStatus = await phonepeClient.getOrderStatus(txnId);
 
-    if (response.data.success && response.data.code === "PAYMENT_SUCCESS") {
+    console.log("✅ Order Status Response:", JSON.stringify(orderStatus, null, 2));
+
+    if (orderStatus.state === "COMPLETED" && orderStatus.amount) {
+      // Payment successful
       const ticket = await Ticket.findOne({ paymentId: txnId });
 
       if (ticket) {
         ticket.status = "PAID";
         await ticket.save();
         await Event.findByIdAndUpdate(ticket.eventId, { $inc: { currentRegistrations: ticket.quantity } });
+        console.log("✅ Ticket payment completed:", ticket._id);
         return res.redirect(`${CLIENT_URL}/ticket/${ticket._id}`);
       }
 
       const payment = await Payment.findOne({ orderId: txnId });
       if (payment) {
         payment.status = "success";
-        payment.paymentId = response.data.data.transactionId || txnId;
+        payment.paymentId = orderStatus.transactionId || txnId;
         await payment.save();
+        console.log("✅ Membership payment completed");
         return res.redirect(`${CLIENT_URL}/ticket/access-card`);
       }
+
       return res.redirect(`${CLIENT_URL}?payment=success`);
     } else {
+      console.log("❌ Payment failed or pending");
       return res.redirect(`${CLIENT_URL}?payment=failed`);
     }
   } catch (err) {
-    console.error("Payment Validation Error:", err.message);
+    console.error("❌ Payment Validation Error:", err.message);
+    console.error(err.stack);
     return res.redirect(`${CLIENT_URL}?payment=error`);
   }
 });
@@ -666,11 +669,18 @@ app.get("/events", async (req, res) => {
 // Get Single Event (Public)
 app.get("/events/:id", async (req, res) => {
   try {
+    console.log("Fetching event with ID:", req.params.id);
     const event = await Event.findById(req.params.id);
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+
+    if (!event) {
+      console.log("Event not found for ID:", req.params.id);
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+
+    console.log("Event found:", event.title);
     res.json({ success: true, event });
   } catch (err) {
-    console.log(err);
+    console.error("Error fetching event:", err.message);
     res.status(500).json({ success: false, message: "Failed to fetch event" });
   }
 });

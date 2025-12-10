@@ -30,7 +30,7 @@ const EventMembers = () => {
       try {
         const token = localStorage.getItem("adminToken");
         const res = await axios.get(
-          "https://founders-sangam.onrender.com/admin/registrations",
+          "http://localhost:5000/admin/registrations",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (res.data.success) {
@@ -87,13 +87,12 @@ const EventMembers = () => {
         accessorKey: "ticketType",
         cell: (info) => (
           <span
-            className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
-              info.getValue() === "Platinum"
-                ? "bg-slate-100 text-slate-700 border-slate-200"
-                : info.getValue() === "Gold"
+            className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${info.getValue() === "Platinum"
+              ? "bg-slate-100 text-slate-700 border-slate-200"
+              : info.getValue() === "Gold"
                 ? "bg-amber-50 text-amber-700 border-amber-200"
                 : "bg-emerald-50 text-emerald-700 border-emerald-200"
-            }`}
+              }`}
           >
             {info.getValue()}
           </span>
@@ -177,10 +176,9 @@ const EventMembers = () => {
     });
 
     const fileName =
-      `event_members_${
-        selectedEvent === "All"
-          ? "all"
-          : selectedEvent.replace(/\s+/g, "_").toLowerCase()
+      `event_members_${selectedEvent === "All"
+        ? "all"
+        : selectedEvent.replace(/\s+/g, "_").toLowerCase()
       }` + ".xlsx";
 
     saveAs(blob, fileName);

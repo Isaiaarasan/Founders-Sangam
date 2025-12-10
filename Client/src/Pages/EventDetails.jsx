@@ -14,7 +14,7 @@ const EventDetails = () => {
     useEffect(() => {
         const fetchEvent = async () => {
             try {
-                const res = await axios.get(`https://founders-sangam.onrender.com/events/${id}`);
+                const res = await axios.get(`http://localhost:5000/events/${id}`);
                 if (res.data.success) {
                     setEvent(res.data.event);
                 } else {

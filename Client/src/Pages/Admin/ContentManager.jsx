@@ -14,7 +14,7 @@ const ContentManager = () => {
 
     const fetchContent = async (section) => {
         try {
-            const res = await axios.get(`https://founders-sangam.onrender.com/content/${section}`);
+            const res = await axios.get(`http://localhost:5000/content/${section}`);
             if (res.data.success && res.data.content) {
                 if (section === "testimonials") setTestimonials(res.data.content);
             }
@@ -28,7 +28,7 @@ const ContentManager = () => {
         try {
             const token = localStorage.getItem("adminToken");
             await axios.post(
-                `https://founders-sangam.onrender.com/content/${section}`,
+                `http://localhost:5000/content/${section}`,
                 { content },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -74,8 +74,8 @@ const ContentManager = () => {
                 <button
                     onClick={() => setActiveTab("testimonials")}
                     className={`flex items-center gap-2 px-6 py-3 font-semibold text-sm rounded-t-lg transition-all border-b-2 ${activeTab === "testimonials"
-                            ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10"
-                            : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                        ? "border-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10"
+                        : "border-transparent text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-50 dark:hover:bg-neutral-900"
                         }`}
                 >
                     <MessageSquare size={16} />

@@ -18,7 +18,7 @@ const Collaborations = () => {
     const fetchCollaborations = async () => {
         try {
             const token = localStorage.getItem("adminToken");
-            const res = await axios.get("https://founders-sangam.onrender.com/content/collaboration", {
+            const res = await axios.get("http://localhost:5000/content/collaboration", {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.data.success) {
@@ -53,7 +53,7 @@ const Collaborations = () => {
         setMessage({ type: "", text: "" });
         try {
             const token = localStorage.getItem("adminToken");
-            await axios.post("https://founders-sangam.onrender.com/content/collaboration",
+            await axios.post("http://localhost:5000/content/collaboration",
                 { content: { companies } },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

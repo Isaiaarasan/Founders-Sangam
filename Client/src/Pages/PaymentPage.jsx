@@ -104,7 +104,7 @@ const PaymentPage = () => {
     try {
       // 1️⃣ Validate User (Backend)
       const validateRes = await axios.post(
-        "https://founders-sangam.onrender.com/validate-user",
+        "http://localhost:5000/validate-user",
         { email: formData.email, contact: formData.contact }
       );
 
@@ -116,7 +116,7 @@ const PaymentPage = () => {
 
       // 2️⃣ Initiate Payment (PhonePe)
       const res = await axios.post(
-        "https://founders-sangam.onrender.com/api/phonepe/pay",
+        "http://localhost:5000/api/phonepe/pay",
         {
           name: formData.name,
           amount: price,
