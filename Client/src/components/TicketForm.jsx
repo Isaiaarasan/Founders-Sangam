@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, Mail, Phone, Tag, Hash, CreditCard } from 'lucide-react';
+import { User, Mail, Phone, Tag, Hash, CreditCard, Building2 } from 'lucide-react';
 
 const InputField = ({ label, type, name, placeholder, value, onChange, icon: Icon, disabled }) => (
     <div className="space-y-1.5">
@@ -29,6 +29,7 @@ const InputField = ({ label, type, name, placeholder, value, onChange, icon: Ico
 const TicketForm = ({ event, onSubmit, loading }) => {
     const [formData, setFormData] = useState({
         name: '',
+        companyName: '',
         email: '',
         contact: '',
         ticketType: '',
@@ -93,6 +94,17 @@ const TicketForm = ({ event, onSubmit, loading }) => {
                         value={formData.name}
                         onChange={handleChange}
                         icon={User}
+                    />
+                </div>
+                <div className="md:col-span-2">
+                    <InputField
+                        label="Company Name / Brand Name"
+                        name="companyName"
+                        type="text"
+                        placeholder="Your Company or Brand"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        icon={Building2}
                     />
                 </div>
                 <div>

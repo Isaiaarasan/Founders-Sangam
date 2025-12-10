@@ -689,7 +689,7 @@ app.get("/events/:id", async (req, res) => {
 app.post("/events/:id/register", async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, contact, ticketType, quantity, amount } = req.body;
+    const { name, companyName, email, contact, ticketType, quantity, amount } = req.body;
 
     const event = await Event.findById(id);
     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
@@ -714,6 +714,7 @@ app.post("/events/:id/register", async (req, res) => {
     const ticket = await Ticket.create({
       eventId: id,
       name,
+      companyName,
       email,
       contact,
       ticketType,

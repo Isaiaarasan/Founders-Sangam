@@ -5,6 +5,7 @@ const TicketSchema = new mongoose.Schema(
         eventId: { type: mongoose.Schema.Types.ObjectId, ref: "Event", required: true },
         paymentId: { type: String }, // Razorpay Payment ID
         name: { type: String, required: true },
+        companyName: { type: String }, // Company or Brand Name
         email: { type: String, required: true },
         contact: { type: String, required: true },
         ticketType: { type: String, required: true }, // e.g., "General", "VIP"

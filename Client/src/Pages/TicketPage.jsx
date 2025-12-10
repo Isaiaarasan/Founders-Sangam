@@ -186,6 +186,9 @@ const TicketStructure = ({ data }) => {
           <div>
             <p style={styles.label}>Attendee</p>
             <h3 style={styles.value}>{name}</h3>
+            {data.companyName && (
+              <p style={{ ...styles.subValue, marginTop: "4px" }}>{data.companyName}</p>
+            )}
           </div>
 
           <div style={styles.row}>
@@ -304,6 +307,7 @@ const TicketPage = () => {
         setTicket({
           _id: data.ticketId,
           name: data.name,
+          companyName: data.companyName,
           createdAt: new Date().toISOString(),
           ticketType: data.ticketType || "Membership",
           eventId: {
@@ -393,6 +397,7 @@ const TicketPage = () => {
   // Normalize Data Structure
   const ticketData = {
     name: ticket.name,
+    companyName: ticket.companyName,
     ticketId: ticket._id,
     date: ticket.createdAt,
     ticketType: ticket.ticketType || "Membership",
