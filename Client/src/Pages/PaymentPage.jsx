@@ -314,7 +314,7 @@ const PaymentPage = () => {
                         label="Full Name"
                         name="name"
                         type="text"
-                        placeholder="Ex. John Doe"
+                        placeholder="Your Name"
                         value={formData.name}
                         onChange={handleChange}
                       />
@@ -338,7 +338,7 @@ const PaymentPage = () => {
                         label="Email"
                         name="email"
                         type="email"
-                        placeholder="john@example.com"
+                        placeholder="Your mail"
                         value={formData.email}
                         onChange={handleChange}
                       />
@@ -350,7 +350,7 @@ const PaymentPage = () => {
                         label="Phone"
                         name="contact"
                         type="tel"
-                        placeholder="98765 43210"
+                        placeholder="9876543210"
                         value={formData.contact}
                         onChange={handleChange}
                       />

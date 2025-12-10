@@ -89,7 +89,7 @@ const TicketForm = ({ event, onSubmit, loading }) => {
                         label="Full Name"
                         name="name"
                         type="text"
-                        placeholder="John Doe"
+                        placeholder="Your Name"
                         value={formData.name}
                         onChange={handleChange}
                         icon={User}
@@ -100,7 +100,7 @@ const TicketForm = ({ event, onSubmit, loading }) => {
                         label="Email Address"
                         name="email"
                         type="email"
-                        placeholder="john@example.com"
+                        placeholder="Your mail"
                         value={formData.email}
                         onChange={handleChange}
                         icon={Mail}
