@@ -93,7 +93,7 @@ const PaymentPage = () => {
   const handlePayment = async (e) => {
     e.preventDefault();
 
-    // Validation
+    // Basic validation
     if (!formData.name || !formData.brandName || !formData.email || !formData.contact) {
       alert("Please fill in all details");
       return;
@@ -102,7 +102,15 @@ const PaymentPage = () => {
     setLoading(true);
 
     try {
-      // 1️⃣ Validate User (Backend)
+      // 1. Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        alert("Please enter a valid email address");
+        setLoading(false);
+        return;
+      }
+
+      // 2. Validate User (Check for duplicates)
       const validateRes = await axios.post(
         "https://founders-sangam.onrender.com/validate-user",
         { email: formData.email, contact: formData.contact }
@@ -114,7 +122,7 @@ const PaymentPage = () => {
         return;
       }
 
-      // 2️⃣ Initiate Payment (PhonePe)
+      // 3. Initiate Payment (PhonePe)
       const res = await axios.post(
         "https://founders-sangam.onrender.com/api/phonepe/pay",
         {
@@ -130,15 +138,29 @@ const PaymentPage = () => {
       );
 
       if (res.data.success) {
-        window.location.href = res.data.url;
+        // 4. Redirect to PhonePe
+        const redirectUrl = res.data.url;
+        if (redirectUrl) {
+          window.location.href = redirectUrl;
+        } else {
+          throw new Error("Redirect URL not found");
+        }
       } else {
-        alert("Payment Initiation Failed");
-        setLoading(false);
+        throw new Error("Payment initiation failed");
       }
 
     } catch (error) {
       console.error("Payment Error:", error);
-      alert("Something went wrong initializing payment.");
+
+      // Better error messaging
+      let errorMessage = "Something went wrong with payment initiation";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
       setLoading(false);
     }
   };

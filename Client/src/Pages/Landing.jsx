@@ -308,12 +308,12 @@ const Hero = () => {
               Regsiter Next Event <ArrowRight size={20} />
             </button>
 
-            <button
+            {/* <button
               onClick={() => handleNavigation("/")}
               className="bg-white flex items-center gap-2 text-slate-900 border shrink-0 border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
             >
               Unlock deeper insights <ArrowRight size={20} />
-            </button>
+            </button> */}
           </motion.div>
         </FadeIn>
       </div>

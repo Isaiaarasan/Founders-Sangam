@@ -30,7 +30,7 @@ const Footer = () => {
             title="Community"
             links={[
               { label: "Events", href: "https://founders-sangam.vercel.app/events" },
-              { label: "Membership", href: "https://founders-sangam.vercel.app/" },
+              // { label: "Membership", href: "https://founders-sangam.vercel.app/" },
               { label: "Mentorship", href: "https://founders-sangam.vercel.app/courses" },
             ]}
           />
