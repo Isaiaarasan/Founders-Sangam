@@ -84,6 +84,15 @@ const PrivacyPolicy = () => {
         This privacy policy may be updated periodically. Continued use of the
         website after updates indicates acceptance of the revised policy.
       </p>
+      <div>
+        <h2 className="text-xl font-semibold mt-6 mb-2">9. Contact Us</h2>
+        <p className="mb-4">
+          For questions about this Founders Sangam ,please contact us at
+        </p>
+        <p className="mb-4">Mail:founderssangam@gmail.com</p>
+        <p className="mb-4">Phone: +91 6382101258</p>
+        <p className="mb-4">Name of the Founder : Kaviya M</p>
+      </div>
     </div>
   );
 };
