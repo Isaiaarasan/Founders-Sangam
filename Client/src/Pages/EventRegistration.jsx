@@ -32,17 +32,6 @@ const EventRegistration = () => {
         fetchEvent();
     }, [id]);
 
-    // --- Razorpay Helper ---
-    const loadRazorpayScript = () => {
-        return new Promise((resolve) => {
-            const script = document.createElement("script");
-            script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.body.appendChild(script);
-        });
-    };
-
     const handleRegistration = async (formData) => {
         setSubmitting(true);
         setError(null);
@@ -56,81 +45,37 @@ const EventRegistration = () => {
                 return;
             }
 
-            // 2. Load Razorpay SDK first to fail early if offline/blocked
-            const loaded = await loadRazorpayScript();
-            if (!loaded) {
-                alert("Razorpay SDK failed to load. Please check your internet connection.");
-                setSubmitting(false);
-                return;
-            }
-
-            // 3. Register for Event (Create Ticket in DB with PENDING status)
+            // 2. Register for Event (Create Ticket in DB with PENDING status)
             const result = await registerForEvent(id, formData);
 
             if (result.success) {
-                // 4. Create Order (Backend)
+                // 3. Initiate Payment (PhonePe)
                 const res = await axios.post(
-                    "https://founders-sangam.onrender.com/create-order",
-                    { amount: formData.amount }
+                    "https://founders-sangam.onrender.com/api/phonepe/pay",
+                    {
+                        name: formData.name,
+                        amount: formData.amount,
+                        number: formData.contact,
+                        mid: "MID" + Date.now(),
+                        transactionId: "TXN_" + Date.now(),
+                        type: 'TICKET',
+                        ticketId: result.ticketId,
+                        brandName: "Founders Sangam",
+                        email: formData.email
+                    }
                 );
 
-                const order = res.data.order;
-                const dbTicketId = result.ticketId;
-
-                // 5. Open Razorpay Checkout
-                const options = {
-                    key: "rzp_test_Rp6GD9RsE0Gej7",
-                    amount: order.amount,
-                    currency: order.currency,
-                    name: "Founders Sangam",
-                    description: `Ticket: ${event.title}`,
-                    // image: "https://via.placeholder.com/150", 
-                    order_id: order.id,
-                    prefill: {
-                        name: formData.name,
-                        email: formData.email,
-                        contact: formData.contact,
-                    },
-                    theme: {
-                        color: "#f59e0b",
-                    },
-                    handler: async function (response) {
-                        try {
-                            // 6. Verify Payment
-                            const verifyRes = await axios.post(
-                                "https://founders-sangam.onrender.com/verify-payment",
-                                {
-                                    ...response,
-                                    dbTicketId: dbTicketId,
-                                    amount: formData.amount
-                                }
-                            );
-
-                            if (verifyRes.data.success) {
-                                // 7. Success -> Redirect to Ticket Page
-                                navigate(`/ticket/${dbTicketId}`);
-                            } else {
-                                alert("Payment Verification Failed!");
-                            }
-                        } catch (error) {
-                            console.error(error);
-                            alert("Verification Error");
-                        }
-                    },
-                    modal: {
-                        ondismiss: function () {
-                            setSubmitting(false);
-                        }
+                if (res.data.success) {
+                    // 4. Redirect to PhonePe
+                    const redirectUrl = res.data.url;
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    } else {
+                        throw new Error("Redirect URL not found");
                     }
-                };
-
-                const paymentObject = new window.Razorpay(options);
-                paymentObject.open();
-
-                paymentObject.on("payment.failed", (res) => {
-                    alert(res.error.description);
-                    setSubmitting(false);
-                });
+                } else {
+                    throw new Error("Payment initiation failed");
+                }
 
             } else {
                 throw new Error("Registration failed initially.");
@@ -150,8 +95,6 @@ const EventRegistration = () => {
             alert(errorMessage);
             setSubmitting(false);
         }
-        // Note: We don't setSubmitting(false) here immediately because the modal might be open.
-        // It's handled in modal.ondismiss and payment.failed, or after navigation.
     };
 
     if (loading) return (
@@ -227,7 +170,7 @@ const EventRegistration = () => {
                                 <TicketForm event={event} onSubmit={handleRegistration} loading={submitting} />
                                 <div className="mt-6 flex items-center justify-center gap-2 text-slate-400 text-sm">
                                     <ShieldCheck size={16} className="text-emerald-500" />
-                                    <span>Secure Payment via Razorpay</span>
+                                    <span>Secure Payment via PhonePe</span>
                                 </div>
                             </>
                         )}

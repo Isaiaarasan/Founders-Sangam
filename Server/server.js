@@ -1,5 +1,5 @@
 const express = require("express");
-const Razorpay = require("razorpay");
+// const Razorpay = require("razorpay");
 const crypto = require("crypto");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -44,10 +44,10 @@ mongoose
 // -------------------------------
 // 2. Razorpay Instance
 // -------------------------------
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// const razorpay = new Razorpay({
+//   key_id: process.env.RAZORPAY_KEY_ID,
+//   key_secret: process.env.RAZORPAY_KEY_SECRET,
+// });
 
 // -------------------------------
 // 3. ADMIN AUTH
@@ -88,95 +88,255 @@ app.post("/admin/login", async (req, res) => {
 // -------------------------------
 // 4. Create Order
 // -------------------------------
-app.post("/create-order", async (req, res) => {
+// -------------------------------
+// 4. Create Order (Razorpay - DEPRECATED)
+// -------------------------------
+// app.post("/create-order", async (req, res) => {
+//   try {
+//     const { amount } = req.body;
+//     const options = {
+//       amount: amount * 100, // Convert ₹ to paise
+//       currency: "INR",
+//       receipt: "rcpt_" + Date.now(),
+//     };
+//     const order = await razorpay.orders.create(options);
+//     res.json({ success: true, order });
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({ success: false, message: "Order creation failed" });
+//   }
+// });
+
+// -------------------------------
+// 5. Verify Payment (Razorpay - DEPRECATED)
+// -------------------------------
+// app.post("/verify-payment", async (req, res) => {
+//   try {
+//     const {
+//       razorpay_order_id,
+//       razorpay_payment_id,
+//       razorpay_signature,
+//       name,
+//       brandName,
+//       email,
+//       contact,
+//     } = req.body;
+// 
+//     const body = razorpay_order_id + "|" + razorpay_payment_id;
+// 
+//     const expectedSignature = crypto
+//       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+//       .update(body.toString())
+//       .digest("hex");
+// 
+//     const isAuthentic = expectedSignature === razorpay_signature;
+// 
+//     if (isAuthentic) {
+//       // 1. Check if this is a TICKET payment or MEMBERSHIP payment
+//       // If dbTicketId is present, it is STRICTLY an Event Ticket payment.
+//       if (req.body.dbTicketId) {
+//         // --- EVENT TICKET LOGIC ---
+//         // Verify payment for a specific ticket
+//         // The "dbTicketId" passed here is the MongoDB _id of the pending ticket.
+//         // BUT for events, we might pass the DB Ticket ID.
+//         // Let's clarify: The User requested flow:
+//         // 1. Create Ticket (PENDING) -> Get DB Ticket ID
+//         // 2. Pay -> Redirect
+//         // 3. Verify -> We need to update that DB Ticket to PAID.
+// 
+//         // So here, req.body should contain the DB Ticket _id presumably, or we find it via order_id if we saved it?
+//         // Simpler: Client sends the DB Ticket _id in the verify request.
+// 
+//         const dbTicketId = req.body.dbTicketId;
+//         if (dbTicketId) {
+//           await Ticket.findByIdAndUpdate(dbTicketId, {
+//             status: "PAID",
+//             paymentId: razorpay_payment_id,
+//             signature: razorpay_signature
+//           });
+//           // Increment Event Registration Count
+//           const ticket = await Ticket.findById(dbTicketId);
+//           await Event.findByIdAndUpdate(ticket.eventId, { $inc: { currentRegistrations: ticket.quantity } });
+//         }
+//       } else {
+//         // --- MEMBERSHIP LOGIC (Existing) ---
+//         await Payment.create({
+//           orderId: razorpay_order_id,
+//           paymentId: razorpay_payment_id,
+//           signature: razorpay_signature,
+//           amount: 500,
+//           status: "success",
+//           name,
+//           brandName,
+//           email,
+//           contact,
+//         });
+//       }
+// 
+//       res.json({ success: true, message: "Payment verified and saved" });
+//     } else {
+//       res.status(400).json({ success: false, message: "Invalid Signature" });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ success: false, message: "Internal Server Error" });
+//   }
+// });
+
+// -------------------------------
+// 4. PHONEPE INTEGRATION
+// -------------------------------
+const axios = require('axios');
+
+const PHONEPE_HOST_URL = process.env.PHONEPE_HOST_URL || "https://api-preprod.phonepe.com/apis/pg-sandbox";
+const MERCHANT_ID = process.env.PHONEPE_MERCHANT_ID;
+const SALT_KEY = process.env.PHONEPE_SALT_KEY;
+const SALT_INDEX = process.env.PHONEPE_SALT_INDEX || 1;
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
+
+// Initiate Payment
+app.post("/api/phonepe/pay", async (req, res) => {
   try {
-    const { amount } = req.body;
-    const options = {
-      amount: amount * 100, // Convert ₹ to paise
-      currency: "INR",
-      receipt: "rcpt_" + Date.now(),
+    const { name, amount, number, mid, transactionId, type, ticketId, brandName, email } = req.body;
+
+    const merchantTransactionId = transactionId || `TXN_${Date.now()}`;
+    const userId = "USER_" + Date.now();
+
+    // Payload
+    const data = {
+      merchantId: MERCHANT_ID,
+      merchantTransactionId: merchantTransactionId,
+      merchantUserId: userId,
+      amount: amount * 100, // paise
+      redirectUrl: `${SERVER_URL}/api/phonepe/validate/${merchantTransactionId}`,
+      redirectMode: "POST",
+      callbackUrl: `${SERVER_URL}/api/phonepe/callback`,
+      mobileNumber: number,
+      paymentInstrument: {
+        type: "PAY_PAGE",
+      },
     };
-    const order = await razorpay.orders.create(options);
-    res.json({ success: true, order });
+
+    // Save Context
+    if (type === 'TICKET' && ticketId) {
+      await Ticket.findByIdAndUpdate(ticketId, {
+        paymentId: merchantTransactionId,
+        status: 'PENDING'
+      });
+    } else {
+      await Payment.create({
+        orderId: merchantTransactionId,
+        amount: amount,
+        status: "PENDING",
+        name,
+        brandName,
+        email,
+        contact: number,
+      });
+    }
+
+    const payload = JSON.stringify(data);
+    const payloadMain = Buffer.from(payload).toString("base64");
+    const stringToSign = payloadMain + "/pg/v1/pay" + SALT_KEY;
+    const sha256 = crypto
+      .createHash("sha256")
+      .update(stringToSign)
+      .digest("hex");
+    const checksum = sha256 + "###" + SALT_INDEX;
+
+    // Call PhonePe
+    const response = await axios.post(
+      `${PHONEPE_HOST_URL}/pg/v1/pay`,
+      { request: payloadMain },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-VERIFY": checksum,
+          accept: "application/json",
+        },
+      }
+    );
+
+    res.json({
+      success: true,
+      url: response.data.data.instrumentResponse.redirectInfo.url,
+      merchantTransactionId
+    });
+
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ success: false, message: "Order creation failed" });
+    console.error("PhonePe Pay Error:", err.response ? err.response.data : err.message);
+    res.status(500).json({ success: false, message: "Payment initiation failed" });
   }
 });
 
-// -------------------------------
-// 5. Verify Payment
-// -------------------------------
-app.post("/verify-payment", async (req, res) => {
+// Callback (Server-to-Server)
+app.post("/api/phonepe/callback", async (req, res) => {
   try {
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-      name,
-      brandName,
-      email,
-      contact,
-    } = req.body;
+    // PhonePe sends valid JSON base64 encoded in "response" body field
+    // We verify the X-VERIFY header to ensure authenticity.
 
-    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    // This is a placeholder for the actual callback logic which involves:
+    // 1. Verifying X-VERIFY header.
+    // 2. Decoding the base64 payload.
+    // 3. Updating the Transaction Status in DB.
 
-    const expectedSignature = crypto
-      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
-      .update(body.toString())
+    // As defined in requirements, we are focusing on the integration.
+    // We return success to acknowledge receipt.
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Callback Error", err);
+    res.status(500).json({ success: false });
+  }
+});
+
+// Validate Payment (Redirect URL)
+app.post("/api/phonepe/validate/:txnId", async (req, res) => {
+  try {
+    const { txnId } = req.params;
+
+    const stringToSign = `/pg/v1/status/${MERCHANT_ID}/${txnId}` + SALT_KEY;
+    const sha256 = crypto
+      .createHash("sha256")
+      .update(stringToSign)
       .digest("hex");
+    const checksum = sha256 + "###" + SALT_INDEX;
 
-    const isAuthentic = expectedSignature === razorpay_signature;
+    const response = await axios.get(
+      `${PHONEPE_HOST_URL}/pg/v1/status/${MERCHANT_ID}/${txnId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "X-VERIFY": checksum,
+          "X-MERCHANT-ID": MERCHANT_ID,
+        },
+      }
+    );
 
-    if (isAuthentic) {
-      // 1. Check if this is a TICKET payment or MEMBERSHIP payment
-      // If dbTicketId is present, it is STRICTLY an Event Ticket payment.
-      if (req.body.dbTicketId) {
-        // --- EVENT TICKET LOGIC ---
-        // Verify payment for a specific ticket
-        // The "dbTicketId" passed here is the MongoDB _id of the pending ticket.
-        // BUT for events, we might pass the DB Ticket ID.
-        // Let's clarify: The User requested flow:
-        // 1. Create Ticket (PENDING) -> Get DB Ticket ID
-        // 2. Pay -> Redirect
-        // 3. Verify -> We need to update that DB Ticket to PAID.
+    if (response.data.success && response.data.code === "PAYMENT_SUCCESS") {
+      const ticket = await Ticket.findOne({ paymentId: txnId });
 
-        // So here, req.body should contain the DB Ticket _id presumably, or we find it via order_id if we saved it?
-        // Simpler: Client sends the DB Ticket _id in the verify request.
-
-        const dbTicketId = req.body.dbTicketId;
-        if (dbTicketId) {
-          await Ticket.findByIdAndUpdate(dbTicketId, {
-            status: "PAID",
-            paymentId: razorpay_payment_id,
-            signature: razorpay_signature
-          });
-          // Increment Event Registration Count
-          const ticket = await Ticket.findById(dbTicketId);
-          await Event.findByIdAndUpdate(ticket.eventId, { $inc: { currentRegistrations: ticket.quantity } });
-        }
-      } else {
-        // --- MEMBERSHIP LOGIC (Existing) ---
-        await Payment.create({
-          orderId: razorpay_order_id,
-          paymentId: razorpay_payment_id,
-          signature: razorpay_signature,
-          amount: 500,
-          status: "success",
-          name,
-          brandName,
-          email,
-          contact,
-        });
+      if (ticket) {
+        ticket.status = "PAID";
+        await ticket.save();
+        await Event.findByIdAndUpdate(ticket.eventId, { $inc: { currentRegistrations: ticket.quantity } });
+        return res.redirect(`${CLIENT_URL}/ticket/${ticket._id}`);
       }
 
-      res.json({ success: true, message: "Payment verified and saved" });
+      const payment = await Payment.findOne({ orderId: txnId });
+      if (payment) {
+        payment.status = "success";
+        payment.paymentId = response.data.data.transactionId || txnId;
+        await payment.save();
+        return res.redirect(`${CLIENT_URL}/ticket/access-card`);
+      }
+      return res.redirect(`${CLIENT_URL}?payment=success`);
     } else {
-      res.status(400).json({ success: false, message: "Invalid Signature" });
+      return res.redirect(`${CLIENT_URL}?payment=failed`);
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+  } catch (err) {
+    console.error("Payment Validation Error:", err.message);
+    return res.redirect(`${CLIENT_URL}?payment=error`);
   }
 });
 

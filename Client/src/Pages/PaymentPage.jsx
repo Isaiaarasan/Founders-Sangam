@@ -88,15 +88,7 @@ const PaymentPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
+  /* REMOVED RAZORPAY SCRIPT LOADER */
 
   const handlePayment = async (e) => {
     e.preventDefault();
@@ -108,13 +100,6 @@ const PaymentPage = () => {
     }
 
     setLoading(true);
-
-    const loaded = await loadRazorpayScript();
-    if (!loaded) {
-      alert("Razorpay SDK failed to load.");
-      setLoading(false);
-      return;
-    }
 
     try {
       // 1️⃣ Validate User (Backend)
@@ -129,76 +114,31 @@ const PaymentPage = () => {
         return;
       }
 
-      // 2️⃣ Create Order (Backend)
+      // 2️⃣ Initiate Payment (PhonePe)
       const res = await axios.post(
-        "https://founders-sangam.onrender.com/create-order",
-        { amount: price } // Send dynamic price
+        "https://founders-sangam.onrender.com/api/phonepe/pay",
+        {
+          name: formData.name,
+          amount: price,
+          number: formData.contact,
+          mid: "MID" + Date.now(),
+          transactionId: "TXN_" + Date.now(),
+          type: isEvent ? 'TICKET' : 'MEMBERSHIP',
+          brandName: formData.brandName,
+          email: formData.email
+        }
       );
 
-      const order = res.data.order;
+      if (res.data.success) {
+        window.location.href = res.data.url;
+      } else {
+        alert("Payment Initiation Failed");
+        setLoading(false);
+      }
 
-      // 3️⃣ Open Razorpay Checkout
-      const options = {
-        key: "rzp_test_Rp6GD9RsE0Gej7", // Replace with your Live Key if needed
-        amount: order.amount,
-        currency: order.currency,
-        name: "Founders Sangam",
-        description: title,
-        image: "https://via.placeholder.com/150",
-        order_id: order.id,
-
-        handler: async function (response) {
-          try {
-            // Verify Payment
-            const verifyRes = await axios.post(
-              "https://founders-sangam.onrender.com/verify-payment",
-              { ...response, ...formData, amount: price, purpose: title }
-            );
-
-            if (verifyRes.data.success) {
-
-              // 4️⃣ REDIRECT TO TICKET PAGE
-              // Use /ticket/membership for URL but pass state for data
-              navigate("/ticket/access-card", {
-                state: {
-                  paymentData: {
-                    ...formData,
-                    ticketId: response.razorpay_payment_id,
-                    date: displayDate,
-                    amountPaid: price,
-                    ticketType: "Membership" // Explicit type
-                  }
-                }
-              });
-
-            } else {
-              alert("Payment Verification Failed!");
-            }
-          } catch (error) {
-            console.error(error);
-            alert("Verification Error");
-          }
-        },
-        prefill: {
-          name: formData.name,
-          email: formData.email,
-          contact: formData.contact,
-        },
-        theme: {
-          color: "#f59e0b",
-        },
-      };
-
-      const paymentObject = new window.Razorpay(options);
-      paymentObject.open();
-
-      paymentObject.on("payment.failed", (res) => {
-        alert(res.error.description);
-      });
     } catch (error) {
       console.error("Payment Error:", error);
       alert("Something went wrong initializing payment.");
-    } finally {
       setLoading(false);
     }
   };
@@ -371,7 +311,7 @@ const PaymentPage = () => {
                   <div className="flex items-center justify-center gap-3 text-xs text-slate-400 font-medium">
                     <div className="flex items-center gap-1">
                       <ShieldCheck size={12} />
-                      <span>Secured by Razorpay</span>
+                      <span>Secured by PhonePe</span>
                     </div>
                     <span className="w-1 h-1 rounded-full bg-slate-300"></span>
                     <div className="flex items-center gap-1">

@@ -37,90 +37,36 @@ const EventPaymentPage = () => {
 
     const { dbTicketId, title, price, name, email, contact, ticketType, quantity } = data;
 
-    const loadRazorpayScript = () => {
-        return new Promise((resolve) => {
-            const script = document.createElement("script");
-            script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.body.appendChild(script);
-        });
-    };
-
     const handlePayment = async () => {
         setLoading(true);
 
-        const loaded = await loadRazorpayScript();
-        if (!loaded) {
-            alert("Razorpay SDK failed to load.");
-            setLoading(false);
-            return;
-        }
-
         try {
-            // 1️⃣ Create Order (Backend)
-            // Note: We use the existing create-order endpoint which just creates a Razorpay order
+            // 1️⃣ Initiate Payment (PhonePe)
             const res = await axios.post(
-                "https://founders-sangam.onrender.com/create-order",
-                { amount: price }
+                "https://founders-sangam.onrender.com/api/phonepe/pay",
+                {
+                    name: name,
+                    amount: price,
+                    number: contact,
+                    mid: "MID" + Date.now(),
+                    transactionId: "TXN_" + Date.now(),
+                    type: "TICKET", // Explicitly Ticket
+                    ticketId: dbTicketId, // Important: Existing PENDING ticket
+                    brandName: "Founders Sangam",
+                    email: email
+                }
             );
 
-            const order = res.data.order;
-
-            // 2️⃣ Open Razorpay Checkout
-            const options = {
-                key: "rzp_test_Rp6GD9RsE0Gej7",
-                amount: order.amount,
-                currency: order.currency,
-                name: "Founders Sangam",
-                description: `Ticket: ${title}`,
-                image: "https://via.placeholder.com/150", // You might want to use a real logo here
-                order_id: order.id,
-                prefill: {
-                    name: name,
-                    email: email,
-                    contact: contact,
-                },
-                theme: {
-                    color: "#f59e0b",
-                },
-                handler: async function (response) {
-                    try {
-                        // 3️⃣ Verify Payment
-                        // Critical: Pass dbTicketId so backend can update the Ticket status
-                        const verifyRes = await axios.post(
-                            "https://founders-sangam.onrender.com/verify-payment",
-                            {
-                                ...response,
-                                dbTicketId: dbTicketId, // This triggers the event ticket logic in backend
-                                amount: price
-                            }
-                        );
-
-                        if (verifyRes.data.success) {
-                            // 4️⃣ Success -> Redirect to Ticket Page
-                            navigate(`/ticket/${dbTicketId}`);
-                        } else {
-                            alert("Payment Verification Failed!");
-                        }
-                    } catch (error) {
-                        console.error(error);
-                        alert("Verification Error");
-                    }
-                },
-            };
-
-            const paymentObject = new window.Razorpay(options);
-            paymentObject.open();
-
-            paymentObject.on("payment.failed", (res) => {
-                alert(res.error.description);
-            });
-
+            if (res.data.success) {
+                // 2️⃣ Redirect
+                window.location.href = res.data.url;
+            } else {
+                alert("Payment Initiation Failed");
+                setLoading(false);
+            }
         } catch (error) {
             console.error("Payment Error:", error);
             alert("Something went wrong initializing payment.");
-        } finally {
             setLoading(false);
         }
     };
@@ -188,7 +134,7 @@ const EventPaymentPage = () => {
                         <ShieldCheck size={48} className="mx-auto text-emerald-500 mb-4" />
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Secure Payment</h2>
                         <p className="text-slate-500 dark:text-slate-400 mt-2">
-                            Transactions are encrypted and secured by Razorpay.
+                            Transactions are encrypted and secured by PhonePe.
                         </p>
                     </div>
 
