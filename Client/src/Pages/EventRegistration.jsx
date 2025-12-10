@@ -3,8 +3,23 @@ import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
 import { getEventById, registerForEvent } from "../api/eventService";
 import TicketForm from "../components/TicketForm";
-import { Calendar, MapPin, AlertCircle, ShieldCheck } from "lucide-react";
+import { Calendar, MapPin, AlertCircle, ShieldCheck, Star, Clock } from "lucide-react";
 import { motion } from "framer-motion";
+
+// --- Theme Utilities ---
+const BRAND_GRADIENT = "from-amber-400 via-red-500 to-sky-500";
+
+// Helper component for staggered fade-in effect
+const FadeIn = ({ children, delay = 0, className = "" }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay, ease: "easeOut" }}
+        className={className}
+    >
+        {children}
+    </motion.div>
+);
 
 const EventRegistration = () => {
     const { id } = useParams();
@@ -14,6 +29,7 @@ const EventRegistration = () => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState(null);
 
+    // --- EXISTING LOGIC REMAINS UNCHANGED ---
     useEffect(() => {
         const fetchEvent = async () => {
             try {
@@ -37,7 +53,6 @@ const EventRegistration = () => {
         setError(null);
 
         try {
-            // 1. Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(formData.email)) {
                 alert("Please enter a valid email address");
@@ -45,11 +60,9 @@ const EventRegistration = () => {
                 return;
             }
 
-            // 2. Register for Event (Create Ticket in DB with PENDING status)
             const result = await registerForEvent(id, formData);
 
             if (result.success) {
-                // 3. Initiate Payment (PhonePe)
                 const res = await axios.post(
                     "https://founders-sangam.onrender.com/api/phonepe/pay",
                     {
@@ -66,7 +79,6 @@ const EventRegistration = () => {
                 );
 
                 if (res.data.success) {
-                    // 4. Redirect to PhonePe
                     const redirectUrl = res.data.url;
                     if (redirectUrl) {
                         window.location.href = redirectUrl;
@@ -82,20 +94,18 @@ const EventRegistration = () => {
             }
         } catch (err) {
             console.error(err);
-
-            // Handle specific error messages
             let errorMessage = "Registration failed";
-
             if (typeof err === 'string') {
                 errorMessage = err;
             } else if (err.message) {
                 errorMessage = err.message;
             }
-
             alert(errorMessage);
             setSubmitting(false);
         }
     };
+    // --- END OF EXISTING LOGIC ---
+
 
     if (loading) return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -111,53 +121,103 @@ const EventRegistration = () => {
     );
 
     const isFull = event.currentRegistrations >= event.maxRegistrations;
+    const isEventEnded = new Date(event.date) < new Date();
+
+    // Content for Acknowledgement section
+    const acknowledgementItems = [
+        "Registration is non-refundable and open only to confirmed participants.",
+        "Event Duration: 2 hours (1 hr Chief guest Session + 1 hr Networking).",
+        "Visitors or plus-ones are not allowed inside the venue.",
+        "Event videos and photos will be recorded for marketing purposes.",
+        "Snacks and refreshments will be provided during the event.",
+        "Please take care of your belongings; organizers are not responsible for loss or damage.",
+    ];
 
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 pt-20 pb-12 px-4 md:px-12 transition-colors duration-500">
             <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-                {/* Left: Event Info */}
+                
+                {/* 1. Left: Event Info and Acknowledgement (FIRST on Mobile, Left on Desktop) */}
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="space-y-6"
+                    className="space-y-6 lg:order-1" // Stays on the left on desktop
                 >
-                    <div className="relative h-48 md:h-80 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl">
+                    
+                    {/* Important Acknowledgement (FIRST on mobile) */}
+                    <FadeIn delay={0.0}>
+                        <div className="bg-green-50 dark:bg-green-900/30 p-5 rounded-2xl border border-green-200 dark:border-green-800 shadow-xl ring-2 ring-green-500/50">
+                            <h3 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white mb-3 flex items-center">
+                                <ShieldCheck size={20} className="text-green-600 dark:text-green-400 mr-2 flex-shrink-0" />
+                                Claim your place in the most refined FOUNDER circle
+                            </h3>
+                            <div className="space-y-3">
+                                {acknowledgementItems.map((item, index) => (
+                                    <div key={index} className="flex items-start text-sm text-slate-700 dark:text-slate-300">
+                                        <Clock size={16} className="text-green-600 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0" />
+                                        <span className="leading-relaxed font-medium">{item}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </FadeIn>
+                    
+                    {/* Event Banner/Header (Now SECOND on mobile - REDUCED SIZE) */}
+                    <FadeIn delay={0.1} 
+                          // *** HEIGHT REDUCED HERE: h-48 md:h-80 -> h-32 md:h-64 ***
+                          className="relative h-32 md:h-64 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl">
                         <img
                             src={event.image || "https://via.placeholder.com/800x400"}
                             alt={event.title}
                             className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 text-white">
-                            <h1 className="text-2xl md:text-4xl font-bold mb-1 md:mb-2 leading-tight">{event.title}</h1>
-                            <div className="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm font-medium opacity-90">
-                                <span className="flex items-center gap-1"><Calendar size={14} className="md:w-4 md:h-4" /> {new Date(event.date).toLocaleDateString()}</span>
-                                <span className="flex items-center gap-1"><MapPin size={14} className="md:w-4 md:h-4" /> {event.location}</span>
+                        
+                        {/* Star Rating Badge (Shrunk) */}
+                        <div className="absolute top-3 left-3 md:top-6 md:left-6 text-white text-xs font-extrabold flex items-center bg-amber-500/80 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                            <Star size={12} className="text-yellow-300 fill-yellow-300 mr-1" />
+                            <span>4.85 Star Rated</span>
+                        </div>
+                        
+                        <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 text-white">
+                            {/* Title size reduced: text-xl md:text-3xl -> text-base md:text-2xl */}
+                            <h1 className="text-base md:text-2xl font-bold mb-1 leading-tight">{event.title}</h1>
+                            {/* Info size reduced: text-xs md:text-sm -> text-xs font-light */}
+                            <div className="flex flex-wrap gap-2 md:gap-4 text-xs font-light opacity-90">
+                                <span className="flex items-center gap-1"><Calendar size={12} className="md:w-3 md:h-3" /> {new Date(event.date).toLocaleDateString()}</span>
+                                <span className="flex items-center gap-1"><MapPin size={12} className="md:w-3 md:h-3" /> {event.location}</span>
                             </div>
                         </div>
-                    </div>
+                    </FadeIn>
 
-                    <div className="bg-slate-50 dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
-                        <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-3 md:mb-4">Event Description</h3>
-                        <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-6">
+                    {/* Event Description (Now THIRD on mobile) */}
+                    <FadeIn delay={0.2} className="bg-slate-50 dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
+                        <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-3 md:mb-4">Description</h3>
+                        <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-4">
                             {event.description}
                         </p>
-                    </div>
+                    </FadeIn>
+                    
                 </motion.div>
 
-                {/* Right: Registration Form */}
+                {/* 2. Right: Registration Form (SECOND Column on Desktop) */}
                 <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2 }}
+                    transition={{ delay: 0.3 }}
+                    className="lg:order-2" 
                 >
-                    <div className="bg-white dark:bg-slate-900 p-5 md:p-8 rounded-2xl md:rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-800">
-                        <div className="mb-6 md:mb-8">
+                    <div className="bg-white dark:bg-slate-800 p-5 md:p-8 rounded-2xl md:rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-700 lg:sticky lg:top-8">
+                        
+                        {/* Top Accent Line */}
+                        <div className={`h-1.5 w-full bg-gradient-to-r ${BRAND_GRADIENT} absolute top-0 left-0 rounded-t-2xl md:rounded-t-[2rem]`}></div>
+
+                        <div className="mt-4 mb-6 md:mb-8">
                             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">Register Now</h2>
                             <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1 md:mt-2">Secure your spot for this exclusive event.</p>
                         </div>
 
-                        {new Date(event.date) < new Date() ? (
+                        {isEventEnded ? (
                             <div className="p-6 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl text-center font-bold text-lg">
                                 🔒 Registration Closed: Event has ended
                             </div>

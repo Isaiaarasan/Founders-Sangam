@@ -13,6 +13,7 @@ import {
   Loader2,
   AlertCircle,
   Ticket,
+  MessageCircle, // Icon for WhatsApp/Community
 } from "lucide-react";
 import FadeIn from "../components/FadeIn";
 import { getTicketById } from "../api/eventService";
@@ -21,6 +22,20 @@ import { getTicketById } from "../api/eventService";
 const TicketStructure = ({ data }) => {
   const { name, ticketId, date, eventId } = data;
   const eventType = data.ticketType || "General";
+
+  // Data structure for the QR code (Enhanced and well-formatted)
+  const qrData = {
+    id: ticketId,
+    attendee: name,
+    company: data.companyName || 'N/A',
+    event: eventId?.title || 'Founders Sangam',
+    type: eventType,
+    location: eventId?.location || "Tirupur, TN",
+    validity: "Single Entry",
+  };
+
+  // Convert the object to a formatted string using 4-space indentation for better readability upon scanning.
+  const qrCodeValue = JSON.stringify(qrData, null, 4);
 
   // PREMIUM GOLD THEME STYLES (Pure Inline CSS)
   const styles = {
@@ -247,7 +262,7 @@ const TicketStructure = ({ data }) => {
         <div style={styles.holeBottom}></div>
 
         <QRCode
-          value={JSON.stringify({ ticketId, name, type: eventType })}
+          value={qrCodeValue}
           size={110}
           style={{ height: "auto", maxWidth: "100%", width: "100%" }}
           viewBox={`0 0 256 256`}
@@ -297,6 +312,9 @@ const TicketPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // --- WhatsApp Link Constant ---
+  const WHATSAPP_COMMUNITY_LINK = "https://chat.whatsapp.com/KImGTzWC1ox7Rqse4Ws6Nz";
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -373,6 +391,10 @@ const TicketPage = () => {
     }
   };
 
+  const handleJoinCommunity = () => {
+    window.open(WHATSAPP_COMMUNITY_LINK, "_blank");
+  };
+
   if (loading)
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
@@ -408,10 +430,10 @@ const TicketPage = () => {
     <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 p-6 transition-colors duration-500">
       <FadeIn>
         <div className="text-center mb-4 md:mb-8 mt-4 md:mt-0">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-4 shadow-xl">
+          {/* <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-4 shadow-xl">
             <CheckCircle2 size={32} className="text-amber-500" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+          </div> */}
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
             You're In!
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm max-w-sm mx-auto">
@@ -421,16 +443,13 @@ const TicketPage = () => {
 
         <div className="flex flex-col items-center justify-center w-full">
           {/* Display the Premium Ticket */}
-          {/* Responsive Scaling: 
-                        - Mobile (<640px): scale-[0.55] (Fits 600px into ~330px)
-                        - SMB (<768px): scale-75
-                        - Desktop (>=768px): scale-100
-                    */}
           <div className="transform scale-[0.55] sm:scale-75 md:scale-100 shadow-2xl shadow-slate-300 dark:shadow-black/50 rounded-[24px] overflow-hidden origin-center transition-transform duration-300">
             <TicketStructure data={ticketData} />
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-12 w-full max-w-[300px] sm:max-w-none items-center justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-12 w-full max-w-[300px] sm:max-w-[800px] items-center justify-center">
+
+            {/* 1. Home Button */}
             <button
               onClick={() => navigate("/")}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold transition-all text-sm hover:scale-105 bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 shadow-sm"
@@ -438,6 +457,23 @@ const TicketPage = () => {
               <Home size={18} />
               Home
             </button>
+
+            {/* 2. Join Community Button (NEW) */}
+            <button
+              onClick={handleJoinCommunity}
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-all active:scale-95 text-sm"
+              style={{
+                // WhatsApp Green Style
+                backgroundColor: '#25D366',
+                color: '#ffffff',
+                boxShadow: "0 0 15px rgba(37, 211, 102, 0.4)",
+              }}
+            >
+              <MessageCircle size={18} />
+              Join Community
+            </button>
+
+            {/* 3. Download Ticket Button */}
             <button
               onClick={handleDownload}
               disabled={isDownloading}
