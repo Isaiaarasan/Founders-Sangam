@@ -188,8 +188,8 @@ app.post("/admin/login", async (req, res) => {
 // -------------------------------
 const { StandardCheckoutClient, Env, MetaInfo, StandardCheckoutPayRequest } = require('pg-sdk-node');
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:5000";
+const CLIENT_URL = process.env.CLIENT_URL || "https://founders-sangam.vercel.app/";
+const SERVER_URL = process.env.SERVER_URL || "https://founders-sangam.onrender.com";
 
 // Initialize PhonePe SDK Client (only once)
 const phonepeClient = StandardCheckoutClient.getInstance(

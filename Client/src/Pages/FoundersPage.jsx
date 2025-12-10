@@ -15,7 +15,7 @@ const FoundersPage = () => {
         const fetchFounders = async () => {
             try {
                 // Ensure this URL matches your backend
-                const res = await axios.get("http://localhost:5000/members");
+                const res = await axios.get("https://founders-sangam.onrender.com/members");
                 if (res.data.success) {
                     setFounders(res.data.members);
                 } else {

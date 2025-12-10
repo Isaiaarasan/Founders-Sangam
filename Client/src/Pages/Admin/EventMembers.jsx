@@ -30,7 +30,7 @@ const EventMembers = () => {
       try {
         const token = localStorage.getItem("adminToken");
         const res = await axios.get(
-          "http://localhost:5000/admin/registrations",
+          "https://founders-sangam.onrender.com/admin/registrations",
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (res.data.success) {

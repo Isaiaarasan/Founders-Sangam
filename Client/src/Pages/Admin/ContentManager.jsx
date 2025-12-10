@@ -14,7 +14,7 @@ const ContentManager = () => {
 
     const fetchContent = async (section) => {
         try {
-            const res = await axios.get(`http://localhost:5000/content/${section}`);
+            const res = await axios.get(`https://founders-sangam.onrender.com/content/${section}`);
             if (res.data.success && res.data.content) {
                 if (section === "testimonials") setTestimonials(res.data.content);
             }
@@ -28,7 +28,7 @@ const ContentManager = () => {
         try {
             const token = localStorage.getItem("adminToken");
             await axios.post(
-                `http://localhost:5000/content/${section}`,
+                `https://founders-sangam.onrender.com/content/${section}`,
                 { content },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

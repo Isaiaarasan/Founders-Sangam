@@ -392,7 +392,7 @@ const VideoSection = () => {
       const fetchVideos = async () => {
         try {
           const res = await axios.get(
-            "http://localhost:5000/content/videos",
+            "https://founders-sangam.onrender.com/content/videos",
             {
               timeout: 3000,
             }
@@ -1107,7 +1107,7 @@ const TestimonialsSection = () => {
       const fetchTestimonials = async () => {
         try {
           const res = await axios.get(
-            "http://localhost:5000/content/testimonials"
+            "https://founders-sangam.onrender.com/content/testimonials"
           );
           if (
             res.data.success &&
@@ -1215,7 +1215,7 @@ const CollaborationSection = () => {
       const fetchCompanies = async () => {
         try {
           const res = await axios.get(
-            "http://localhost:5000/content/collaboration"
+            "https://founders-sangam.onrender.com/content/collaboration"
           );
           if (
             res.data.success &&

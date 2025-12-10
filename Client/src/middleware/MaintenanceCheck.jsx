@@ -20,7 +20,7 @@ const MaintenanceCheck = ({ children }) => {
     const checkMaintenance = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:5000/settings/status",
+          "https://founders-sangam.onrender.com/settings/status",
           { timeout: 5000 } // Increased timeout slightly
         );
         if (res.data.success && res.data.isMaintenanceMode && !isAdmin) {

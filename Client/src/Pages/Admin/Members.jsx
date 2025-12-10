@@ -22,7 +22,7 @@ const Members = () => {
             setLoading(true);
             try {
                 const token = localStorage.getItem("adminToken");
-                const res = await axios.get("http://localhost:5000/members", {
+                const res = await axios.get("https://founders-sangam.onrender.com/members", {
                     headers: { Authorization: `Bearer ${token}` },
                     params: {
                         page: pagination.pageIndex + 1,

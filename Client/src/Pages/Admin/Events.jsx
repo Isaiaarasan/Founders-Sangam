@@ -23,7 +23,7 @@ const Events = () => {
     const fetchEvents = async () => {
         setLoading(true);
         try {
-            const res = await axios.get("http://localhost:5000/events", {
+            const res = await axios.get("https://founders-sangam.onrender.com/events", {
                 params: {
                     page: pagination.pageIndex + 1,
                     limit: pagination.pageSize,
@@ -49,11 +49,11 @@ const Events = () => {
         const token = localStorage.getItem("adminToken");
         try {
             if (editingEvent) {
-                await axios.put(`http://localhost:5000/events/${editingEvent._id}`, data, {
+                await axios.put(`https://founders-sangam.onrender.com/events/${editingEvent._id}`, data, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
             } else {
-                await axios.post("http://localhost:5000/events", data, {
+                await axios.post("https://founders-sangam.onrender.com/events", data, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
             }
@@ -68,7 +68,7 @@ const Events = () => {
         if (!window.confirm("Are you sure you want to delete this event?")) return;
         const token = localStorage.getItem("adminToken");
         try {
-            await axios.delete(`http://localhost:5000/events/${id}`, {
+            await axios.delete(`https://founders-sangam.onrender.com/events/${id}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             fetchEvents();

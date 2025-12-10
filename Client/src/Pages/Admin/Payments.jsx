@@ -33,7 +33,7 @@ const Payments = () => {
       try {
         const token = localStorage.getItem("adminToken");
         const res = await axios.get(
-          "http://localhost:5000/admin/payments",
+          "https://founders-sangam.onrender.com/admin/payments",
           {
             headers: { Authorization: `Bearer ${token}` },
             params: {

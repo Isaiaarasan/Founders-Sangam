@@ -1,7 +1,7 @@
 import axios from "axios";
 
-//const API_URL = "http://localhost:5000";
-const API_URL = "http://localhost:5000"; // Using localhost for dev
+//const API_URL = "https://founders-sangam.onrender.com";
+const API_URL = "https://founders-sangam.onrender.com"; // Using localhost for dev
 
 export const getEventById = async (id) => {
     try {

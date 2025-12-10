@@ -51,7 +51,7 @@ const EventRegistration = () => {
             if (result.success) {
                 // 3. Initiate Payment (PhonePe)
                 const res = await axios.post(
-                    "http://localhost:5000/api/phonepe/pay",
+                    "https://founders-sangam.onrender.com/api/phonepe/pay",
                     {
                         name: formData.name,
                         amount: formData.amount,
