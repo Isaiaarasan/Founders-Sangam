@@ -16,7 +16,6 @@ import EventPaymentPage from "./Pages/EventPaymentPage";
 import Payments from "./Pages/Admin/Payments";
 import EventsPage from "./Pages/EventsPage";
 
-
 // Lazy load other pages
 
 const EventDetails = lazy(() => import("./Pages/EventDetails"));
@@ -24,6 +23,7 @@ const EventRegistration = lazy(() => import("./Pages/EventRegistration"));
 const MaintenancePage = lazy(() => import("./Pages/MaintenancePage"));
 const Broadcast = lazy(() => import("./Pages/Broadcast"));
 const Courses = lazy(() => import("./Pages/Courses"));
+const PaymentFailure = lazy(() => import("./Pages/PaymentFailure"));
 
 // Admin Pages
 const AdminLogin = lazy(() => import("./Pages/Admin/AdminLogin"));
@@ -126,6 +126,14 @@ function App() {
               element={
                 <Layout isDark={isDark} toggleTheme={toggleTheme}>
                   <EventDetails />
+                </Layout>
+              }
+            />
+            <Route
+              path="/payment-failure"
+              element={
+                <Layout isDark={isDark} toggleTheme={toggleTheme}>
+                  <PaymentFailure />
                 </Layout>
               }
             />

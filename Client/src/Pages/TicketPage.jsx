@@ -27,8 +27,8 @@ const TicketStructure = ({ data }) => {
   const qrData = {
     id: ticketId,
     attendee: name,
-    company: data.companyName || 'N/A',
-    event: eventId?.title || 'Founders Sangam',
+    company: data.companyName || "N/A",
+    event: eventId?.title || "Founders Sangam",
     type: eventType,
     location: eventId?.location || "Tirupur, TN",
     validity: "Single Entry",
@@ -202,7 +202,9 @@ const TicketStructure = ({ data }) => {
             <p style={styles.label}>Attendee</p>
             <h3 style={styles.value}>{name}</h3>
             {data.companyName && (
-              <p style={{ ...styles.subValue, marginTop: "4px" }}>{data.companyName}</p>
+              <p style={{ ...styles.subValue, marginTop: "4px" }}>
+                {data.companyName}
+              </p>
             )}
           </div>
 
@@ -314,7 +316,8 @@ const TicketPage = () => {
   const [isDownloading, setIsDownloading] = useState(false);
 
   // --- WhatsApp Link Constant ---
-  const WHATSAPP_COMMUNITY_LINK = "https://chat.whatsapp.com/KImGTzWC1ox7Rqse4Ws6Nz";
+  const WHATSAPP_COMMUNITY_LINK =
+    "https://chat.whatsapp.com/KImGTzWC1ox7Rqse4Ws6Nz";
 
   useEffect(() => {
     const fetchTicket = async () => {
@@ -333,6 +336,17 @@ const TicketPage = () => {
             location: "Tirupur, TN",
           },
         });
+
+        // CLEAR TEMPORARY FORM DATA FROM LOCALSTORAGE ON SUCCESSFUL PAYMENT
+        // Clean up all saved form data keys
+        Object.keys(localStorage).forEach((key) => {
+          if (key.startsWith("formData_")) {
+            localStorage.removeItem(key);
+          }
+        });
+        // Clear retry context
+        localStorage.removeItem("paymentRetryContext");
+
         setLoading(false);
       }
       // Priority 2: Fetch Event Ticket via ID (URL)
@@ -341,6 +355,14 @@ const TicketPage = () => {
           const data = await getTicketById(id);
           if (data) {
             setTicket(data);
+
+            // CLEAR TEMPORARY FORM DATA ON SUCCESSFUL TICKET FETCH
+            Object.keys(localStorage).forEach((key) => {
+              if (key.startsWith("formData_")) {
+                localStorage.removeItem(key);
+              }
+            });
+            localStorage.removeItem("paymentRetryContext");
           } else {
             setError("Ticket not found");
           }
@@ -448,7 +470,6 @@ const TicketPage = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-6 md:mt-12 w-full max-w-[300px] sm:max-w-[800px] items-center justify-center">
-
             {/* 1. Home Button */}
             <button
               onClick={() => navigate("/")}
@@ -464,8 +485,8 @@ const TicketPage = () => {
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold shadow-lg hover:scale-105 transition-all active:scale-95 text-sm"
               style={{
                 // WhatsApp Green Style
-                backgroundColor: '#25D366',
-                color: '#ffffff',
+                backgroundColor: "#25D366",
+                color: "#ffffff",
                 boxShadow: "0 0 15px rgba(37, 211, 102, 0.4)",
               }}
             >
