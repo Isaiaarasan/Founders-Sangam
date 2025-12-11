@@ -1,5 +1,11 @@
 import React, { Suspense, lazy, useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import Layout from "./components/Layout";
 import AdminLayout from "./Layouts/AdminLayout";
@@ -37,6 +43,27 @@ const Videos = lazy(() => import("./Pages/Admin/Videos"));
 const Settings = lazy(() => import("./Pages/Admin/Settings"));
 const TicketPage = lazy(() => import("./Pages/TicketPage"));
 
+// Small helper to handle query param based redirects (runs inside Router)
+const RedirectHandler = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      const payment = params.get("payment");
+      if (payment === "failed") {
+        // Navigate to the failure page and replace history so query isn't retained
+        navigate("/payment-failure", { replace: true });
+      }
+    } catch (err) {
+      // ignore
+    }
+  }, [location.search, navigate]);
+
+  return null;
+};
+
 function App() {
   const [isDark, setIsDark] = useState(() => {
     if (typeof window !== "undefined") {
@@ -63,6 +90,8 @@ function App() {
 
   return (
     <Router>
+      {/* Redirect handler: watch query params (e.g., ?payment=failed) and navigate accordingly */}
+      <RedirectHandler />
       <MaintenanceCheck>
         <Suspense
           fallback={
