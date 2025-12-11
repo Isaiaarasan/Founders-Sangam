@@ -37,37 +37,65 @@ const PaymentFailure = () => {
   }, [countdown]);
 
   const handleRetry = () => {
-    if (ticketId && eventId) {
-      // Store failure context in localStorage for retry
-      localStorage.setItem(
-        "paymentRetryContext",
-        JSON.stringify({
-          eventId,
-          ticketId,
-          failedAttempts:
-            (JSON.parse(localStorage.getItem("paymentRetryContext"))
-              ?.failedAttempts || 0) + 1,
-          lastFailureTime: new Date().toISOString(),
-          lastFailureReason: failureReason,
-          lastErrorCode: data?.errorCode,
-        })
-      );
+    // Get eventId from state, localStorage, or fallback
+    let targetEventId = eventId;
 
-      // Set cooldown timer for this retry attempt
-      setCountdown(30);
-      setRetryDisabled(true);
+    // If eventId not in state, try to get it from localStorage
+    if (!targetEventId) {
+      // First, try lastPaymentContext
+      const lastPaymentContext = localStorage.getItem("lastPaymentContext");
+      if (lastPaymentContext) {
+        try {
+          const context = JSON.parse(lastPaymentContext);
+          targetEventId = context.eventId;
+        } catch (err) {
+          console.log("Could not parse lastPaymentContext");
+        }
+      }
 
-      // Navigate to event registration with retry flag
-      navigate(`/event/${eventId}`, {
-        state: {
-          isRetry: true,
-          previousTicketId: ticketId,
-          failureData: data,
-        },
-      });
-    } else {
-      navigate("/events");
+      // If still not found, try existing retry context
+      if (!targetEventId) {
+        const existingRetryContext = localStorage.getItem("paymentRetryContext");
+        if (existingRetryContext) {
+          try {
+            const context = JSON.parse(existingRetryContext);
+            targetEventId = context.eventId;
+          } catch (err) {
+            console.log("Could not parse existing retry context");
+          }
+        }
+      }
     }
+
+    // Fallback to default eventId if still not found
+    if (!targetEventId) {
+      targetEventId = "69382673cb27d7173ac1dfc5";
+      console.warn("No eventId found in state or localStorage, using default");
+    }
+
+    // Construct dynamic registration URL based on eventId
+    const registrationUrl = `https://founders-sangam.vercel.app/event/${targetEventId}/register`;
+
+    // Store retry context in localStorage
+    const retryContext = {
+      isRetry: true,
+      timestamp: new Date().toISOString(),
+      failedAttempts: (JSON.parse(localStorage.getItem("paymentRetryContext"))?.failedAttempts || 0) + 1,
+      lastFailureReason: failureReason,
+      lastErrorCode: data?.errorCode,
+      ticketId: ticketId,
+      eventId: targetEventId,
+    };
+
+    localStorage.setItem("paymentRetryContext", JSON.stringify(retryContext));
+
+    // Set cooldown timer
+    setCountdown(30);
+    setRetryDisabled(true);
+
+    // Redirect to the event-specific registration page
+    console.log(`Redirecting to event registration: ${registrationUrl}`);
+    window.location.href = registrationUrl;
   };
 
   const handleContactSupport = () => {

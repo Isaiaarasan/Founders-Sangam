@@ -43,19 +43,36 @@ const EventRegistration = () => {
 
   // --- EXISTING LOGIC REMAINS UNCHANGED ---
   useEffect(() => {
-    // Check if coming from payment failure retry
+    // Check for payment retry context in localStorage
+    const retryContext = localStorage.getItem("paymentRetryContext");
+    if (retryContext) {
+      try {
+        const context = JSON.parse(retryContext);
+        if (context.isRetry) {
+          setIsRetry(true);
+          setPreviousFailure({
+            reason: context.lastFailureReason,
+            errorCode: context.lastErrorCode,
+          });
+        }
+      } catch (err) {
+        console.log("Could not parse retry context");
+      }
+    }
+
+    // Check if coming from payment failure retry (via navigation state)
     if (location.state?.isRetry) {
       setIsRetry(true);
       setPreviousFailure(location.state?.failureData);
+    }
 
-      // Load saved form data from localStorage
-      const savedData = localStorage.getItem(`formData_${id}`);
-      if (savedData) {
-        try {
-          setSavedFormData(JSON.parse(savedData));
-        } catch (err) {
-          console.log("Could not load saved form data");
-        }
+    // Load saved form data from localStorage (use event ID from URL)
+    const savedData = localStorage.getItem(`formData_${id}`);
+    if (savedData) {
+      try {
+        setSavedFormData(JSON.parse(savedData));
+      } catch (err) {
+        console.log("Could not load saved form data");
       }
     }
 
@@ -89,7 +106,14 @@ const EventRegistration = () => {
       }
 
       // SAVE FORM DATA TO LOCALSTORAGE (for retry on failure)
+      const paymentContext = {
+        eventId: id,
+        formData: formData,
+        timestamp: new Date().toISOString(),
+      };
+
       localStorage.setItem(`formData_${id}`, JSON.stringify(formData));
+      localStorage.setItem("lastPaymentContext", JSON.stringify(paymentContext));
 
       const result = await registerForEvent(id, formData);
 
@@ -349,6 +373,7 @@ const EventRegistration = () => {
                   onSubmit={handleRegistration}
                   loading={submitting}
                   savedData={savedFormData}
+                  isRetry={isRetry}
                 />
                 <div className="mt-6 flex items-center justify-center gap-2 text-slate-400 text-sm">
                   <ShieldCheck size={16} className="text-emerald-500" />

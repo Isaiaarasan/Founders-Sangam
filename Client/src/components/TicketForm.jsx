@@ -7,6 +7,7 @@ import {
   Hash,
   CreditCard,
   Building2,
+  AlertCircle,
 } from "lucide-react";
 
 const InputField = ({
@@ -43,7 +44,7 @@ const InputField = ({
   </div>
 );
 
-const TicketForm = ({ event, onSubmit, loading, savedData }) => {
+const TicketForm = ({ event, onSubmit, loading, savedData, isRetry = false }) => {
   const [formData, setFormData] = useState({
     name: savedData?.name || "",
     companyName: savedData?.companyName || "",
@@ -62,6 +63,20 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
       setFormData((prev) => ({ ...prev, ticketType: ticketOptions[0].name }));
     }
   }, [ticketOptions]);
+
+  // Sync form data when savedData changes (for retry scenarios)
+  useEffect(() => {
+    if (savedData) {
+      setFormData({
+        name: savedData.name || "",
+        companyName: savedData.companyName || "",
+        email: savedData.email || "",
+        contact: savedData.contact || "",
+        ticketType: savedData.ticketType || (ticketOptions.length > 0 ? ticketOptions[0].name : ""),
+        quantity: savedData.quantity || 1,
+      });
+    }
+  }, [savedData]);
 
   // Calculate Price
   useEffect(() => {
@@ -105,6 +120,21 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Retry Banner */}
+      {isRetry && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 flex items-start gap-3">
+          <AlertCircle size={20} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-bold text-amber-700 dark:text-amber-300">
+              Payment Retry Mode
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-0.5">
+              Your registration details are locked. Click "Retry Payment" below to complete your payment.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="md:col-span-2">
           <InputField
@@ -115,6 +145,7 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
             value={formData.name}
             onChange={handleChange}
             icon={User}
+            disabled={isRetry}
           />
         </div>
         <div className="md:col-span-2">
@@ -126,6 +157,7 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
             value={formData.companyName}
             onChange={handleChange}
             icon={Building2}
+            disabled={isRetry}
           />
         </div>
         <div>
@@ -137,6 +169,7 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
             value={formData.email}
             onChange={handleChange}
             icon={Mail}
+            disabled={isRetry}
           />
         </div>
         <div>
@@ -148,6 +181,7 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
             value={formData.contact}
             onChange={handleChange}
             icon={Phone}
+            disabled={isRetry}
           />
         </div>
         <div>
@@ -160,7 +194,8 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
                 name="ticketType"
                 value={formData.ticketType}
                 onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 transition-all text-slate-900 dark:text-white font-medium appearance-none"
+                disabled={isRetry}
+                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 transition-all text-slate-900 dark:text-white font-medium appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {ticketOptions.map((t, idx) => (
                   <option key={idx} value={t.name}>
@@ -184,6 +219,7 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
             value={formData.quantity}
             onChange={handleQuantityChange}
             icon={Hash}
+            disabled={isRetry}
           />
         </div>
       </div>
@@ -200,7 +236,7 @@ const TicketForm = ({ event, onSubmit, loading, savedData }) => {
           disabled={loading || totalPrice === 0}
           className="flex items-center gap-2 px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? "Processing..." : "Proceed to Pay"}{" "}
+          {loading ? "Processing..." : isRetry ? "Retry Payment" : "Proceed to Pay"}{" "}
           <CreditCard size={18} />
         </button>
       </div>
