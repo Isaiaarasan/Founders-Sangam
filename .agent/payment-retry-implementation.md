@@ -4,12 +4,22 @@
 
 Successfully implemented a dynamic payment retry flow that redirects users to the specific event's registration page based on stored event details.
 
+**Important:** Form is **empty on initial visit** and only pre-fills data when it's a **retry after payment failure**.
+
 ## 🔄 **How It Works**
+
+### Initial Visit (Normal Registration):
+1. User visits event registration page
+2. Form is **completely empty**
+3. User fills out their details
+4. Data is saved to localStorage when payment is initiated
+5. User proceeds to payment
 
 ### When Payment Fails:
 1. User attempts payment for an event
 2. Payment fails for any reason (network error, insufficient funds, etc.)
 3. User is redirected to `/payment-failure` page
+4. Form data is **stored in localStorage**
 
 ### When User Clicks "Try Payment Again":
 1. **System retrieves eventId** from multiple sources (in priority order):
@@ -133,18 +143,30 @@ localStorage.setItem("lastPaymentContext", JSON.stringify(paymentContext));
 ✅ **External Redirect** - Uses full URL for production environment  
 ✅ **Visual Feedback** - Clear retry mode indicators  
 ✅ **Debugging Enabled** - Console logs for troubleshooting  
-✅ **No Data Loss** - Works even after page refreshes
+✅ **No Data Loss** - Works even after page refreshes  
+✅ **Clean Initial State** - Form is empty on first visit, only pre-fills on retry  
+✅ **Smart Context Cleanup** - Removes stale retry data for different events
 
 ## 🧪 **Testing Flow**
 
+### Test Case 1: Initial Visit (Empty Form)
+1. Visit any event registration page for the first time
+2. **Verify form is completely empty**
+3. No retry banner visible
+4. Button shows "Proceed to Pay"
+5. All fields are enabled and editable
+
+### Test Case 2: Payment Retry (Pre-filled Form)
 1. Fill out registration form for any event
 2. Proceed to payment
 3. Simulate payment failure (disconnect network, insufficient funds, etc.)
 4. Click "Try Payment Again" on failure page
-5. Verify redirect to correct event registration URL
-6. Confirm form is pre-filled and fields are disabled
-7. See "Retry Payment" button
-8. Click to retry payment
+5. **Verify redirect to correct event registration URL**
+6. **Confirm form is pre-filled with previous data**
+7. **All fields are disabled (locked)**
+8. **Retry banner is visible**
+9. **Button shows "Retry Payment"**
+10. Click to retry payment
 
 ## 🔍 **Debug Information**
 

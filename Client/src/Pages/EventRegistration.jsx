@@ -43,17 +43,23 @@ const EventRegistration = () => {
 
   // --- EXISTING LOGIC REMAINS UNCHANGED ---
   useEffect(() => {
+    let shouldLoadSavedData = false;
+
     // Check for payment retry context in localStorage
     const retryContext = localStorage.getItem("paymentRetryContext");
     if (retryContext) {
       try {
         const context = JSON.parse(retryContext);
-        if (context.isRetry) {
+        if (context.isRetry && context.eventId === id) {
           setIsRetry(true);
           setPreviousFailure({
             reason: context.lastFailureReason,
             errorCode: context.lastErrorCode,
           });
+          shouldLoadSavedData = true;
+        } else if (context.eventId !== id) {
+          // Clear stale retry context for different event
+          localStorage.removeItem("paymentRetryContext");
         }
       } catch (err) {
         console.log("Could not parse retry context");
@@ -64,15 +70,18 @@ const EventRegistration = () => {
     if (location.state?.isRetry) {
       setIsRetry(true);
       setPreviousFailure(location.state?.failureData);
+      shouldLoadSavedData = true;
     }
 
-    // Load saved form data from localStorage (use event ID from URL)
-    const savedData = localStorage.getItem(`formData_${id}`);
-    if (savedData) {
-      try {
-        setSavedFormData(JSON.parse(savedData));
-      } catch (err) {
-        console.log("Could not load saved form data");
+    // ONLY load saved form data when it's a retry scenario
+    if (shouldLoadSavedData) {
+      const savedData = localStorage.getItem(`formData_${id}`);
+      if (savedData) {
+        try {
+          setSavedFormData(JSON.parse(savedData));
+        } catch (err) {
+          console.log("Could not load saved form data");
+        }
       }
     }
 
