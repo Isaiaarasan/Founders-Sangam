@@ -192,22 +192,32 @@ const CLIENT_URL = process.env.CLIENT_URL || "https://founders-sangam.vercel.app
 const SERVER_URL = process.env.SERVER_URL || "https://founders-sangam.onrender.com";
 
 // Initialize PhonePe SDK Client (only once)
+const phonepeEnv = (process.env.PHONEPE_ENV || '').toUpperCase() === 'PRODUCTION' ? Env.PRODUCTION : Env.SANDBOX;
+const phonepeClientVersion = process.env.PHONEPE_CLIENT_VERSION || "1"; // Must be a String
+
+console.log("=== PhonePe SDK Config ===");
+console.log("Client ID:", process.env.PHONEPE_CLIENT_ID);
+console.log("Environment:", phonepeEnv === Env.PRODUCTION ? "PRODUCTION" : "SANDBOX");
+console.log("Client Version:", phonepeClientVersion);
+
 const phonepeClient = StandardCheckoutClient.getInstance(
   process.env.PHONEPE_CLIENT_ID,
   process.env.PHONEPE_CLIENT_SECRET,
-  parseInt(process.env.PHONEPE_CLIENT_VERSION || 1),
-  process.env.PHONEPE_ENV === 'PRODUCTION' ? Env.PRODUCTION : Env.SANDBOX
+  phonepeClientVersion,
+  phonepeEnv
 );
 
-console.log("✅ PhonePe SDK initialized with Client ID:", process.env.PHONEPE_CLIENT_ID);
+console.log("✅ PhonePe SDK initialized");
 
 // Initiate Payment using SDK
 app.post("/api/phonepe/pay", async (req, res) => {
   try {
-    const { name, amount, number, transactionId, type, ticketId, brandName, email } = req.body;
+    const { name, number, transactionId, type, ticketId, brandName, email } = req.body;
+    // Ensure amount is handled as a number
+    const amountVal = parseFloat(req.body.amount);
 
     console.log("=== PhonePe SDK Payment Request ===");
-    console.log("Request Body:", { name, amount, type, ticketId, brandName, email });
+    console.log("Request Body:", { name, amount: amountVal, type, ticketId, brandName, email });
 
     const merchantOrderId = transactionId || `ORD_${Date.now()}`;
 
@@ -221,7 +231,7 @@ app.post("/api/phonepe/pay", async (req, res) => {
     } else {
       await Payment.create({
         orderId: merchantOrderId,
-        amount: amount,
+        amount: amountVal,
         status: "PENDING",
         name,
         brandName,
@@ -243,7 +253,7 @@ app.post("/api/phonepe/pay", async (req, res) => {
 
     const paymentRequest = StandardCheckoutPayRequest.builder()
       .merchantOrderId(merchantOrderId)
-      .amount(amount * 100) // Convert to paise
+      .amount(Math.round(amountVal * 100)) // Convert to paise and ensure integer
       .redirectUrl(redirectUrl)
       .metaInfo(metaInfo)
       .build();
