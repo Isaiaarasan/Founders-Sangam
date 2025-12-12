@@ -638,10 +638,11 @@ const VideoSection = () => {
                 setDirection(index > currentVideoIndex ? 1 : -1);
                 setCurrentVideoIndex(index);
               }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentVideoIndex
-                ? "bg-purple-500 w-8"
-                : "bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500"
-                }`}
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                index === currentVideoIndex
+                  ? "bg-purple-500 w-8"
+                  : "bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500"
+              }`}
               aria-label={`Go to video ${index + 1}`}
             />
           ))}
@@ -1102,6 +1103,16 @@ const TestimonialsSection = () => {
   const containerRef = useRef(null);
   const isInView = useInView(containerRef, { once: true, margin: "-100px" });
 
+  // Define different colors for testimonials
+  const testimonialColors = [
+    "border-amber-400",
+    "border-emerald-500",
+    "border-sky-500",
+    "border-red-500",
+    "border-purple-500",
+    "border-indigo-500",
+  ];
+
   useEffect(() => {
     if (isInView && !hasFetched) {
       const fetchTestimonials = async () => {
@@ -1115,10 +1126,24 @@ const TestimonialsSection = () => {
             Array.isArray(res.data.content) &&
             res.data.content.length > 0
           ) {
-            setTestimonials(res.data.content);
+            // Assign different colors to each testimonial
+            const testimonialsWithColors = res.data.content.map(
+              (item, index) => ({
+                ...item,
+                color: testimonialColors[index % testimonialColors.length],
+              })
+            );
+            setTestimonials(testimonialsWithColors);
           }
         } catch (err) {
           console.error("Failed to fetch testimonials, using fallback.");
+          // Also assign colors to fallback testimonials
+          setTestimonials((prev) =>
+            prev.map((item, index) => ({
+              ...item,
+              color: testimonialColors[index % testimonialColors.length],
+            }))
+          );
         } finally {
           setHasFetched(true);
         }
@@ -1166,16 +1191,16 @@ const TestimonialsSection = () => {
             <FadeIn
               key={i}
               delay={i * 0.1}
-              className={`bg-white dark:bg-slate-800 p-6 md:p-8 rounded-[2rem] shadow-sm border-t-4 ${item.color} relative`}
+              className={`bg-white dark:bg-slate-800 p-6 md:p-8 rounded-[2rem] shadow-sm border-t-4 ${item.color} relative flex flex-col`}
             >
               <Quote
                 className="text-slate-200 dark:text-slate-700 absolute top-8 right-8"
                 size={40}
               />
-              <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-8 relative z-10">
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed flex-grow relative z-10 mb-4">
                 "{item.content}"
               </p>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 mt-auto">
                 <div className="w-12 h-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-500">
                   {item.name.charAt(0)}
                 </div>
@@ -1352,8 +1377,9 @@ const FAQSection = () => {
                     {faq.question}
                   </h3>
                   <div
-                    className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""
-                      }`}
+                    className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${
+                      openIndex === index ? "rotate-180" : ""
+                    }`}
                   >
                     {openIndex === index ? (
                       <Minus size={20} className="text-amber-500" />
