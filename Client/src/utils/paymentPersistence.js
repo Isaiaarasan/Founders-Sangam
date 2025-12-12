@@ -3,7 +3,7 @@
  * Manages automatic cleanup of payment-related localStorage data after 5 minutes
  */
 
-const PERSISTENCE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const PERSISTENCE_DURATION = 3 * 60 * 1000; // 5 minutes in milliseconds
 
 /**
  * Storage Keys used for payment persistence
