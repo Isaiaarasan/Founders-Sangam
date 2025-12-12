@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { getEventById, registerForEvent } from "../api/eventService";
+import { getEventById, registerForEvent, API_URL } from "../api/eventService";
 import TicketForm from "../components/TicketForm";
 import {
   setPaymentData,
@@ -87,12 +87,12 @@ const EventRegistration = () => {
         if (data) {
           setEvent(data);
         } else {
-            setError("Event not found");
+          setError("Event not found");
         }
       } catch (err) {
-          setError("Failed to load event");
+        setError("Failed to load event");
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
     };
     fetchEvent();
@@ -124,7 +124,7 @@ const EventRegistration = () => {
 
       if (result.success) {
         const res = await axios.post(
-          "https://founders-sangam.onrender.com/api/phonepe/pay",
+          `${API_URL}/api/phonepe/pay`,
           {
             name: formData.name,
             amount: formData.amount,
@@ -252,7 +252,7 @@ const EventRegistration = () => {
                     key={index}
                     className="flex items-start text-sm text-slate-700 dark:text-slate-300"
                   >
-                    <ShieldCheck 
+                    <ShieldCheck
                       size={16}
                       className="text-green-600 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0"
                     />

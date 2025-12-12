@@ -1,7 +1,10 @@
 import axios from "axios";
 
-//const API_URL = "https://founders-sangam.onrender.com";
-const API_URL = "https://founders-sangam.onrender.com"; // Using localhost for dev
+// Dynamic API URL for Development and Production
+export const API_URL =
+    window.location.hostname === "localhost"
+        ? "http://localhost:5000"
+        : "https://founders-sangam.onrender.com";
 
 export const getEventById = async (id) => {
     try {
