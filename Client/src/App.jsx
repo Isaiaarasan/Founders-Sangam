@@ -98,7 +98,7 @@ function App() {
     <Router>
       {/* Redirect handler: watch query params (e.g., ?payment=failed) and navigate accordingly */}
       <RedirectHandler />
-      <MaintenanceCheck>
+      {/* <MaintenanceCheck> */}
         <Suspense
           fallback={
             <div className="flex items-center justify-center min-h-screen">
@@ -216,7 +216,7 @@ function App() {
             </Route>
           </Routes>
         </Suspense>
-      </MaintenanceCheck>
+      {/* </MaintenanceCheck> */}
     </Router>
   );
 }
