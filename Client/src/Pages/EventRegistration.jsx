@@ -103,6 +103,18 @@ const EventRegistration = () => {
     setError(null);
 
     try {
+      if (!formData.name.trim()) {
+        alert("Please enter your name");
+        setSubmitting(false);
+        return;
+      }
+
+      if (!formData.contact.trim()) {
+        alert("Please enter your phone number");
+        setSubmitting(false);
+        return;
+      }
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
         alert("Please enter a valid email address");

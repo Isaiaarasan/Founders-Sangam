@@ -726,8 +726,12 @@ app.post("/events/:id/register", async (req, res) => {
     res.json({ success: true, ticketId: ticket._id });
 
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ success: false, message: "Registration failed" });
+    console.error("Registration Error:", err);
+    if (err.name === 'ValidationError') {
+      const messages = Object.values(err.errors).map(val => val.message);
+      return res.status(400).json({ success: false, message: messages.join(', ') });
+    }
+    res.status(500).json({ success: false, message: err.message || "Registration failed" });
   }
 });
 

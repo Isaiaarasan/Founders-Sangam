@@ -23,6 +23,7 @@ export const registerForEvent = async (eventId, registrationData) => {
         const response = await axios.post(`${API_URL}/events/${eventId}/register`, registrationData);
         return response.data;
     } catch (error) {
+        console.error("Registration API Error:", error.response?.data || error.message);
         throw error.response?.data?.message || "Registration failed";
     }
 };
