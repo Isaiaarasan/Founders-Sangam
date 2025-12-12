@@ -12,7 +12,7 @@ import {
   Calendar,
   MapPin,
   AlertCircle,
-  ShieldCheck,
+  ShieldCheck, // Icon used for Acknowledgements
   Star,
   Clock,
   AlertTriangle,
@@ -87,12 +87,12 @@ const EventRegistration = () => {
         if (data) {
           setEvent(data);
         } else {
-          setError("Event not found");
+            setError("Event not found");
         }
       } catch (err) {
-        setError("Failed to load event");
+          setError("Failed to load event");
       } finally {
-        setLoading(false);
+          setLoading(false);
       }
     };
     fetchEvent();
@@ -228,31 +228,31 @@ const EventRegistration = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 pt-20 pb-12 px-4 md:px-12 transition-colors duration-500">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
-        {/* 1. Left: Event Info and Acknowledgement (FIRST on Mobile, Left on Desktop) */}
+    <div className="min-h-screen bg-white dark:bg-slate-950 pt-16 pb-10 px-4 md:px-8 transition-colors duration-500">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
+        {/* 1. Left: Event Info and Acknowledgement */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="space-y-6 lg:order-1" // Stays on the left on desktop
+          className="space-y-6 lg:order-1"
         >
-          {/* Important Acknowledgement (FIRST on mobile) */}
+          {/* Important Acknowledgement (TIGHTENED & ICON CHANGED) */}
           <FadeIn delay={0.0}>
-            <div className="bg-green-50 dark:bg-green-900/30 p-5 rounded-2xl border border-green-200 dark:border-green-800 shadow-xl ring-2 ring-green-500/50">
-              <h3 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white mb-3 flex items-center">
+            <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-xl border border-green-200 dark:border-green-800 shadow-lg ring-2 ring-green-500/50">
+              <h3 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white mb-2 flex items-center">
                 <ShieldCheck
                   size={20}
                   className="text-green-600 dark:text-green-400 mr-2 flex-shrink-0"
                 />
                 Claim your place in the most refined FOUNDER circle
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {acknowledgementItems.map((item, index) => (
                   <div
                     key={index}
                     className="flex items-start text-sm text-slate-700 dark:text-slate-300"
                   >
-                    <Clock
+                    <ShieldCheck 
                       size={16}
                       className="text-green-600 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0"
                     />
@@ -263,21 +263,22 @@ const EventRegistration = () => {
             </div>
           </FadeIn>
 
-          {/* Event Banner/Header (Now SECOND on mobile - REDUCED SIZE) */}
+          {/* CHANGED: Event Banner/Header (PORTRAIT SIZE) */}
           <FadeIn
             delay={0.1}
-            // *** HEIGHT REDUCED HERE: h-48 md:h-80 -> h-32 md:h-64 ***
-            className="relative h-32 md:h-64 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl"
+            // CHANGED: Height increased for portrait look
+            className="relative h-48 md:h-[420px] rounded-xl md:rounded-2xl overflow-hidden shadow-xl"
           >
             <img
-              src={event.image || "https://via.placeholder.com/800x400"}
+              // CHANGED: Placeholder aspect ratio updated to 400x800 (portrait)
+              src={event.image || "https://via.placeholder.com/400x800"}
               alt={event.title}
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
 
-            {/* Star Rating Badge (Shrunk) */}
-            <div className="absolute top-3 left-3 md:top-6 md:left-6 text-white text-xs font-extrabold flex items-center bg-amber-500/80 backdrop-blur-sm px-2 py-0.5 rounded-full">
+            {/* Star Rating Badge (TIGHTENED) */}
+            <div className="absolute top-2 left-2 md:top-4 md:left-4 text-white text-xs font-extrabold flex items-center bg-amber-500/80 backdrop-blur-sm px-2 py-0.5 rounded-full">
               <Star
                 size={12}
                 className="text-yellow-300 fill-yellow-300 mr-1"
@@ -285,12 +286,10 @@ const EventRegistration = () => {
               <span>4.85 Star Rated</span>
             </div>
 
-            <div className="absolute bottom-3 left-3 md:bottom-6 md:left-6 text-white">
-              {/* Title size reduced: text-xl md:text-3xl -> text-base md:text-2xl */}
+            <div className="absolute bottom-3 left-3 md:bottom-5 md:left-5 text-white">
               <h1 className="text-base md:text-2xl font-bold mb-1 leading-tight">
                 {event.title}
               </h1>
-              {/* Info size reduced: text-xs md:text-sm -> text-xs font-light */}
               <div className="flex flex-wrap gap-2 md:gap-4 text-xs font-light opacity-90">
                 <span className="flex items-center gap-1">
                   <Calendar size={12} className="md:w-3 md:h-3" />{" "}
@@ -304,12 +303,12 @@ const EventRegistration = () => {
             </div>
           </FadeIn>
 
-          {/* Event Description (Now THIRD on mobile) */}
+          {/* Event Description (TIGHTENED) */}
           <FadeIn
             delay={0.2}
-            className="bg-slate-50 dark:bg-slate-900 p-5 md:p-6 rounded-2xl border border-slate-100 dark:border-slate-800"
+            className="bg-slate-50 dark:bg-slate-900 p-5 rounded-xl border border-slate-100 dark:border-slate-800"
           >
-            <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-3 md:mb-4">
+            <h3 className="text-lg md:text-xl font-bold text-slate-900 dark:text-white mb-2 md:mb-3">
               Description
             </h3>
             <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-4">
@@ -318,24 +317,24 @@ const EventRegistration = () => {
           </FadeIn>
         </motion.div>
 
-        {/* 2. Right: Registration Form (SECOND Column on Desktop) */}
+        {/* 2. Right: Registration Form (TIGHTENED) */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
           className="lg:order-2"
         >
-          <div className="bg-white dark:bg-slate-800 p-5 md:p-8 rounded-2xl md:rounded-[2rem] shadow-xl border border-slate-100 dark:border-slate-700 lg:sticky lg:top-8">
+          <div className="bg-white dark:bg-slate-800 p-5 md:p-6 rounded-xl md:rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 lg:sticky lg:top-8">
             {/* Top Accent Line */}
             <div
-              className={`h-1.5 w-full bg-gradient-to-r ${BRAND_GRADIENT} absolute top-0 left-0 rounded-t-2xl md:rounded-t-[2rem]`}
+              className={`h-1.5 w-full bg-gradient-to-r ${BRAND_GRADIENT} absolute top-0 left-0 rounded-t-xl md:rounded-t-2xl`}
             ></div>
 
-            <div className="mt-4 mb-6 md:mb-8">
+            <div className="mt-4 mb-4 md:mb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
                 Register Now
               </h2>
-              <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1 md:mt-2">
+              <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
                 Secure your spot for this exclusive event.
               </p>
 
@@ -344,7 +343,7 @@ const EventRegistration = () => {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl flex gap-3"
+                  className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg flex gap-3"
                 >
                   <AlertTriangle
                     size={20}
@@ -380,7 +379,7 @@ const EventRegistration = () => {
                   savedData={savedFormData}
                   isRetry={isRetry}
                 />
-                <div className="mt-6 flex items-center justify-center gap-2 text-slate-400 text-sm">
+                <div className="mt-4 flex items-center justify-center gap-2 text-slate-400 text-sm">
                   <ShieldCheck size={16} className="text-emerald-500" />
                   <span>Secure Payment via PhonePe</span>
                 </div>

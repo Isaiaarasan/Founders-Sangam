@@ -20,15 +20,19 @@ const EventCard = ({ event, index, isPast }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.1 }}
-      className={`bg-slate-50 dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all group ${
-        isPast ? "opacity-70 grayscale hover:grayscale-0 hover:opacity-100" : ""
-      }`}
+      className={`bg-slate-50 dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all group ${isPast ? "opacity-70 grayscale hover:grayscale-0 hover:opacity-100" : ""
+        }`}
     >
-      <div className="h-64 overflow-hidden relative">
+
+      {/* CHANGED: Height increased from h-64 to h-96 (384px) 
+        to create a clear portrait aspect ratio for the card's width.
+      */}
+      <div className="h-96 overflow-hidden relative">
         <img
           src={
             event.image ||
-            "https://via.placeholder.com/600x400?text=Event+Image"
+            /* CHANGED: Placeholder size updated to 400x600 (portrait) */
+            "https://via.placeholder.com/400x600?text=Event+Image"
           }
           alt={event.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
@@ -88,7 +92,11 @@ const EventCard = ({ event, index, isPast }) => {
             <Link
               to={`/event/${event._id}/register`}
               onClick={(e) => handleNavigate(e, `/event/${event._id}/register`)}
-              className="inline-flex items-center gap-2 text-slate-900 dark:text-white font-bold hover:gap-4 transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl
+bg-gradient-to-r from-amber-500 to-red-500
+text-white font-bold shadow-md shadow-amber-500/30
+hover:shadow-lg hover:shadow-red-500/40 hover:scale-105 active:scale-95
+transition-all duration-300"
             >
               Register Now <ArrowRight size={20} className="text-amber-500" />
             </Link>

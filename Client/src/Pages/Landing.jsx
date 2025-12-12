@@ -210,7 +210,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-25 pb-12 transition-colors duration-500">
+    <section className="relative min-h-screen w-full flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-slate-950 pt-25 pb-6 md:pb-12 transition-colors duration-500">
       {/* NEW: Cursor Trail component for interaction */}
       <CursorTrail />
 
@@ -308,12 +308,12 @@ const Hero = () => {
               Regsiter Next Event <ArrowRight size={20} />
             </button>
 
-            {/* <button
+            <button
               onClick={() => handleNavigation("/")}
               className="bg-white flex items-center gap-2 text-slate-900 border shrink-0 border-slate-200 px-8 py-4 rounded-full text-lg font-bold hover:bg-slate-50 dark:bg-slate-900 dark:text-white dark:border-slate-700 dark:hover:bg-slate-800 transition-all"
             >
               Unlock deeper insights <ArrowRight size={20} />
-            </button> */}
+            </button>
           </motion.div>
         </FadeIn>
       </div>
@@ -328,8 +328,7 @@ const Hero = () => {
     </section>
   );
 };
-
-// 2. Manifesto Marquee
+// 2. Manifesto Marquee (Smaller Version)
 const ManifestoMarquee = () => {
   const manifestoItems = [
     { text: "NETWORKING", color: "text-amber-500", dot: "bg-amber-400" },
@@ -339,25 +338,25 @@ const ManifestoMarquee = () => {
   ];
 
   return (
-    <section className="py-10 bg-slate-50 dark:bg-slate-900 relative overflow-hidden flex flex-col justify-center border-y border-slate-200 dark:border-slate-800 transition-colors duration-500">
+    <section className="py-4 bg-slate-50 dark:bg-slate-900 relative overflow-hidden flex flex-col justify-center border-y border-slate-200 dark:border-slate-800 transition-colors duration-500">
       <div className="relative z-10">
         <div className="flex overflow-hidden whitespace-nowrap">
           <motion.div
             animate={{ x: ["0%", "-50%"] }}
             transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-            className="flex items-center gap-12 pr-12"
+            className="flex items-center gap-6 pr-6"
           >
             {[...Array(2)].map((_, setIndex) => (
               <React.Fragment key={setIndex}>
                 {manifestoItems.map((item, i) => (
-                  <div key={i} className="flex items-center gap-12">
+                  <div key={i} className="flex items-center gap-6">
                     <span
-                      className={`text-5xl md:text-8xl font-black ${item.color} tracking-tighter`}
+                      className={`text-3xl md:text-5xl font-black ${item.color} tracking-tight`}
                     >
                       {item.text}
                     </span>
                     <span
-                      className={`w-4 h-4 md:w-8 md:h-8 rounded-full ${item.dot}`}
+                      className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${item.dot}`}
                     ></span>
                   </div>
                 ))}
@@ -487,7 +486,7 @@ const VideoSection = () => {
   return (
     <section
       ref={containerRef}
-      className="py-24 bg-slate-50 dark:bg-slate-900 w-full flex flex-col items-center justify-center relative z-20 transition-colors duration-500 border-b border-slate-200 dark:border-slate-800"
+      className="py-10 md:py-24 bg-slate-50 dark:bg-slate-900 w-full flex flex-col items-center justify-center relative z-20 transition-colors duration-500 border-b border-slate-200 dark:border-slate-800"
     >
       <FadeIn className="w-full max-w-7xl px-6 md:px-12">
         <h2 className="text-3xl md:text-5xl font-bold text-center text-slate-900 dark:text-white mb-12">
@@ -638,11 +637,10 @@ const VideoSection = () => {
                 setDirection(index > currentVideoIndex ? 1 : -1);
                 setCurrentVideoIndex(index);
               }}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === currentVideoIndex
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentVideoIndex
                   ? "bg-purple-500 w-8"
                   : "bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500"
-              }`}
+                }`}
               aria-label={`Go to video ${index + 1}`}
             />
           ))}
@@ -732,7 +730,7 @@ const StatsSection = () => {
   return (
     <section
       ref={sectionRef}
-      className="py-32 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500"
+      className="py-12 md:py-32 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500"
     >
       <div className="max-w-7xl mx-auto mb-16 text-left">
         <FadeIn>
@@ -778,7 +776,7 @@ const StatsSection = () => {
 // 4. Benefits Section (New)
 const BenefitsSection = () => {
   return (
-    <section className="py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500">
+    <section className="py-10 md:py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 relative transition-colors duration-500">
       <div className="max-w-7xl mx-auto">
         <FadeIn>
           <div className="mb-16 text-center md:text-left">
@@ -906,7 +904,7 @@ const FoundersSection = () => {
   // Note: The FadeIn component (which uses animation for the entire card wrapper) is retained
   // as it handles the initial reveal/load animation, but the specific rotation/scale animations are removed.
   return (
-    <section className="py-20 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500 border-t border-slate-200 dark:border-slate-800">
+    <section className="py-10 md:py-20 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500 border-t border-slate-200 dark:border-slate-800">
       {/* Background Design - Retaining only the subtle Blob for focus */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {/* Highlight Blob behind Title (Static) */}
@@ -1002,7 +1000,7 @@ const FoundersSection = () => {
 // 6. Value Section
 const ValueSection = () => {
   return (
-    <section className="py-32 bg-white dark:bg-slate-950 overflow-hidden w-full relative transition-colors duration-500">
+    <section className="py-12 md:py-32 bg-white dark:bg-slate-950 overflow-hidden w-full relative transition-colors duration-500">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:44px_44px]"></div>
       <div className="px-6 md:px-12 relative z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
@@ -1155,7 +1153,7 @@ const TestimonialsSection = () => {
   return (
     <section
       ref={containerRef}
-      className="py-24 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500"
+      className="py-10 md:py-24 bg-slate-50 dark:bg-slate-900 w-full px-6 md:px-12 relative overflow-hidden transition-colors duration-500"
     >
       {/* NEW: Dynamic Radial Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -1345,7 +1343,7 @@ const FAQSection = () => {
   ];
 
   return (
-    <section className="py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 transition-colors duration-500 relative overflow-hidden">
+    <section className="py-10 md:py-24 bg-white dark:bg-slate-950 w-full px-6 md:px-12 transition-colors duration-500 relative overflow-hidden">
       {/* NEW: Background Design Elements (z-0) */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         {/* 1. Subtle Radial Glow (Top Left) */}
@@ -1377,9 +1375,8 @@ const FAQSection = () => {
                     {faq.question}
                   </h3>
                   <div
-                    className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${
-                      openIndex === index ? "rotate-180" : ""
-                    }`}
+                    className={`p-2 rounded-full bg-white dark:bg-slate-800 transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""
+                      }`}
                   >
                     {openIndex === index ? (
                       <Minus size={20} className="text-amber-500" />
@@ -1425,7 +1422,7 @@ const LandingPage = () => (
     {/* <CollaborationSection /> */}
     <FAQSection />
 
-    <div className="h-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900"></div>
+    <div className="h-8 md:h-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-950 dark:to-slate-900"></div>
   </>
 );
 
