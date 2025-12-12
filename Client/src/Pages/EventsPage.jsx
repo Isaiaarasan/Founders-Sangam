@@ -93,8 +93,8 @@ const EventsPage = () => {
                     {upcomingEvents.length === 1 ? (
                       <FeaturedEventCard event={upcomingEvents[0]} />
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {/* CHANGED: 4-column grid and reduced gap */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* CHANGED: 3-column grid and reduced gap */}
                         {upcomingEvents.map((event, index) => (
                           <EventCard
                             key={event._id}
@@ -113,8 +113,8 @@ const EventsPage = () => {
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8 border-l-4 border-slate-500 pl-4 opacity-80">
                       Past Events
                     </h2>
-                    {/* CHANGED: 4-column grid and reduced gap */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {/* CHANGED: 3-column grid and reduced gap */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                       {pastEvents.map((event, index) => (
                         <EventCard
                           key={event._id}

@@ -24,10 +24,8 @@ const EventCard = ({ event, index, isPast }) => {
         }`}
     >
 
-      {/* CHANGED: Height increased from h-64 to h-96 (384px) 
-        to create a clear portrait aspect ratio for the card's width.
-      */}
-      <div className="h-96 overflow-hidden relative">
+      {/* CHANGED: Compact card design */}
+      <div className="h-[450px] overflow-hidden relative">
         <img
           src={
             event.image ||
@@ -52,14 +50,14 @@ const EventCard = ({ event, index, isPast }) => {
         )}
       </div>
 
-      <div className="p-8">
+      <div className="p-5">
         <Link to={`/event/${event._id}`} className="block">
-          <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 group-hover:text-amber-500 transition-colors">
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-amber-500 transition-colors">
             {event.title}
           </h3>
         </Link>
 
-        <div className="flex flex-col gap-3 mb-6">
+        <div className="flex flex-col gap-2 mb-4">
           <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
             <Clock size={18} className="text-amber-500" />
             <span>
@@ -75,7 +73,7 @@ const EventCard = ({ event, index, isPast }) => {
           </div>
         </div>
 
-        <p className="text-slate-600 dark:text-slate-300 mb-8 line-clamp-3 leading-relaxed">
+        <p className="text-slate-600 dark:text-slate-300 mb-5 line-clamp-2 leading-relaxed text-sm">
           {event.description}
         </p>
 
