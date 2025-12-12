@@ -2,6 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
+  setPaymentData,
+  getPaymentData,
+  getTimeRemaining,
+  STORAGE_KEYS,
+} from "../utils/paymentPersistence";
+import {
   AlertCircle,
   ArrowLeft,
   Home,
@@ -40,31 +46,19 @@ const PaymentFailure = () => {
     // Get eventId from state, localStorage, or fallback
     let targetEventId = eventId;
 
-    // If eventId not in state, try to get it from localStorage
+    // If eventId not in state, try to get it from localStorage using new utility
     if (!targetEventId) {
       // First, try lastPaymentContext
-      const lastPaymentContext = localStorage.getItem("lastPaymentContext");
+      const lastPaymentContext = getPaymentData(STORAGE_KEYS.LAST_PAYMENT_CONTEXT);
       if (lastPaymentContext) {
-        try {
-          const context = JSON.parse(lastPaymentContext);
-          targetEventId = context.eventId;
-        } catch (err) {
-          console.log("Could not parse lastPaymentContext");
-        }
+        targetEventId = lastPaymentContext.eventId;
       }
 
       // If still not found, try existing retry context
       if (!targetEventId) {
-        const existingRetryContext = localStorage.getItem(
-          "paymentRetryContext"
-        );
+        const existingRetryContext = getPaymentData(STORAGE_KEYS.PAYMENT_RETRY_CONTEXT);
         if (existingRetryContext) {
-          try {
-            const context = JSON.parse(existingRetryContext);
-            targetEventId = context.eventId;
-          } catch (err) {
-            console.log("Could not parse existing retry context");
-          }
+          targetEventId = existingRetryContext.eventId;
         }
       }
     }
@@ -78,20 +72,22 @@ const PaymentFailure = () => {
     // Construct dynamic registration URL based on eventId
     const registrationUrl = `https://founders-sangam.vercel.app/event/${targetEventId}/register`;
 
-    // Store retry context in localStorage
+    // Get previous failed attempts count
+    const previousContext = getPaymentData(STORAGE_KEYS.PAYMENT_RETRY_CONTEXT);
+    const previousAttempts = previousContext?.failedAttempts || 0;
+
+    // Store retry context with auto-expiration (5 minutes)
     const retryContext = {
       isRetry: true,
       timestamp: new Date().toISOString(),
-      failedAttempts:
-        (JSON.parse(localStorage.getItem("paymentRetryContext"))
-          ?.failedAttempts || 0) + 1,
+      failedAttempts: previousAttempts + 1,
       lastFailureReason: failureReason,
       lastErrorCode: data?.errorCode,
       ticketId: ticketId,
       eventId: targetEventId,
     };
 
-    localStorage.setItem("paymentRetryContext", JSON.stringify(retryContext));
+    setPaymentData(STORAGE_KEYS.PAYMENT_RETRY_CONTEXT, retryContext);
 
     // Set cooldown timer
     setCountdown(30);

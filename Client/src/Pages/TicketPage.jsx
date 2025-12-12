@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import FadeIn from "../components/FadeIn";
 import { getTicketById } from "../api/eventService";
+import { clearAllPaymentData } from "../utils/paymentPersistence";
 
 // --- PREMIUM GOLD TICKET COMPONENT ---
 const TicketStructure = ({ data }) => {
@@ -338,14 +339,7 @@ const TicketPage = () => {
         });
 
         // CLEAR TEMPORARY FORM DATA FROM LOCALSTORAGE ON SUCCESSFUL PAYMENT
-        // Clean up all saved form data keys
-        Object.keys(localStorage).forEach((key) => {
-          if (key.startsWith("formData_")) {
-            localStorage.removeItem(key);
-          }
-        });
-        // Clear retry context
-        localStorage.removeItem("paymentRetryContext");
+        clearAllPaymentData();
 
         setLoading(false);
       }
@@ -357,12 +351,7 @@ const TicketPage = () => {
             setTicket(data);
 
             // CLEAR TEMPORARY FORM DATA ON SUCCESSFUL TICKET FETCH
-            Object.keys(localStorage).forEach((key) => {
-              if (key.startsWith("formData_")) {
-                localStorage.removeItem(key);
-              }
-            });
-            localStorage.removeItem("paymentRetryContext");
+            clearAllPaymentData();
           } else {
             setError("Ticket not found");
           }

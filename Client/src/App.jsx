@@ -14,6 +14,7 @@ import MaintenanceCheck from "./middleware/MaintenanceCheck";
 import PrivacyPolicy from "./components/Policy/PrivacyPolicy";
 import RefundCancellationPolicy from "./components/Policy/Refund&CancellationPolicy";
 import TermsConditions from "./components/Policy/Terms&Conditions";
+import { initPaymentPersistence } from "./utils/paymentPersistence";
 
 // Lazy load pages
 import LandingPage from "./Pages/Landing";
@@ -85,6 +86,11 @@ function App() {
       localStorage.setItem("theme", "light");
     }
   }, [isDark]);
+
+  // Initialize payment persistence cleanup on app load
+  useEffect(() => {
+    initPaymentPersistence();
+  }, []);
 
   const toggleTheme = () => setIsDark(!isDark);
 

@@ -4,6 +4,11 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { getEventById, registerForEvent } from "../api/eventService";
 import TicketForm from "../components/TicketForm";
 import {
+  setPaymentData,
+  getPaymentData,
+  STORAGE_KEYS,
+} from "../utils/paymentPersistence";
+import {
   Calendar,
   MapPin,
   AlertCircle,
@@ -45,24 +50,19 @@ const EventRegistration = () => {
   useEffect(() => {
     let shouldLoadSavedData = false;
 
-    // Check for payment retry context in localStorage
-    const retryContext = localStorage.getItem("paymentRetryContext");
+    // Check for payment retry context using new utility
+    const retryContext = getPaymentData(STORAGE_KEYS.PAYMENT_RETRY_CONTEXT);
     if (retryContext) {
-      try {
-        const context = JSON.parse(retryContext);
-        if (context.isRetry && context.eventId === id) {
-          setIsRetry(true);
-          setPreviousFailure({
-            reason: context.lastFailureReason,
-            errorCode: context.lastErrorCode,
-          });
-          shouldLoadSavedData = true;
-        } else if (context.eventId !== id) {
-          // Clear stale retry context for different event
-          localStorage.removeItem("paymentRetryContext");
-        }
-      } catch (err) {
-        console.log("Could not parse retry context");
+      if (retryContext.isRetry && retryContext.eventId === id) {
+        setIsRetry(true);
+        setPreviousFailure({
+          reason: retryContext.lastFailureReason,
+          errorCode: retryContext.lastErrorCode,
+        });
+        shouldLoadSavedData = true;
+      } else if (retryContext.eventId !== id) {
+        // Clear stale retry context for different event
+        localStorage.removeItem(STORAGE_KEYS.PAYMENT_RETRY_CONTEXT);
       }
     }
 
@@ -75,13 +75,9 @@ const EventRegistration = () => {
 
     // ONLY load saved form data when it's a retry scenario
     if (shouldLoadSavedData) {
-      const savedData = localStorage.getItem(`formData_${id}`);
+      const savedData = getPaymentData(`${STORAGE_KEYS.FORM_DATA_PREFIX}${id}`);
       if (savedData) {
-        try {
-          setSavedFormData(JSON.parse(savedData));
-        } catch (err) {
-          console.log("Could not load saved form data");
-        }
+        setSavedFormData(savedData);
       }
     }
 
@@ -114,15 +110,15 @@ const EventRegistration = () => {
         return;
       }
 
-      // SAVE FORM DATA TO LOCALSTORAGE (for retry on failure)
+      // SAVE FORM DATA TO STORAGE with auto-expiration (5 minutes)
       const paymentContext = {
         eventId: id,
         formData: formData,
         timestamp: new Date().toISOString(),
       };
 
-      localStorage.setItem(`formData_${id}`, JSON.stringify(formData));
-      localStorage.setItem("lastPaymentContext", JSON.stringify(paymentContext));
+      setPaymentData(`${STORAGE_KEYS.FORM_DATA_PREFIX}${id}`, formData);
+      setPaymentData(STORAGE_KEYS.LAST_PAYMENT_CONTEXT, paymentContext);
 
       const result = await registerForEvent(id, formData);
 
