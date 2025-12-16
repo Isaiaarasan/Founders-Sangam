@@ -756,6 +756,7 @@ const StatsSection = () => {
           value={<Counter value={100} suffix="%" />}
           label="Real Stories"
           delay={0.2}
+          target="_blank"
           gradient={BRAND_COLORS.red}
           icon={Rocket}
           href="https://www.instagram.com/reel/DRowdVdktsr/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA=="

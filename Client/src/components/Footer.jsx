@@ -15,6 +15,8 @@ const FooterSection = ({ title, links }) => (
         <li key={i}>
           <a
             href={l.href}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm text-slate-600 dark:text-slate-400 relative group hover:text-amber-500 transition-all duration-200 block"
           >
             {l.label}
