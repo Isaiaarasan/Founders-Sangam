@@ -398,7 +398,7 @@ const Events = () => {
                     </label>
 
                     <div className="grid grid-cols-3 gap-4">
-                      {/* Gold */}
+                      {/* Gold
                       <div>
                         <label className="text-xs">Gold Pass</label>
                         <input
@@ -414,9 +414,9 @@ const Events = () => {
                           className="w-full p-2 rounded-lg border bg-white dark:bg-black mt-1"
                           placeholder="Price"
                         />
-                      </div>
+                      </div> */}
 
-                      {/* Platinum */}
+                      {/* Platinum
                       <div>
                         <label className="text-xs">Platinum Pass</label>
                         <input
@@ -432,15 +432,15 @@ const Events = () => {
                           className="w-full p-2 rounded-lg border bg-white dark:bg-black mt-1"
                           placeholder="Price"
                         />
-                      </div>
+                      </div> */}
 
                       {/* Diamond */}
                       <div>
-                        <label className="text-xs">Diamond Pass</label>
+                        <label className="text-xs">Entry Pass</label>
                         <input
                           type="hidden"
                           {...register("ticketTypes.2.name")}
-                          value="Diamond Pass"
+                          value="Entry Pass"
                         />
                         <input
                           type="number"
