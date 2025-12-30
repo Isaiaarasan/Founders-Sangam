@@ -190,23 +190,37 @@ const TicketForm = ({ event, onSubmit, loading, savedData, isRetry = false }) =>
               Ticket Type
             </label>
             <div className="relative group">
-              <select
-                name="ticketType"
-                value={formData.ticketType}
-                onChange={handleChange}
-                disabled={isRetry}
-                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 transition-all text-slate-900 dark:text-white font-medium appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {ticketOptions.map((t, idx) => (
-                  <option key={idx} value={t.name}>
-                    {t.name} - ₹{t.price}
-                  </option>
-                ))}
-              </select>
-              <Tag
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
-                size={18}
-              />
+              {ticketOptions.length === 1 ? (
+                <div className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-medium flex items-center">
+                  <span className="flex-1">
+                    {ticketOptions[0].name} - ₹{ticketOptions[0].price}
+                  </span>
+                  <Tag
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    size={18}
+                  />
+                </div>
+              ) : (
+                <>
+                  <select
+                    name="ticketType"
+                    value={formData.ticketType}
+                    onChange={handleChange}
+                    disabled={isRetry}
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400 transition-all text-slate-900 dark:text-white font-medium appearance-none disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {ticketOptions.map((t, idx) => (
+                      <option key={idx} value={t.name}>
+                        {t.name} - ₹{t.price}
+                      </option>
+                    ))}
+                  </select>
+                  <Tag
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"
+                    size={18}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -67,15 +67,24 @@ const Events = () => {
     setSubmitLoading(true);
     const token = localStorage.getItem("adminToken");
 
+    // Ensure price is a number
+    const formattedData = {
+      ...data,
+      ticketTypes: data.ticketTypes.map(t => ({
+        ...t,
+        price: Number(t.price)
+      }))
+    };
+
     try {
       if (editingEvent) {
         await axios.put(
           `https://founders-sangam.onrender.com/events/${editingEvent._id}`,
-          data,
+          formattedData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } else {
-        await axios.post("https://founders-sangam.onrender.com/events", data, {
+        await axios.post("https://founders-sangam.onrender.com/events", formattedData, {
           headers: { Authorization: `Bearer ${token}` },
         });
       }
@@ -127,9 +136,7 @@ const Events = () => {
         content: "",
         maxRegistrations: 100,
         ticketTypes: [
-          { name: "Gold Pass", price: 500 },
-          { name: "Platinum Pass", price: 1000 },
-          { name: "Diamond Pass", price: 2000 },
+          { name: "Entry Pass", price: 500 },
         ],
       });
     }
@@ -397,58 +404,22 @@ const Events = () => {
                       Ticket Types
                     </label>
 
-                    <div className="grid grid-cols-3 gap-4">
-                      {/* Gold
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Entry Pass (Single Fixed Option) */}
                       <div>
-                        <label className="text-xs">Gold Pass</label>
+                        <label className="text-xs text-neutral-500 mb-1 block">Entry Pass Price (₹)</label>
                         <input
                           type="hidden"
                           {...register("ticketTypes.0.name")}
-                          value="Gold Pass"
-                        />
-                        <input
-                          type="number"
-                          {...register("ticketTypes.0.price", {
-                            valueAsNumber: true,
-                          })}
-                          className="w-full p-2 rounded-lg border bg-white dark:bg-black mt-1"
-                          placeholder="Price"
-                        />
-                      </div> */}
-
-                      {/* Platinum
-                      <div>
-                        <label className="text-xs">Platinum Pass</label>
-                        <input
-                          type="hidden"
-                          {...register("ticketTypes.1.name")}
-                          value="Platinum Pass"
-                        />
-                        <input
-                          type="number"
-                          {...register("ticketTypes.1.price", {
-                            valueAsNumber: true,
-                          })}
-                          className="w-full p-2 rounded-lg border bg-white dark:bg-black mt-1"
-                          placeholder="Price"
-                        />
-                      </div> */}
-
-                      {/* Diamond */}
-                      <div>
-                        <label className="text-xs">Entry Pass</label>
-                        <input
-                          type="hidden"
-                          {...register("ticketTypes.2.name")}
                           value="Entry Pass"
                         />
                         <input
                           type="number"
-                          {...register("ticketTypes.2.price", {
-                            valueAsNumber: true,
-                          })}
-                          className="w-full p-2 rounded-lg border bg-white dark:bg-black mt-1"
-                          placeholder="Price"
+                          {...register("ticketTypes.0.price")}
+                          min="0"
+                          step="1"
+                          className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border focus:ring-2 focus:ring-amber-500 outline-none transition-all"
+                          placeholder="Price in INR"
                         />
                       </div>
                     </div>

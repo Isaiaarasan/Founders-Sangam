@@ -704,6 +704,15 @@ app.post("/events/:id/register", async (req, res) => {
     const event = await Event.findById(id);
     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
 
+    // Validate Ticket Type & Price (Security Fix)
+    const selectedTicket = event.ticketTypes.find(t => t.name === ticketType);
+    if (!selectedTicket) {
+      // Fallback or Error if ticket type not found
+      return res.status(400).json({ success: false, message: "Invalid ticket type selected" });
+    }
+
+    const calculatedAmount = selectedTicket.price * quantity;
+
     // Check Capacity
     const availableTickets = event.maxRegistrations - event.currentRegistrations;
     if (quantity > availableTickets) {
@@ -729,7 +738,7 @@ app.post("/events/:id/register", async (req, res) => {
       contact,
       ticketType,
       quantity,
-      amount,
+      amount: calculatedAmount, // USE SERVER CALCULATED AMOUNT
       status: "PENDING"
     });
 
