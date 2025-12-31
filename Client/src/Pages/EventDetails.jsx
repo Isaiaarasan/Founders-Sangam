@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
-import { Calendar, MapPin, ArrowLeft, ExternalLink } from "lucide-react";
+import { Calendar, MapPin, ArrowLeft, ExternalLink, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
 const EventDetails = () => {
@@ -85,6 +85,23 @@ const EventDetails = () => {
                                         })}
                                     </span>
                                 </div>
+
+                                {event.time && (
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={18} className="text-amber-500" />
+                                        <span>
+                                            {event.time.match(/^\d{2}:\d{2}$/) ? (
+                                                new Date(`1970-01-01T${event.time}:00`).toLocaleTimeString(undefined, {
+                                                    hour: "numeric",
+                                                    minute: "2-digit",
+                                                })
+                                            ) : (
+                                                event.time
+                                            )}
+                                        </span>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center gap-2">
                                     <MapPin size={18} className="text-amber-500" />
                                     <span>{event.location}</span>
