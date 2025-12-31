@@ -67,13 +67,16 @@ const Events = () => {
     setSubmitLoading(true);
     const token = localStorage.getItem("adminToken");
 
-    // Ensure price is a number
+    // Ensure price is a number and STRICTLY ENFORCE SINGLE TICKET TYPE
+    // This removes any legacy ticket types (Gold/Platinum) that might have snuck in
     const formattedData = {
       ...data,
-      ticketTypes: data.ticketTypes.map(t => ({
-        ...t,
-        price: Number(t.price)
-      }))
+      ticketTypes: [
+        {
+          name: "Entry Pass",
+          price: Number(data.ticketTypes[0]?.price || 0)
+        }
+      ]
     };
 
     try {
@@ -124,7 +127,14 @@ const Events = () => {
       setValue("registrationLink", event.registrationLink);
       setValue("content", event.content);
       setValue("maxRegistrations", event.maxRegistrations);
-      setValue("ticketTypes", event.ticketTypes);
+      // STRICTLY FORCE SINGLE ENTRY PASS FROM EXISTING DATA
+      // Takes the price of the first ticket type (e.g. Gold) and converts it to Entry Pass
+      setValue("ticketTypes", [
+        {
+          name: "Entry Pass",
+          price: event.ticketTypes && event.ticketTypes.length > 0 ? event.ticketTypes[0].price : 500
+        }
+      ]);
     } else {
       reset({
         title: "",

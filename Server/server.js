@@ -687,6 +687,17 @@ app.get("/events/:id", async (req, res) => {
       return res.status(404).json({ success: false, message: "Event not found" });
     }
 
+    // --- AUTO-MIGRATE LEGACY EVENTS ---
+    // If the event has multiple ticket types (Gold/Platinum/etc), force convert to "Entry Pass".
+    if (event.ticketTypes && (event.ticketTypes.length > 1 || (event.ticketTypes[0] && event.ticketTypes[0].name !== "Entry Pass"))) {
+      console.log(`♻️ Auto-migrating Legacy Event: ${event.title}`);
+      const oldPrice = event.ticketTypes[0]?.price || 500; // Preserve existing price
+      event.ticketTypes = [{ name: "Entry Pass", price: oldPrice }];
+      await event.save();
+      console.log("✅ Event migrated to Single Entry Pass structure.");
+    }
+    // ----------------------------------
+
     console.log("Event found:", event.title);
     res.json({ success: true, event });
   } catch (err) {
