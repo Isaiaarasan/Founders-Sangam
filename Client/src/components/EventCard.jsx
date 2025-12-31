@@ -58,15 +58,21 @@ const EventCard = ({ event, index, isPast }) => {
         </Link>
 
         <div className="flex flex-col gap-2 mb-4">
-          <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
-            <Clock size={18} className="text-amber-500" />
-            <span>
-              {new Date(event.date).toLocaleTimeString(undefined, {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </span>
-          </div>
+          {event.time && (
+            <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+              <Clock size={18} className="text-amber-500" />
+              <span>
+                {event.time.match(/^\d{2}:\d{2}$/) ? (
+                  new Date(`1970-01-01T${event.time}:00`).toLocaleTimeString(undefined, {
+                    hour: "numeric",
+                    minute: "2-digit",
+                  })
+                ) : (
+                  event.time
+                )}
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
             <MapPin size={18} className="text-amber-500" />
             <span>{event.location}</span>

@@ -121,6 +121,7 @@ const Events = () => {
     if (event) {
       setValue("title", event.title);
       setValue("date", new Date(event.date).toISOString().split("T")[0]);
+      setValue("time", event.time);
       setValue("location", event.location);
       setValue("description", event.description);
       setValue("image", event.image);
@@ -139,6 +140,7 @@ const Events = () => {
       reset({
         title: "",
         date: "",
+        time: "",
         location: "",
         image: "",
         registrationLink: "",
@@ -344,8 +346,8 @@ const Events = () => {
                     />
                   </div>
 
-                  {/* Date + Location */}
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Date + Time + Location */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs font-bold mb-1">
                         Date
@@ -353,6 +355,17 @@ const Events = () => {
                       <input
                         type="date"
                         {...register("date", { required: true })}
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold mb-1">
+                        Time
+                      </label>
+                      <input
+                        type="time"
+                        {...register("time", { required: true })}
                         className="w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-[#111] border"
                       />
                     </div>

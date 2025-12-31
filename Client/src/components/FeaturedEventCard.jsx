@@ -40,7 +40,18 @@ const FeaturedEventCard = ({ event }) => (
                 <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200 font-medium text-sm">
                     <Clock size={16} className="text-amber-500" />
                     <span>
-                        {new Date(event.date).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: true })}
+                        {event.time ? (
+                            event.time.match(/^\d{2}:\d{2}$/) ? (
+                                new Date(`1970-01-01T${event.time}:00`).toLocaleTimeString(undefined, {
+                                    hour: "numeric",
+                                    minute: "2-digit",
+                                })
+                            ) : (
+                                event.time
+                            )
+                        ) : (
+                            ""
+                        )}
                     </span>
                 </div>
                 {/* Location */}
