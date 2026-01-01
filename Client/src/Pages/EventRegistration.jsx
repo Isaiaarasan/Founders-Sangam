@@ -239,6 +239,35 @@ const EventRegistration = () => {
     "Please take care of your belongings; organizers are not responsible for loss or damage.",
   ];
 
+  // Content for Green Box (extracted for reuse)
+  const GreenBoxContent = (
+    <FadeIn delay={0.0}>
+      <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-xl border border-green-200 dark:border-green-800 shadow-lg ring-2 ring-green-500/50">
+        <h3 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white mb-2 flex items-center">
+          <ShieldCheck
+            size={20}
+            className="text-green-600 dark:text-green-400 mr-2 flex-shrink-0"
+          />
+          Claim your place in the most refined FOUNDER circle
+        </h3>
+        <div className="space-y-2">
+          {acknowledgementItems.map((item, index) => (
+            <div
+              key={index}
+              className="flex items-start text-sm text-slate-700 dark:text-slate-300"
+            >
+              <ShieldCheck
+                size={16}
+                className="text-green-600 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0"
+              />
+              <span className="leading-relaxed font-medium">{item}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </FadeIn>
+  );
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 pt-16 pb-10 px-4 md:px-8 transition-colors duration-500">
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-10">
@@ -248,32 +277,10 @@ const EventRegistration = () => {
           animate={{ opacity: 1, x: 0 }}
           className="space-y-6 lg:order-1"
         >
-          {/* Important Acknowledgement (TIGHTENED & ICON CHANGED) */}
-          <FadeIn delay={0.0}>
-            <div className="bg-green-50 dark:bg-green-900/30 p-4 rounded-xl border border-green-200 dark:border-green-800 shadow-lg ring-2 ring-green-500/50">
-              <h3 className="text-lg md:text-xl font-extrabold text-slate-900 dark:text-white mb-2 flex items-center">
-                <ShieldCheck
-                  size={20}
-                  className="text-green-600 dark:text-green-400 mr-2 flex-shrink-0"
-                />
-                Claim your place in the most refined FOUNDER circle
-              </h3>
-              <div className="space-y-2">
-                {acknowledgementItems.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start text-sm text-slate-700 dark:text-slate-300"
-                  >
-                    <ShieldCheck
-                      size={16}
-                      className="text-green-600 dark:text-green-400 mr-2 mt-0.5 flex-shrink-0"
-                    />
-                    <span className="leading-relaxed font-medium">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </FadeIn>
+          {/* Important Acknowledgement (Hidden on Mobile, Shown on Desktop) */}
+          <div className="hidden lg:block">
+            {GreenBoxContent}
+          </div>
 
           {/* CHANGED: Event Banner/Header (PORTRAIT SIZE) */}
           <FadeIn
@@ -397,6 +404,11 @@ const EventRegistration = () => {
                 </div>
               </>
             )}
+          </div>
+
+          {/* Mobile Green Box Position */}
+          <div className="block lg:hidden mt-6">
+            {GreenBoxContent}
           </div>
         </motion.div>
       </div>
